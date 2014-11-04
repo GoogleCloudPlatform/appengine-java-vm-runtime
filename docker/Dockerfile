@@ -21,9 +21,9 @@ RUN mkdir -p /var/lib/jetty
 RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.3.v20140905/jetty-distribution-9.2.3.v20140905.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
 
 # Managed VM related jars:
-ADD  http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.14/appengine-api-1.0-sdk-1.9.14.jar /var/lib/jetty/lib/ext/
-ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.13/appengine-jetty-managed-runtime-1.9.13.jar /var/lib/jetty/lib/ext/
-ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.13/appengine-managed-runtime-1.9.13.jar /var/lib/jetty/lib/ext/
+ADD  http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.15/appengine-api-1.0-sdk-1.9.15.jar /var/lib/jetty/lib/ext/
+ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.15/appengine-jetty-managed-runtime-1.9.15.jar /var/lib/jetty/lib/ext/
+ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.15/appengine-managed-runtime-1.9.15.jar /var/lib/jetty/lib/ext/
 
 ADD . /var/lib/jetty/
 
