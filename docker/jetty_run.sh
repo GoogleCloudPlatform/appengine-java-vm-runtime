@@ -59,9 +59,9 @@ JETTY_VERSION=9.2.3.v20140905
 -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} \
 -XX:PermSize=${PERM_SIZE} -XX:MaxPermSize=${MAX_PERM_SIZE} \
 -cp \
-${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk-1.9.14.jar:\
-${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime-1.9.13.jar:\
-${JETTY_HOME}/lib/ext/appengine-managed-runtime-1.9.13.jar:\
+${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk-1.9.15.jar:\
+${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime-1.9.15.jar:\
+${JETTY_HOME}/lib/ext/appengine-managed-runtime-1.9.15.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.apache-jsp-${JETTY_VERSION}.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-el-8.0.9.M3.jar:\

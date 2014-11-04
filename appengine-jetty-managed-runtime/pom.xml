@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.15-SNAPSHOT</version>
+    <version>1.9.16-SNAPSHOT</version>
   </parent>
   <artifactId>appengine-jetty-managed-runtime</artifactId>
   <packaging>jar</packaging>
@@ -34,13 +34,13 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.14</version>
+      <version>1.9.15</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-managed-runtime</artifactId>
-      <version>1.9.15-SNAPSHOT</version>
+      <version>1.9.16-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
 
