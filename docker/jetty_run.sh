@@ -52,7 +52,7 @@ JETTY_VERSION=9.2.3.v20140905
 # to generate the good, fast cli:
 #/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run
 
-/usr/bin/java ${DBG_AGENT} \
+/usr/bin/java ${JAVA_OPTS} ${DBG_AGENT} \
 -Djava.io.tmpdir=/tmp \
 -Djetty.home=${JETTY_HOME} \
 -Djetty.base=${JETTY_HOME} \
