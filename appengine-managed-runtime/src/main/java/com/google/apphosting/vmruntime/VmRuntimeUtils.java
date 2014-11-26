@@ -20,14 +20,13 @@ import static com.google.appengine.repackaged.com.google.common.base.MoreObjects
 
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.base.AppId;
+import com.google.apphosting.utils.http.HttpRequest;
+import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Constants and utility functions shared by the Jetty 6 and Jetty 9 VmRuntimeWebAppContext.
@@ -101,7 +100,7 @@ public class VmRuntimeUtils {
    * @param requestSpecificEnvironment The environment used by the request.
    */
   public static void flushLogsAndAddHeader(
-      HttpServletResponse response, VmApiProxyEnvironment requestSpecificEnvironment) {
+      HttpResponse response, VmApiProxyEnvironment requestSpecificEnvironment) {
     int flushCount = requestSpecificEnvironment.flushLogsAsync();
     response.setHeader(VmRuntimeUtils.LOG_FLUSH_COUNTER_HEADER, Integer.toString(flushCount));
   }
@@ -112,7 +111,7 @@ public class VmRuntimeUtils {
    *
    * @param request The request to inspect and modify.
    */
-  public static void handleSkipAdminCheck(HttpServletRequest request) {
+  public static void handleSkipAdminCheck(HttpRequest request) {
     if (request.getHeader(VmRuntimeUtils.X_GOOGLE_INTERNAL_SKIPADMINCHECK) != null
         || request.getHeader(VmRuntimeUtils.X_APPENGINE_QUEUENAME) != null) {
       request.setAttribute(VmRuntimeUtils.SKIP_ADMIN_CHECK_ATTR, Boolean.TRUE);
@@ -164,7 +163,7 @@ public class VmRuntimeUtils {
    *         False otherwise.
    */
   public static boolean waitForAsyncApiCalls(
-      VmApiProxyEnvironment requestEnvironment, HttpServletResponse response) {
+      VmApiProxyEnvironment requestEnvironment, HttpResponse response) {
     long startTime = System.currentTimeMillis();
     boolean success =
         requestEnvironment.waitForAllApiCallsToComplete(MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
