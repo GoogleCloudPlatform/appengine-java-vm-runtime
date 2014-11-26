@@ -28,11 +28,15 @@ import com.google.apphosting.runtime.jetty9.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.jetty9.MemcacheSessionStore;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.timer.Timer;
+import com.google.apphosting.utils.http.HttpRequest;
+import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 import com.google.apphosting.utils.config.AppEngineWebXmlReader;
 import com.google.apphosting.utils.jetty9.AppEngineWebAppContext;
 import com.google.apphosting.utils.jetty9.StubSessionManager;
+import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
+import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
 import com.google.apphosting.vmruntime.CommitDelayingResponseServlet3;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
@@ -52,7 +56,6 @@ import org.eclipse.jetty.util.resource.Resource;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -275,14 +278,14 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
     return false;
   }
 
-  private static boolean isHealthCheck(HttpServletRequest request) {
+  private static boolean isHealthCheck(HttpRequest request) {
     if (HEALTH_CHECK_PATH.equalsIgnoreCase(request.getPathInfo())) {
       return true;
     }
     return false;
   }
 
-  private static boolean isLocalHealthCheck(HttpServletRequest request, String remoteAddr) {
+  private static boolean isLocalHealthCheck(HttpRequest request, String remoteAddr) {
     String isLastSuccessfulPara = request.getParameter("IsLastSuccessful");
     if (isLastSuccessfulPara == null && !remoteAddr.startsWith(LINK_LOCAL_IP_NETWORK)) {
       return true;
@@ -297,7 +300,7 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
    *
    * @param request the HttpServletRequest
    */
-  private static void recordLastNormalHealthCheckStatus(HttpServletRequest request) {
+  private static void recordLastNormalHealthCheckStatus(HttpRequest request) {
     String isLastSuccessfulPara = request.getParameter("IsLastSuccessful");
     if ("yes".equalsIgnoreCase(isLastSuccessfulPara)) {
       isLastSuccessful = true;
@@ -320,7 +323,7 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
    * @param response the HttpServletResponse
    * @throws IOException when it couldn't send out response
    */
-  private static void handleLocalHealthCheck(HttpServletResponse response) throws IOException {
+  private static void handleLocalHealthCheck(HttpResponse response) throws IOException {
     if (!isLastSuccessful) {
       logger.warning("unhealthy (isLastSuccessful is False)");
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -338,9 +341,7 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
       return;
     }
     response.setContentType("text/plain");
-    PrintWriter writer = response.getWriter();
-    writer.write("ok");
-    writer.flush();
+    response.write("ok");
     response.setStatus(HttpServletResponse.SC_OK);
   }
 
@@ -354,8 +355,11 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
    */
   @Override
   public final void doScope(
-      String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      String target, Request baseRequest, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
       throws IOException, ServletException {
+    HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
+    HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
+
     String remoteAddr =
         baseRequest.getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
     if (!isValidRemoteAddr(remoteAddr)) {
@@ -376,22 +380,22 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
         System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
         wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
 
-    CommitDelayingResponseServlet3 wrappedResponse = new CommitDelayingResponseServlet3(response);
+    CommitDelayingResponseServlet3 wrappedResponse = new CommitDelayingResponseServlet3(httpServletResponse);
 
-    if (response instanceof org.eclipse.jetty.server.Response) {
-      ((org.eclipse.jetty.server.Response) response).getHttpOutput().setBufferSize(
+    if (httpServletResponse instanceof org.eclipse.jetty.server.Response) {
+      ((org.eclipse.jetty.server.Response) httpServletResponse).getHttpOutput().setBufferSize(
           wrappedResponse.getBufferSize());
     }
     try {
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
       VmRuntimeUtils.handleSkipAdminCheck(request);
       setSchemeAndPort(baseRequest);
-      super.doScope(target, baseRequest, request, wrappedResponse);
+      super.doScope(target, baseRequest, httpServletRequest, wrappedResponse);
     } finally {
       try {
         VmRuntimeUtils.interruptRequestThreads(
             requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-        if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment, wrappedResponse)) {
+        if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment, new HttpServletResponseAdapter(wrappedResponse))) {
           logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
         }
         if (!response.isCommitted()) {

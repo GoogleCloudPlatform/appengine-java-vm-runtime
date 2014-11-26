@@ -22,6 +22,7 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogLine;
 import com.google.apphosting.runtime.timer.Timer;
+import com.google.apphosting.utils.http.HttpRequest;
 
 
 import java.util.Collections;
@@ -31,8 +32,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Implements the ApiProxy environment when running in a Google Compute Engine VM.
@@ -274,7 +273,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    */
   public static VmApiProxyEnvironment createFromHeaders(Map<String, String> envMap,
       VmMetadataCache cache,
-      HttpServletRequest request,
+      HttpRequest request,
       String server,
       Timer wallTimer,
       Long millisUntilSoftDeadline,
