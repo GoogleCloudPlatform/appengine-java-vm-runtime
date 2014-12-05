@@ -15,7 +15,7 @@
  */
 
 
-package com.google.apphosting.runtime.jetty9;
+package com.google.apphosting.runtime;
 
 import static com.google.apphosting.runtime.SessionManagerUtil.deserialize;
 import static com.google.apphosting.runtime.SessionManagerUtil.serialize;
@@ -27,6 +27,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.runtime.SessionData;
 import com.google.apphosting.runtime.SessionStore;
 
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,6 +55,11 @@ public class MemcacheSessionStore implements SessionStore {
       return (SessionData) deserialize(sessionBytes);
     }
     return null;
+  }
+
+  @Override
+  public Map<String, SessionData> getAllSessions() {
+    return null; // cannot return all cached entries
   }
 
   @Override
