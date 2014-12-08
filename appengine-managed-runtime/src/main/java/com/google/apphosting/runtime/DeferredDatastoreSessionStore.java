@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.runtime.jetty9;
+package com.google.apphosting.runtime;
 
 import static com.google.appengine.api.taskqueue.RetryOptions.Builder.withTaskAgeLimitSeconds;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withPayload;
@@ -61,7 +61,7 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
   @Override
   public void saveSession(String key, SessionData data) throws Retryable {
     try {
-      Entity e = DatastoreSessionStore.createEntityForSession(key, data);
+      Entity e = createEntityForSession(key, data);
       queue.add(withPayload(newDeferredTask(putDeferredTaskConstructor, e))
           .retryOptions(withTaskAgeLimitSeconds(SAVE_TASK_AGE_LIMIT_SECS)));
     } catch (TransientFailureException e) {
@@ -71,7 +71,7 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
 
   @Override
   public void deleteSession(String keyStr) {
-    Key key = DatastoreSessionStore.createKeyForSession(keyStr);
+    Key key = createKeyForSession(keyStr);
     queue.add(withPayload(newDeferredTask(deleteDeferredTaskConstructor, key)));
   }
 
