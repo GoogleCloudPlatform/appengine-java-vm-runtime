@@ -241,7 +241,7 @@ public class VmRuntimeWebAppContext extends AppEngineWebAppContext {
       throws IOException, ServletException {
     String remoteAddr =
         baseRequest.getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
-    if (VmRequestUtils.isValidRemoteAddr(isDevMode, remoteAddr)) {
+    if (!VmRequestUtils.isValidRemoteAddr(isDevMode, remoteAddr)) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "403 Forbidden");
       return;
     }
