@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.utils.jetty9;
+package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.Environment;
+import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.DefaultIdentityService;
@@ -31,6 +33,7 @@ import org.eclipse.jetty.security.UserAuthentication;
 import org.eclipse.jetty.security.authentication.DeferredAuthentication;
 import org.eclipse.jetty.security.authentication.LoginAuthenticator;
 import org.eclipse.jetty.server.Authentication;
+import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.util.URIUtil;
 
@@ -89,10 +92,11 @@ class AppEngineAuthentication {
    * Inject custom {@link LoginService} and {@link Authenticator}
    * implementations into the specified {@link ConstraintSecurityHandler}.
    */
-  public static void configureSecurityHandler(ConstraintSecurityHandler handler) {
+  public static void configureSecurityHandler(
+      ConstraintSecurityHandler handler, VmRuntimeTrustedAddressChecker checker) {
 
     LoginService loginService = new AppEngineLoginService();
-    LoginAuthenticator authenticator = new AppEngineAuthenticator();
+    LoginAuthenticator authenticator = new AppEngineAuthenticator(checker);
     DefaultIdentityService identityService = new DefaultIdentityService();
 
     handler.setRoles(new HashSet<String>(Arrays.asList(new String[] {USER_ROLE, ADMIN_ROLE})));
@@ -108,6 +112,7 @@ class AppEngineAuthentication {
    * order to authenticate the user.
    */
   private static class AppEngineAuthenticator extends LoginAuthenticator {
+    private VmRuntimeTrustedAddressChecker checker;
 
     /**
      * Checks if the request could to to the login page.
@@ -120,6 +125,10 @@ class AppEngineAuthentication {
       return uri.indexOf(AUTH_URL_PREFIX) == 0;
     }
 
+    private AppEngineAuthenticator(VmRuntimeTrustedAddressChecker checker) {
+      this.checker = checker;
+    }
+
     @Override
     public String getAuthMethod() {
       return AUTH_METHOD;
@@ -129,7 +138,11 @@ class AppEngineAuthentication {
      * Validate a response. Compare to:
      * j.c.g.apphosting.utils.jetty.AppEngineAuthentication.AppEngineAuthenticator.authenticate().
      *
-     * From org.eclipse.jetty.server.Authentication:
+     * <p>If authentication is required but the request comes from an untrusted ip, 307s the request
+     * back to the trusted appserver.  Otherwise it will auth the request and return a login
+     * url if needed.
+     *
+     * <p>From org.eclipse.jetty.server.Authentication:
      * @param servletRequest The request
      * @param servletResponse The response
      * @param mandatory True if authentication is mandatory.
@@ -147,12 +160,26 @@ class AppEngineAuthentication {
     public Authentication validateRequest(
         ServletRequest servletRequest, ServletResponse servletResponse, boolean mandatory)
         throws ServerAuthException {
+      HttpServletRequest request = (HttpServletRequest) servletRequest;
+      HttpServletResponse response = (HttpServletResponse) servletResponse;
       if (!mandatory) {
         return new DeferredAuthentication(this);
       }
-      HttpServletRequest request = (HttpServletRequest) servletRequest;
-      HttpServletResponse response = (HttpServletResponse) servletResponse;
-      UserService userService = UserServiceFactory.getUserService();
+      HttpChannel channel = HttpChannel.getCurrentHttpChannel();
+      String remoteAddr = null;
+      if (channel != null) {
+        remoteAddr = channel.getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+      }
+      if (!checker.isTrustedRemoteAddr(remoteAddr)) {
+        String redirectUrl = getThreadLocalEnvironment().getL7UnsafeRedirectUrl()
+            + request.getRequestURI();
+        if (request.getQueryString() != null) {
+          redirectUrl += "?" + request.getQueryString();
+        }
+        response.setStatus(307);
+        response.setHeader("Location", redirectUrl);
+        return Authentication.SEND_CONTINUE;
+      }
       String uri = request.getRequestURI();
       if (uri == null) {
         uri = URIUtil.SLASH;
@@ -173,6 +200,7 @@ class AppEngineAuthentication {
       }
 
       try {
+        UserService userService = UserServiceFactory.getUserService();
         if (userService.isUserLoggedIn()) {
           UserIdentity user = _loginService.login(null, null);
           log.fine("authenticate() returning new principal for " + user);
@@ -212,6 +240,20 @@ class AppEngineAuthentication {
         boolean isAuthMandatory, Authentication.User user) {
       return true;
     }
+
+    /**
+     * Returns the thread local environment if it is a VmApiProxyEnvironment.
+     *
+     * @return The ThreadLocal environment or null if no VmApiProxyEnvironment is set.
+     */
+    private VmApiProxyEnvironment getThreadLocalEnvironment() {
+      Environment env = ApiProxy.getCurrentEnvironment();
+      if (env instanceof VmApiProxyEnvironment) {
+        return (VmApiProxyEnvironment) env;
+      }
+      return null;
+    }
+
   }
 
   /**

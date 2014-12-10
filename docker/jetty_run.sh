@@ -47,7 +47,7 @@ else
 fi
 
 JETTY_HOME=${RUNTIME_DIR}
-JETTY_VERSION=9.2.3.v20140905
+JETTY_VERSION=9.2.5.v20141112
 
 # to generate the good, fast cli:
 #/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run

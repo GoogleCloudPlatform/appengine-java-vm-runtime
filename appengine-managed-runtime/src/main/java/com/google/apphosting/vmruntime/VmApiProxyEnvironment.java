@@ -63,6 +63,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   static final String MINOR_VERSION_KEY = "GAE_MINOR_VERSION";
 
+  static final String APPENGINE_HOSTNAME_ATTRIBUTE = "attributes/gae_appengine_hostname";
+  static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
+
   public static final String TICKET_HEADER = "X-AppEngine-Api-Ticket";
   public static final String EMAIL_HEADER = "X-AppEngine-User-Email";
   public static final String IS_ADMIN_HEADER = "X-AppEngine-User-Is-Admin";
@@ -236,6 +239,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       minorVersion = VmRuntimeUtils.getMinorVersionFromPath(majorVersion, appDir);
     }
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
+    final String appengineHostname = getEnvOrMetadata(
+        envMap, cache, APPENGINE_HOSTNAME_KEY, APPENGINE_HOSTNAME_ATTRIBUTE);
     final String ticket = null;
     final String email = null;
     final boolean admin = false;
@@ -254,8 +259,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
     VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
-        partition, module, majorVersion, minorVersion, instance, email, admin, authDomain,
-        wallTimer, millisUntilSoftDeadline, attributes);
+        partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
+        authDomain, wallTimer, millisUntilSoftDeadline, attributes);
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(null));
     attributes.put(BACKGROUND_THREAD_FACTORY_ATTR, Executors.defaultThreadFactory());
     return defaultEnvironment;
@@ -284,6 +289,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String module = getEnvOrMetadata(envMap, cache, MODULE_NAME_KEY, BACKEND_ATTRIBUTE);
     final String majorVersion = defaultEnvironment.getMajorVersion();
     final String minorVersion = defaultEnvironment.getMinorVersion();
+    final String appengineHostname = defaultEnvironment.getAppengineHostname();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String ticket = request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
@@ -324,8 +330,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     }
 
     VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
-        partition, module, majorVersion, minorVersion, instance, email, admin, authDomain,
-        wallTimer, millisUntilSoftDeadline, attributes);
+        partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
+        authDomain, wallTimer, millisUntilSoftDeadline, attributes);
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(requestEnvironment));
     attributes.put(BACKGROUND_THREAD_FACTORY_ATTR, Executors.defaultThreadFactory());
 
@@ -341,7 +347,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final String majorVersion;
   private final String minorVersion;
   private final String versionId;
-  private final String instance;
+  private final String appengineHostname;
+  private final String l7UnsafeRedirectUrl;
   private final String email;
   private final boolean admin;
   private final String authDomain;
@@ -366,6 +373,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param majorVersion the major application version (required if ticket is null).
    * @param minorVersion the minor application version.
    * @param instance the VM instance ID (required if ticket is null).
+   * @param appengineHostname the app's appengine hostname.
    * @param email the user's e-mail address (may be null).
    * @param admin true if the user is an administrator.
    * @param authDomain the user's authentication domain (may be null).
@@ -375,9 +383,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    */
   private VmApiProxyEnvironment(
       String server, String ticket, String appId, String partition, String module,
-      String majorVersion, String minorVersion, String instance, String email, boolean admin,
-      String authDomain, Timer wallTimer, Long millisUntilSoftDeadline,
-      Map<String, Object> attributes) {
+      String majorVersion, String minorVersion, String instance, String appengineHostname,
+      String email, boolean admin, String authDomain, Timer wallTimer,
+      Long millisUntilSoftDeadline, Map<String, Object> attributes) {
     if (server == null || server.isEmpty()) {
       throw new IllegalArgumentException("proxy server host:port must be specified");
     }
@@ -411,7 +419,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     this.majorVersion = majorVersion == null ? "" : majorVersion;
     this.minorVersion = minorVersion == null ? "" : minorVersion;
     this.versionId = String.format("%s.%s", this.majorVersion, this.minorVersion);
-    this.instance = instance == null ? "" : instance;
+    this.appengineHostname = appengineHostname;
+    this.l7UnsafeRedirectUrl = String.format("https://%s-dot-%s-dot-%s",
+        this.majorVersion, this.module, this.appengineHostname);
     this.email = email == null ? "" : email;
     this.admin = admin;
     this.authDomain = authDomain == null ? "" : authDomain;
@@ -430,12 +440,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     appLogsWriter.addLogRecordAndMaybeFlush(record);
   }
 
-  public void flushLogs() {
-    appLogsWriter.flushAndWait();
-  }
-
-  public int flushLogsAsync() {
-    return appLogsWriter.waitForCurrentFlushAndStartNewFlush();
+  public int flushLogs() {
+    return appLogsWriter.flushAndWait();
   }
 
   public String getMajorVersion() {
@@ -444,6 +450,14 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   public String getMinorVersion() {
     return minorVersion;
+  }
+
+  public String getAppengineHostname() {
+    return appengineHostname;
+  }
+
+  public String getL7UnsafeRedirectUrl() {
+    return l7UnsafeRedirectUrl;
   }
 
   public String getServer() {

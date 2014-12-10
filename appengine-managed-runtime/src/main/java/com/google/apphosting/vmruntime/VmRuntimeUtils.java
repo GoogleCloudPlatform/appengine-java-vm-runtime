@@ -93,7 +93,7 @@ public class VmRuntimeUtils {
   }
 
   /**
-   * Initiates an asynchronous log flush and inserts the flush count header into the response. The
+   * Initiates a synchronous log flush and inserts the flush count header into the response. The
    * header is added so that the appserver can know when all log API calls are completed and can
    * delay the request accordingly.
    *
@@ -102,7 +102,7 @@ public class VmRuntimeUtils {
    */
   public static void flushLogsAndAddHeader(
       HttpServletResponse response, VmApiProxyEnvironment requestSpecificEnvironment) {
-    int flushCount = requestSpecificEnvironment.flushLogsAsync();
+    int flushCount = requestSpecificEnvironment.flushLogs();
     response.setHeader(VmRuntimeUtils.LOG_FLUSH_COUNTER_HEADER, Integer.toString(flushCount));
   }
 

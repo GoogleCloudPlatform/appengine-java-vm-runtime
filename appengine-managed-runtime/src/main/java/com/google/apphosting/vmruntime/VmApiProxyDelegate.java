@@ -277,7 +277,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     }
     RemoteApiPb.RpcError.ErrorCode errorCode = RemoteApiPb.RpcError.ErrorCode.values()[
         rpcError.getCode()];
-    logger.warning("RPC failed : " + errorCode + " : " + errorDetail);
+    logger.warning("RPC failed, API=" + packageName + "." + methodName + " : "
+                   + errorCode + " : " + errorDetail);
 
     switch (errorCode) {
       case CALL_NOT_FOUND:
