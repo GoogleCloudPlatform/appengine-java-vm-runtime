@@ -120,7 +120,7 @@ class VmAppLogsWriter {
 
     if (maxLogMessageLength < MIN_MAX_LOG_MESSAGE_LENGTH) {
       String message = String.format(
-          "maxLogMessageLength sillily small (%s); setting maxLogMessageLength to %s",
+          "maxLogMessageLength silly small (%s); setting maxLogMessageLength to %s",
           maxLogMessageLength, MIN_MAX_LOG_MESSAGE_LENGTH);
       logger.warning(message);
       this.maxLogMessageLength = MIN_MAX_LOG_MESSAGE_LENGTH;
@@ -192,12 +192,13 @@ class VmAppLogsWriter {
    * Initiates a synchronous flush.  This method will always block
    * until any pending flushes and its own flush completes.
    */
-  synchronized void flushAndWait() {
+  synchronized int flushAndWait() {
     waitForCurrentFlush();
     if (buffer.size() > 0) {
       currentFlush = doFlush();
       waitForCurrentFlush();
     }
+    return flushCount;
   }
 
   /**
@@ -207,7 +208,7 @@ class VmAppLogsWriter {
    */
   private void waitForCurrentFlush() {
     if (currentFlush != null) {
-      logger.info("Previous flush has not yet completed, blocking.");
+      logger.info("End of request or previous flush has not yet completed, blocking.");
       try {
         currentFlush.get(
             VmApiProxyDelegate.ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS + LOG_FLUSH_TIMEOUT_MS,

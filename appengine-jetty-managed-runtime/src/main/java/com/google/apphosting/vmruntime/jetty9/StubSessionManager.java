@@ -15,7 +15,7 @@
  */
 
 
-package com.google.apphosting.utils.jetty9;
+package com.google.apphosting.vmruntime.jetty9;
 
 import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.server.session.AbstractSessionManager;

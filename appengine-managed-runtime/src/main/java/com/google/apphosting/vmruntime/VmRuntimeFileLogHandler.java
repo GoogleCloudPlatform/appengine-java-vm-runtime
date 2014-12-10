@@ -91,20 +91,40 @@ public class VmRuntimeFileLogHandler extends FileHandler {
   }
 
   /**
-   * Format the given LogRecord.
-   * @param record the log record to be formatted.
-   * @return a formatted log record
+   * Used by LogData to format timestamps.
+   */
+  
+  public static final class LogTimestamp {
+    private long seconds;
+    private long nanos;
+
+    LogTimestamp(long seconds, long nanos) {
+      this.seconds = seconds;
+      this.nanos = nanos;
+    }
+
+    public long getSeconds() {
+      return seconds;
+    }
+
+    public long getNanos() {
+      return nanos;
+    }
+  }
+
+  /**
+   * Class for logging user data via GSON.
    */
   
   public static final class LogData {
     private String message;
-    private long timeNanos;
+    private LogTimestamp timestamp;
     private String thread;
     private String severity;
 
-    LogData(String message, long timeNanos, String thread, String severity) {
+    LogData(String message, long seconds, long nanos, String thread, String severity) {
       this.message = message;
-      this.timeNanos = timeNanos;
+      this.timestamp = new LogTimestamp(seconds, nanos);
       this.thread = thread;
       this.severity = severity;
     }
@@ -113,8 +133,8 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       return message;
     }
 
-    public long getTimeNanos() {
-      return timeNanos;
+    public LogTimestamp getTimestamp() {
+      return timestamp;
     }
 
     public String getThread() {
@@ -128,6 +148,11 @@ public class VmRuntimeFileLogHandler extends FileHandler {
 
   private static final class CustomFormatter extends Formatter {
 
+    /**
+     * Format the given LogRecord.
+     * @param record the log record to be formatted.
+     * @return a formatted log record
+     */
     @Override
     public synchronized String format(LogRecord record) {
       StringBuffer sb = new StringBuffer();
@@ -156,10 +181,11 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       }
       Gson gson = new Gson();
       message = sb.toString();
-      long timeNanos = record.getMillis() * 1000000;
+      long seconds = record.getMillis() / 1000;
+      long nanos = (record.getMillis() % 1000) * 1000000;
       String thread = Integer.toString(record.getThreadID());
       String severity = convertLogLevel(record.getLevel());
-      return gson.toJson(new LogData(message, timeNanos, thread, severity)) + "\n";
+      return gson.toJson(new LogData(message, seconds, nanos, thread, severity)) + "\n";
     }
   }
 }
