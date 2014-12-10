@@ -23,10 +23,9 @@ RUN mkdir -p /var/lib/jetty
 RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.5.v20141112/jetty-distribution-9.2.5.v20141112.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
 
 # Managed VM related jars:
-ADD  http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.15/appengine-api-1.0-sdk-1.9.15.jar /var/lib/jetty/lib/ext/
-ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.15/appengine-jetty-managed-runtime-1.9.15.jar /var/lib/jetty/lib/ext/
-ADD  https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.15/appengine-managed-runtime-1.9.15.jar /var/lib/jetty/lib/ext/
-
+RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.17/appengine-api-1.0-sdk-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-api-1.0-sdk-1.9.17.jar
+RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.17/appengine-jetty-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-jetty-managed-runtime-1.9.17.jar
+RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.17/appengine-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-managed-runtime-1.9.17.jar
 ADD . /var/lib/jetty/
 
 RUN ln -s var/lib/jetty/webapps/root /app
