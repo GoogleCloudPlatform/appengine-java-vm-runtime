@@ -16,6 +16,8 @@
 
 package com.google.apphosting.runtime;
 
+import java.util.Map;
+
 /**
  * Describes an object that knows how to lookup, save, and delete
  * session data.
@@ -23,6 +25,14 @@ package com.google.apphosting.runtime;
  */
 public interface SessionStore {
   SessionData getSession(String key);
+
+  /**
+   * Return null if the store cannot retrieve session data.
+   *
+   * @return all sessions or null if they cannot be retrieved
+   */
+  Map<String, SessionData> getAllSessions();
+
   void saveSession(String key, SessionData data) throws Retryable;
   void deleteSession(String key);
 

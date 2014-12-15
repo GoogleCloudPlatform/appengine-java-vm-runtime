@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.runtime.jetty9;
+package com.google.apphosting.runtime;
 
 import static com.google.apphosting.runtime.SessionManagerUtil.deserialize;
 import static com.google.apphosting.runtime.SessionManagerUtil.serialize;
@@ -28,9 +28,12 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.google.apphosting.runtime.SessionData;
 import com.google.apphosting.runtime.SessionStore;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -99,6 +102,23 @@ public class DatastoreSessionStore implements SessionStore {
       logger.fine("Unable to find specified session " + key);
     }
     return null;
+  }
+
+  @Override
+  public Map<String, SessionData> getAllSessions() {
+    final String originalNamespace = NamespaceManager.get();
+    NamespaceManager.set("");
+    try {
+      DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+      PreparedQuery pq = ds.prepare(new Query(SESSION_ENTITY_TYPE));
+      Map<String, SessionData> sessions = new HashMap<>();
+      for (Entity entity : pq.asIterable()) {
+        sessions.put(entity.getKey().getName(), createSessionFromEntity(entity));
+      }
+      return sessions;
+    } finally {
+      NamespaceManager.set(originalNamespace);
+    }
   }
 
   @Override
