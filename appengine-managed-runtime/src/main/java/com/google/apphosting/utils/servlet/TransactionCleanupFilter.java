@@ -64,12 +64,16 @@ public class TransactionCleanupFilter implements Filter {
   }
 
   void handleAbandonedTxns(Collection<Transaction> txns) {
+    // TODO(user): In the dev appserver, capture a stack trace whenever a
+    // transaction is started so we can print it here.
     for (Transaction txn : txns) {
       try {
         logger.warning("Request completed without committing or rolling back transaction with id "
             + txn.getId() + ".  Transaction will be rolled back.");
         txn.rollback();
       } catch (Exception e) {
+        // We swallow exceptions so that there is no risk of our cleanup
+        // impacting the actual result of the request.
         logger.log(Level.SEVERE, "Swallowing an exception we received while trying to rollback "
             + "abandoned transaction with id " + txn.getId(), e);
       }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,10 @@ import java.util.logging.Logger;
  *
  */
 public class VmRuntimeFileLogHandler extends FileHandler {
+  // This exists for testing purposes only.  If set, the cloud logger may lose logs.
   private static final String LOG_PATTERN_CONFIG_PROPERTY =
       "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern";
+  // Log files to /var/log/app_engine/app.[0-2].log.json
   private static final String DEFAULT_LOG_PATTERN = "/var/log/app_engine/app.%g.log.json";
   private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;
@@ -63,7 +65,7 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     Logger rootLogger = Logger.getLogger("");
     for (Handler handler : rootLogger.getHandlers()) {
       if (handler instanceof VmRuntimeFileLogHandler) {
-        return;
+        return; // Already installed.
       }
     }
     rootLogger.addHandler(new VmRuntimeFileLogHandler());
@@ -86,6 +88,8 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     } else if (intLevel >= Level.INFO.intValue()) {
       return "INFO";
     } else {
+      // There's no trace, so we'll map everything below this to
+      // debug.
       return "DEBUG";
     }
   }
@@ -177,6 +181,7 @@ public class VmRuntimeFileLogHandler extends FileHandler {
           pw.close();
           sb.append(sw.toString());
         } catch (Exception ex) {
+          // Ignored.  (Shouldn't happen and if it does we can't do much about it.)
         }
       }
       Gson gson = new Gson();

@@ -49,10 +49,12 @@ public class StubSessionManager extends AbstractSessionManager {
   @Override
   public void renewSessionId(String oldClusterId, String oldNodeId,
                              String newClusterId, String newNodeId) {
+   // The id should be changed on the existing session but this won't be possible.
   }
 
   @Override
   protected void shutdownSessions() throws Exception {
+   // Do nothing.
   }
 
   /**
@@ -87,7 +89,12 @@ public class StubSessionManager extends AbstractSessionManager {
     }
 
     private void throwException() {
+      // We're caller 1.  Caller 2 is setAttribute or removeAttribute.
+      // We want their immediate caller (3).
       if (Reflection.getCallerClass(3).getName().startsWith("org.apache.jasper")) {
+        // Jasper 6.0.59 tries to remove attributes from a session to
+        // make way for new variables.  No sense disallowing this --
+        // the user can't really do anything about it.
         return;
       }
       throw new RuntimeException("Session support is not enabled in appengine-web.xml.  "
@@ -137,6 +144,7 @@ public class StubSessionManager extends AbstractSessionManager {
 
   @Override
   protected void addSession(AbstractSession session) {
+    // do nothing; we'll make a new one if we need it
   }
 
   /**
@@ -164,6 +172,7 @@ public class StubSessionManager extends AbstractSessionManager {
 
   @Override
   protected boolean removeSession(String arg0) {
+    // since we don't save them anyway, this is a no-op
     return true;
   }
 

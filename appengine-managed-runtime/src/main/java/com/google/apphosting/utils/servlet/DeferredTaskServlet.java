@@ -56,6 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 public class DeferredTaskServlet extends HttpServlet {
+  // Keep this in sync with X_APPENGINE_QUEUENAME and
   static final String X_APPENGINE_QUEUENAME = "X-AppEngine-QueueName";
 
   static final String DEFERRED_TASK_SERVLET_KEY =
@@ -81,6 +82,8 @@ public class DeferredTaskServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    // header set. Non admin users cannot set this header so it's a signal that
+    // this came from task queue or an admin smart enough to set the header.
     if (req.getHeader(X_APPENGINE_QUEUENAME) == null) {
       resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Not a taskqueue request.");
       return;
@@ -98,6 +101,8 @@ public class DeferredTaskServlet extends HttpServlet {
       return;
     }
 
+    // Place the current servlet, request and response in the environment for
+    // situations where the task may need to get to it.
     Map<String, Object> attributes = ApiProxy.getCurrentEnvironment().getAttributes();
     attributes.put(DEFERRED_TASK_SERVLET_KEY, this);
     attributes.put(DEFERRED_TASK_REQUEST_KEY, req);
@@ -120,11 +125,12 @@ public class DeferredTaskServlet extends HttpServlet {
       if (doNotRetry == null || !doNotRetry) {
         throw new ServletException(e);
       } else if (doNotRetry) {
-        resp.setStatus(HttpURLConnection.HTTP_NOT_AUTHORITATIVE);
+        resp.setStatus(HttpURLConnection.HTTP_NOT_AUTHORITATIVE);  // Alternate success code.
         log(DeferredTaskServlet.class.getName() +
             " - Deferred task failed but doNotRetry specified. Exception: " + e);
       }
     } finally {
+      // Clean out the attributes.
       attributes.remove(DEFERRED_TASK_SERVLET_KEY);
       attributes.remove(DEFERRED_TASK_REQUEST_KEY);
       attributes.remove(DEFERRED_TASK_RESPONSE_KEY);
@@ -182,6 +188,7 @@ public class DeferredTaskServlet extends HttpServlet {
           try {
             return Class.forName(name, false, classLoader);
           } catch (ClassNotFoundException ex) {
+            // This one should also handle primitive types
             return super.resolveClass(desc);
           }
         }
@@ -189,10 +196,14 @@ public class DeferredTaskServlet extends HttpServlet {
         @Override
         protected Class<?> resolveProxyClass(String[] interfaces)
             throws IOException, ClassNotFoundException {
+          // Note(user) This logic was copied from ObjectInputStream.java in the
+          // JDK, and then modified to use the thread context class loader instead of the
+          // "latest" loader that is used there.
           ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
           ClassLoader nonPublicLoader = null;
           boolean hasNonPublicInterface = false;
 
+          // define proxy in class loader of non-public interface(s), if any
           Class[] classObjs = new Class[interfaces.length];
           for (int i = 0; i < interfaces.length; i++) {
             Class cl = Class.forName(interfaces[i], false, classLoader);

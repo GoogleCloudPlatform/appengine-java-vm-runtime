@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,7 @@ class AppEngineAuthentication {
 
   private static final String REALM_NAME = "Google App Engine";
 
+  // Keep in sync with com.google.apphosting.runtime.jetty.JettyServletEngineAdapter.
   private static final String SKIP_ADMIN_CHECK_ATTR =
       "com.google.apphosting.internal.SkipAdminCheck";
 
@@ -99,6 +100,7 @@ class AppEngineAuthentication {
     LoginAuthenticator authenticator = new AppEngineAuthenticator(checker);
     DefaultIdentityService identityService = new DefaultIdentityService();
 
+    // Set allowed roles.
     handler.setRoles(new HashSet<String>(Arrays.asList(new String[] {USER_ROLE, ADMIN_ROLE})));
     handler.setLoginService(loginService);
     handler.setAuthenticator(authenticator);
@@ -170,6 +172,7 @@ class AppEngineAuthentication {
       if (channel != null) {
         remoteAddr = channel.getEndPoint().getRemoteAddress().getAddress().getHostAddress();
       }
+      // Untrusted inbound ip for a login page, 307 the user to a server that we can trust.
       if (!checker.isTrustedRemoteAddr(remoteAddr)) {
         String redirectUrl = getThreadLocalEnvironment().getL7UnsafeRedirectUrl()
             + request.getRequestURI();
@@ -180,10 +183,15 @@ class AppEngineAuthentication {
         response.setHeader("Location", redirectUrl);
         return Authentication.SEND_CONTINUE;
       }
+      // Trusted inbound ip, auth headers can be trusted.
       String uri = request.getRequestURI();
       if (uri == null) {
         uri = URIUtil.SLASH;
       }
+      // Check this before checking if there is a user logged in, so
+      // that we can log out properly.  Specifically, watch out for
+      // the case where the user logs in, but as a role that isn't
+      // allowed to see /*.  They should still be able to log out.
       if (isLoginOrErrorPage(uri) && !DeferredAuthentication.isDeferred(response)) {
         log.fine("Got " + uri + ", returning DeferredAuthentication to "
             + "imply authentication is in progress.");
@@ -192,6 +200,7 @@ class AppEngineAuthentication {
 
       if (request.getAttribute(SKIP_ADMIN_CHECK_ATTR) != null) {
         log.fine("Returning DeferredAuthentication because of SkipAdminCheck.");
+        // Warning: returning DeferredAuthentication here will bypass security restrictions!
         return new DeferredAuthentication(this);
       }
 
@@ -201,6 +210,8 @@ class AppEngineAuthentication {
 
       try {
         UserService userService = UserServiceFactory.getUserService();
+        // If the user is authenticated already, just create a
+        // AppEnginePrincipal or AppEngineFederatedPrincipal for them.
         if (userService.isUserLoggedIn()) {
           UserIdentity user = _loginService.login(null, null);
           log.fine("authenticate() returning new principal for " + user);
@@ -217,8 +228,10 @@ class AppEngineAuthentication {
           log.fine("Got " + request.getRequestURI() + " but no one was logged in, redirecting.");
           String url = userService.createLoginURL(getFullURL(request));
           response.sendRedirect(url);
+          // Tell Jetty that we've already committed a response here.
           return Authentication.SEND_CONTINUE;
         } catch (ApiProxy.ApiProxyException ex) {
+          // If we couldn't get a login URL for some reason, return a 403 instead.
           log.log(Level.SEVERE, "Could not get login URL:", ex);
           response.sendError(HttpServletResponse.SC_FORBIDDEN);
           return Authentication.SEND_FAILURE;
@@ -229,12 +242,18 @@ class AppEngineAuthentication {
       }
     }
 
+    /*
+     * We are not using sessions for authentication.
+     */
     @Override
     protected HttpSession renewSession(HttpServletRequest request, HttpServletResponse response) {
       log.warning("renewSession throwing an UnsupportedOperationException");
       throw new UnsupportedOperationException();
     }
 
+    /*
+     * This seems to only be used by JaspiAuthenticator, all other Authenticators return true.
+     */
     @Override
     public boolean secureResponse(ServletRequest servletRequest, ServletResponse servletResponse,
         boolean isAuthMandatory, Authentication.User user) {
@@ -319,6 +338,7 @@ class AppEngineAuthentication {
 
     @Override
     public void logout(UserIdentity user) {
+      // Jetty calls this on every request -- even if user is null!
       if (user != null) {
         log.fine("Ignoring logout call for: " + user);
       }
@@ -400,6 +420,9 @@ class AppEngineAuthentication {
       this.userPrincipal = userPrincipal;
     }
 
+    /*
+     * Only used by jaas and jaspi.
+     */
     @Override
     public Subject getSubject() {
       log.info("getSubject() throwing UnsupportedOperationException.");
@@ -429,6 +452,9 @@ class AppEngineAuthentication {
         if (user.equals(userService.getCurrentUser())) {
           return userService.isUserAdmin();
         } else {
+          // TODO(user): I'm not sure this will happen in
+          // practice. If it does, we may need to pass an
+          // application's admin list down somehow.
           log.severe("Cannot tell if non-logged-in user " + user + " is an admin.");
           return false;
         }

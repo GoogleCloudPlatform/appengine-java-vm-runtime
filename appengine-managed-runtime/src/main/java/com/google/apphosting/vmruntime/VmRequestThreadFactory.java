@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class VmRequestThreadFactory implements ThreadFactory {
 
   private final Environment requestEnvironment;
 
+  // Accesses to createdThreads must be synchronized on "mutex".
   private final Object mutex;
   private final List<Thread> createdThreads;
   private volatile boolean allowNewRequestThreadCreation;

@@ -70,8 +70,12 @@ public class ParseBlobUploadFilter implements Filter {
   static final String UPLOADED_BLOBINFO_ATTR =
       "com.google.appengine.api.blobstore.upload.blobinfos";
 
+  // This field has to be the same as X_APPENGINE_CLOUD_STORAGE_OBJECT in http_proto.cc.
+  // This header will have the creation date in the format YYYY-MM-DD HH:mm:ss.SSS.
   static final String UPLOAD_CREATION_HEADER = "X-AppEngine-Upload-Creation";
 
+  // This field has to be the same as X_APPENGINE_CLOUD_STORAGE_OBJECT in http_proto.cc.
+  // This header will have the filename of created the object in Cloud Storage when appropriate.
   static final String CLOUD_STORAGE_OBJECT_HEADER = "X-AppEngine-Cloud-Storage-Object";
 
   static final String CONTENT_LENGTH_HEADER = "Content-Length";
@@ -144,7 +148,7 @@ public class ParseBlobUploadFilter implements Filter {
     info.put("content-type", part.getContentType());
     info.put("creation-date", part.getHeader(UPLOAD_CREATION_HEADER)[0]);
     info.put("filename", part.getFileName());
-    info.put("size", part.getHeader(CONTENT_LENGTH_HEADER)[0]);
+    info.put("size", part.getHeader(CONTENT_LENGTH_HEADER)[0]); // part.getSize() returns 0
     info.put("md5-hash", part.getContentMD5());
 
     String[] headers = part.getHeader(CLOUD_STORAGE_OBJECT_HEADER);
@@ -171,10 +175,13 @@ public class ParseBlobUploadFilter implements Filter {
       if (otherParams.isEmpty()) {
         return parameters;
       } else {
+        // HttpServlet.getParameterMap() result is immutable so we need to take a copy.
         Map<String, String[]> map = new HashMap<String, String[]>(parameters);
         for (Map.Entry<String, List<String>> entry : otherParams.entrySet()) {
           map.put(entry.getKey(), entry.getValue().toArray(new String[0]));
         }
+        // Maintain the semantic of ServletRequstWrapper by returning
+        // an immutable map.
         return Collections.unmodifiableMap(map);
       }
     }

@@ -22,6 +22,7 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogLine;
 import com.google.apphosting.runtime.timer.Timer;
+import com.google.apphosting.utils.http.HttpRequest;
 
 
 import java.util.Collections;
@@ -31,8 +32,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Implements the ApiProxy environment when running in a Google Compute Engine VM.
@@ -44,20 +43,28 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
+  // TODO(user): remove old metadata attributes once we set environment variables everywhere.
   public static final String PROJECT_ATTRIBUTE = "attributes/gae_project";
+  // A long app id is the app_id minus the partition.
   static final String LONG_APP_ID_KEY = "GAE_LONG_APP_ID";
 
   public static final String PARTITION_ATTRIBUTE = "attributes/gae_partition";
   static final String PARTITION_KEY = "GAE_PARTITION";
 
+  // the port number of the server, passed as a system env.
+  // This is needed for the Cloud SDK to pass the real server port which is by
+  // default 8080. In case of the real runtime this port number(appspot.com is 80).
   static final String GAE_SERVER_PORT = "GAE_SERVER_PORT";
 
+  // TODO(user): Change the name to MODULE_ATTRIBUTE, as the field contains the name of the
+  // App Engine Module.
   public static final String BACKEND_ATTRIBUTE = "attributes/gae_backend_name";
   static final String MODULE_NAME_KEY = "GAE_MODULE_NAME";
 
   public static final String VERSION_ATTRIBUTE = "attributes/gae_backend_version";
   static final String VERSION_KEY = "GAE_MODULE_VERSION";
 
+  // Note: This environment variable is not set in prod and we still need to rely on metadata.
   public static final String INSTANCE_ATTRIBUTE = "attributes/gae_backend_instance";
   static final String INSTANCE_KEY = "GAE_MODULE_INSTANCE";
 
@@ -72,6 +79,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   public static final String AUTH_DOMAIN_HEADER = "X-AppEngine-Auth-Domain";
   public static final String HTTPS_HEADER = "X-AppEngine-Https";
 
+  // Google specific annotations are commented out so we don't have to take a dependency
+  // on the annotations lib. Please don't use these constants except for testing this class.
   
   static final String BACKEND_ID_KEY = "com.google.appengine.backend.id";
   
@@ -83,20 +92,30 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   static final String BACKGROUND_THREAD_FACTORY_ATTR =
       "com.google.appengine.api.ThreadManager.BACKGROUND_THREAD_FACTORY";
 
+  // If the "X-AppEngine-Federated-Identity" header is included in the request this attribute
+  // should be set to the boolean true, otherwise it should be set to false.
   
 
   static final String IS_FEDERATED_USER_KEY =
       "com.google.appengine.api.users.UserService.is_federated_user";
+
+  // If the app is trusted AND the "X-AppEngine-Trusted-IP-Request" header is "1" this attribute
+  // should be set the the boolean true, otherwise it should be set to false.
 
   
   static final String IS_TRUSTED_IP_KEY = "com.google.appengine.runtime.is_trusted_ip";
   
   static final String IS_TRUSTED_IP_HEADER = "X-AppEngine-Trusted-IP-Request";
 
+  // See flags in: java/com/google/apphosting/runtime/JavaRuntimeFactory.java
+  // Log flush byte count boosted from 100K to 1M (same as python) to improve logging throughput.
   private static final long DEFAULT_FLUSH_APP_LOGS_EVERY_BYTE_COUNT = 1024 * 1024L;
   private static final int MAX_LOG_FLUSH_SECONDS = 60;
+  // Keep in sync with flag in: apphosting/base/app_logs_util.cc
   private static final int DEFAULT_MAX_LOG_LINE_SIZE = 8 * 1024;
 
+  // Control the maximum number of concurrent API calls.
+  // https://developers.google.com/appengine/docs/python/backends/#Python_Billing_quotas_and_limits
   
   static final int MAX_CONCURRENT_API_CALLS = 100;
   
@@ -149,6 +168,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
         "X-AppEngine-Current-Namespace",
         "com.google.appengine.api.NamespaceManager.currentNamespace",
         null, false),
+    // ########## Trusted app attributes below. ##############
     LOAS_PEER_USERNAME(
         "X-AppEngine-LOAS-Peer-Username",
         "com.google.net.base.peer.loas_peer_username",
@@ -246,6 +266,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final boolean admin = false;
     final String authDomain = null;
     Map<String, Object> attributes = new HashMap<String, Object>();
+    // Fill in default attributes values.
     for (AttributeMapping mapping : AttributeMapping.values()) {
       if (mapping.trustedAppOnly) {
         continue;
@@ -261,7 +282,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
         authDomain, wallTimer, millisUntilSoftDeadline, attributes);
+    // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(null));
+    // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
+    // we can use the default thread factory here and don't require any special logic.
     attributes.put(BACKGROUND_THREAD_FACTORY_ATTR, Executors.defaultThreadFactory());
     return defaultEnvironment;
   }
@@ -279,7 +303,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    */
   public static VmApiProxyEnvironment createFromHeaders(Map<String, String> envMap,
       VmMetadataCache cache,
-      HttpServletRequest request,
+      HttpRequest request,
       String server,
       Timer wallTimer,
       Long millisUntilSoftDeadline,
@@ -306,8 +330,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     boolean trustedApp = request.getHeader(IS_TRUSTED_IP_HEADER) != null;
 
     Map<String, Object> attributes = new HashMap<String, Object>();
+    // Fill in the attributes from the AttributeMapping.
     for (AttributeMapping mapping : AttributeMapping.values()) {
       if (mapping.trustedAppOnly && !trustedApp) {
+        // Do not fill in any trusted app attributes unless the app is trusted.
         continue;
       }
       String headerValue = request.getHeader(mapping.headerKey);
@@ -315,9 +341,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
         attributes.put(mapping.attributeKey, headerValue);
       } else if (mapping.defaultValue != null) {
         attributes.put(mapping.attributeKey, mapping.defaultValue);
-      }
+      }  // else: The attribute is expected to be missing if the header is not set.
     }
 
+    // Fill in the special attributes that do not fit the simple mapping model.
     boolean federatedId = request.getHeader(AttributeMapping.FEDERATED_IDENTITY.headerKey) != null;
     attributes.put(IS_FEDERATED_USER_KEY, Boolean.valueOf(federatedId));
 
@@ -325,6 +352,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(INSTANCE_ID_KEY, instance);
 
     if (trustedApp) {
+      // The trusted IP attribute is a boolean.
       boolean trustedIp = "1".equals(request.getHeader(IS_TRUSTED_IP_HEADER));
       attributes.put(IS_TRUSTED_IP_KEY, Boolean.valueOf(trustedIp));
     }
@@ -332,7 +360,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
         authDomain, wallTimer, millisUntilSoftDeadline, attributes);
+    // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(requestEnvironment));
+    // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
+    // we can use the default thread factory here and don't require any special logic.
     attributes.put(BACKGROUND_THREAD_FACTORY_ATTR, Executors.defaultThreadFactory());
 
     return requestEnvironment;
@@ -354,8 +385,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final String authDomain;
   private final Map<String, Object> attributes;
   private ThreadLocal<Map<String, Object>> threadLocalAttributes;
-  private final Timer wallTimer;
-  private final Long millisUntilSoftDeadline;
+  private final Timer wallTimer;  // may be null if millisUntilSoftDeadline is null.
+  private final Long millisUntilSoftDeadline;  // may be null (no deadline).
   private final VmAppLogsWriter appLogsWriter;
   
   final Semaphore pendingApiCallSemaphore;
@@ -427,8 +458,13 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     this.authDomain = authDomain == null ? "" : authDomain;
     this.wallTimer = wallTimer;
     this.millisUntilSoftDeadline = millisUntilSoftDeadline;
+    // Environments are associated with requests, and can be
+    // shared across more than one thread. We'll synchronize all
+    // individual calls which should be sufficient.
     this.attributes = Collections.synchronizedMap(attributes);
 
+    // TODO(user): forward app_log_line_size, app_log_group_size, max_log_flush_seconds
+    // from clone_settings so these can be overridden per app.
     this.appLogsWriter = new VmAppLogsWriter(
         new LinkedList<UserAppLogLine>(), DEFAULT_FLUSH_APP_LOGS_EVERY_BYTE_COUNT,
         DEFAULT_MAX_LOG_LINE_SIZE, MAX_LOG_FLUSH_SECONDS);
@@ -536,8 +572,12 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   @Override
   public Map<String, Object> getAttributes() {
     if (threadLocalAttributes != null && threadLocalAttributes.get() != null) {
+      // If a thread-local copy of the attributes exists, return it.
       return threadLocalAttributes.get();
     } else {
+      // Otherwise this is not a shared instance and/or we were never told to store
+      // a thread-local copy. So we just return the attributes that were used to originally
+      // construct the instance.
       return attributes;
     }
   }
@@ -558,7 +598,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   void aSyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
     try {
       if (pendingApiCallSemaphore.tryAcquire(maxWaitMs, TimeUnit.MILLISECONDS)) {
-        return;
+        return; // All good.
       }
       throw new ApiProxyException("Timed out while acquiring a pending API call semaphore.");
     } catch (InterruptedException e) {
@@ -578,7 +618,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   void apiCallStarted(long maxWaitMs, boolean releasePendingCall) throws ApiProxyException {
     try {
       if (runningApiCallSemaphore.tryAcquire(maxWaitMs, TimeUnit.MILLISECONDS)) {
-        return;
+        return; // All good.
       }
       throw new ApiProxyException("Timed out while acquiring an API call semaphore.");
     } catch (InterruptedException e) {
@@ -609,6 +649,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       long startTime = System.currentTimeMillis();
       if (pendingApiCallSemaphore.tryAcquire(
           MAX_PENDING_API_CALLS, maxWaitMs, TimeUnit.MILLISECONDS)) {
+        // Release the acquired semaphores in finally {} to guarantee that they are returned.
         try {
           long remaining = maxWaitMs - (System.currentTimeMillis() - startTime);
           if (runningApiCallSemaphore.tryAcquire(
@@ -621,6 +662,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
         }
       }
     } catch (InterruptedException ignored) {
+      // The error message is printed by the caller.
     }
     return false;
   }

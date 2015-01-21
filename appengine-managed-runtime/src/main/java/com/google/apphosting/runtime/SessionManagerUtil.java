@@ -47,12 +47,22 @@ public class SessionManagerUtil {
   }
 
   public static Object deserialize(byte[] bytes) {
+    // N.B.(schwardo): There is most likely user code on the stack
+    // here, but because the value we're returning is not related to
+    // our ClassLoader we'll fail the
+    // RuntimePermission("getClassLoader") check.  We do have this
+    // permission though, so use a doPrivileged block to get user code
+    // off the stack.
     ClassLoader classLoader =
         AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
           public ClassLoader run() {
             return Thread.currentThread().getContextClassLoader();
           }
         });
+    // TODO(user): It seems strange that we need to do this.  It
+    // would be safer and cleaner if we could find a way to have user
+    // code initiate this serialization, rather than having
+    // implementation code perform it on the user's behalf.
     try {
       ObjectInputStream ois = new DelegatingObjectInputStream(
           new ByteArrayInputStream(bytes), classLoader);
@@ -112,9 +122,13 @@ public class SessionManagerUtil {
     @Override
     protected Class<?> resolveProxyClass(String[] interfaces)
         throws IOException, ClassNotFoundException {
+      // Note(user) This logic was copied from ObjectInputStream.java in the
+      // JDK, and then modified to use the UserClassLoader instead of the
+      // "latest" loader that is used there.
       ClassLoader nonPublicLoader = null;
       boolean hasNonPublicInterface = false;
 
+      // define proxy in class loader of non-public interface(s), if any
       Class[] classObjs = new Class[interfaces.length];
       for (int i = 0; i < interfaces.length; i++) {
         Class cl = Class.forName(interfaces[i], false, classLoader);

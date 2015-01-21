@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.runtime.jetty9;
+package com.google.apphosting.runtime;
 
 import static com.google.appengine.api.taskqueue.RetryOptions.Builder.withTaskAgeLimitSeconds;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withPayload;
@@ -25,7 +25,6 @@ import com.google.appengine.api.taskqueue.DeferredTask;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TransientFailureException;
-import com.google.apphosting.runtime.SessionData;
 
 import java.lang.reflect.Constructor;
 
@@ -41,6 +40,9 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
    */
   private static final int SAVE_TASK_AGE_LIMIT_SECS = 10;
 
+  // The DeferredTask implementations we use to put and delete session data in
+  // the datastore are are general-purpose, but we're not ready to expose them
+  // in the public api, so we access them via reflection.
   private static final Constructor<DeferredTask> putDeferredTaskConstructor;
   private static final Constructor<DeferredTask> deleteDeferredTaskConstructor;
 
@@ -61,6 +63,14 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
   @Override
   public void saveSession(String key, SessionData data) throws Retryable {
     try {
+      // Setting a timeout on retries to reduce the likelihood that session
+      // state "reverts."  This can happen if a session in state s1 is saved
+      // but the write fails.  Then the session in state s2 is saved and the
+      // write succeeds.  Then a retry of the save of the session in s1
+      // succeeds.  We could use version numbers in the session to detect this
+      // scenario, but it doesn't seem worth it.
+      // The length of this timeout has been chosen arbitrarily.  Maybe let
+      // users set it?
       Entity e = DatastoreSessionStore.createEntityForSession(key, data);
       queue.add(withPayload(newDeferredTask(putDeferredTaskConstructor, e))
           .retryOptions(withTaskAgeLimitSeconds(SAVE_TASK_AGE_LIMIT_SECS)));
@@ -72,6 +82,7 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
   @Override
   public void deleteSession(String keyStr) {
     Key key = DatastoreSessionStore.createKeyForSession(keyStr);
+    // We'll let this task retry indefinitely.
     queue.add(withPayload(newDeferredTask(deleteDeferredTaskConstructor, key)));
   }
 

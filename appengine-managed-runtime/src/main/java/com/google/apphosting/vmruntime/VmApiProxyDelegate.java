@@ -71,6 +71,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
   public static final String REQUEST_STUB_ID = "app-engine-apis";
   public static final String REQUEST_STUB_METHOD = "/VMRemoteAPI.CallRemoteAPI";
 
+  // This is the same definition as com.google.apphosting.api.API_DEADLINE_KEY. It is also defined
+  // here to avoid being exposed to the users in appengine-api.jar.
   protected static final String API_DEADLINE_KEY =
       "com.google.apphosting.api.ApiProxy.api_deadline_key";
 
@@ -130,6 +132,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
+    // If this was caused by an async call we need to return the pending call semaphore.
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
     try {
       return runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
@@ -143,9 +146,11 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       String methodName, byte[] requestData, int timeoutMs) {
     HttpPost request = createRequest(environment, packageName, methodName, requestData, timeoutMs);
     try {
+      // Create a new http context for each call as the default context is not thread safe.
       BasicHttpContext context = new BasicHttpContext();
       HttpResponse response = httpclient.execute(request, context);
 
+      // Check for HTTP error status and return early.
       if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
         try (Scanner errorStreamScanner =
             new Scanner(new BufferedInputStream(response.getEntity().getContent()));) {
@@ -160,9 +165,11 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
               "HTTP ApiProxy unable to parse response for " + packageName + "." + methodName);
           throw new RPCFailedException(packageName, methodName);
         }
+        // If the response contains an error, convert it to the expected api exception and throw.
         if (remoteResponse.hasRpcError() || remoteResponse.hasApplicationError()) {
           throw convertRemoteError(remoteResponse, packageName, methodName, logger);
         }
+        // Success, return the response.
         return remoteResponse.getResponseAsBytes();
       }
     } catch (IOException e) {
@@ -184,8 +191,10 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
    * @param timeoutMs The timeout for this request
    * @return an HttpPost object to send to the API.
    */
+  // 
   static HttpPost createRequest(VmApiProxyEnvironment environment, String packageName,
       String methodName, byte[] requestData, int timeoutMs) {
+    // Wrap the payload in a RemoteApi Request.
     RemoteApiPb.Request remoteRequest = new RemoteApiPb.Request();
     remoteRequest.setServiceName(packageName);
     remoteRequest.setMethod(methodName);
@@ -196,6 +205,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     request.setHeader(RPC_STUB_ID_HEADER, REQUEST_STUB_ID);
     request.setHeader(RPC_METHOD_HEADER, REQUEST_STUB_METHOD);
 
+    // Set TCP connection timeouts.
     HttpParams params = new BasicHttpParams();
     params.setLongParameter(ConnManagerPNames.TIMEOUT,
         timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
@@ -204,10 +214,12 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
         timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
 
+    // Performance tweaks.
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, Boolean.TRUE);
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, Boolean.FALSE);
     request.setParams(params);
 
+    // The request deadline can be overwritten by the environment, read deadline if available.
     Double deadline = (Double) (environment.getAttributes().get(API_DEADLINE_KEY));
     if (deadline == null) {
       request.setHeader(RPC_DEADLINE_HEADER,
@@ -216,6 +228,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       request.setHeader(RPC_DEADLINE_HEADER, Double.toString(deadline));
     }
 
+    // If the incoming request has a dapper trace header: set it on outgoing API calls
+    // so they are tied to the original request.
     Object dapperHeader = environment.getAttributes()
         .get(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.attributeKey);
     if (dapperHeader instanceof String) {
@@ -252,6 +266,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
             logger);
     }
 
+    // Otherwise it's an application error
     RemoteApiPb.ApplicationError error = remoteResponse.getApplicationError();
     return new ApiProxy.ApplicationException(error.getCode(), error.getDetail());
   }
@@ -280,6 +295,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     logger.warning("RPC failed, API=" + packageName + "." + methodName + " : "
                    + errorCode + " : " + errorDetail);
 
+    // This is very similar to apphosting/utils/runtime/ApiProxyUtils.java#convertApiError,
+    // which is for APIResponse. TODO(user): retire both in favor of gRPC.
     switch (errorCode) {
       case CALL_NOT_FOUND:
         return new ApiProxy.CallNotFoundException(packageName, methodName);
@@ -403,11 +420,14 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     public void run() {
       try {
         while (true) {
+          // Close expired connections.
           connectionManager.closeExpiredConnections();
+          // Close connections that have been idle longer than 60 sec.
           connectionManager.closeIdleConnections(60, TimeUnit.SECONDS);
           Thread.sleep(5000);
         }
       } catch (InterruptedException ex) {
+        // terminate
       }
     }
   }

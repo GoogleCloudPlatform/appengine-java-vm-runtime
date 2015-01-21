@@ -44,6 +44,8 @@ public class SessionCleanupServlet extends HttpServlet {
   static final String SESSION_ENTITY_TYPE = "_ah_SESSION";
   static final String EXPIRES_PROP = "_expires";
 
+  // N.B.(schwardo): This must be less than 500, which is the maximum
+  // number of entities that may occur in a single bulk delete call.
   static final int MAX_SESSION_COUNT = 100;
 
   private DatastoreService datastore;
@@ -79,6 +81,7 @@ public class SessionCleanupServlet extends HttpServlet {
     try {
       response.getWriter().println("Cleared " + killList.size() + " expired sessions.");
     } catch (IOException ex) {
+      // We still did the work, and successfully... just send an empty body.
     }
   }
 
@@ -103,6 +106,7 @@ public class SessionCleanupServlet extends HttpServlet {
       try {
         response.getWriter().println(ex);
       } catch (IOException innerEx) {
+        // we lose notifying them what went wrong.
       }
     }
     response.setStatus(HttpServletResponse.SC_OK);

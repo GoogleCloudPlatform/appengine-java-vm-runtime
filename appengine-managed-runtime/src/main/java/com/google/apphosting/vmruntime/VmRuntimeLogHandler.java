@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import java.util.logging.Logger;
  * {@code ApiProxy.log(ApiProxy.LogRecord)}, where they can be attached to the runtime response.
  *
  */
+// See //j/c/g/apphosting/runtime/security/shared/intercept/java/util/logging/DefaultHandler.java
 public class VmRuntimeLogHandler extends Handler {
   
   static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
@@ -74,7 +75,7 @@ public class VmRuntimeLogHandler extends Handler {
     reloadLoggingProperties(logManager);
     for (Handler handler : ROOT_LOGGER.getHandlers()) {
       if (handler instanceof VmRuntimeLogHandler) {
-        return;
+        return; // Already installed.
       }
     }
     ROOT_LOGGER.addHandler(new VmRuntimeLogHandler());
@@ -95,11 +96,14 @@ public class VmRuntimeLogHandler extends Handler {
       return;
     }
 
+    // The formatter isn't necessarily thread-safe, so we synchronize around it.
     String message;
     synchronized (this) {
       try {
         message = getFormatter().format(record);
       } catch (Exception ex) {
+        // We don't want to throw an exception here, but we
+        // report the exception to any registered ErrorManager.
         reportError(null, ex, ErrorManager.FORMAT_FAILURE);
         return;
       }
@@ -141,6 +145,8 @@ public class VmRuntimeLogHandler extends Handler {
     } else if (intLevel >= Level.INFO.intValue()) {
       return ApiProxy.LogRecord.Level.info;
     } else {
+      // There's no trace, so we'll map everything below this to
+      // debug.
       return ApiProxy.LogRecord.Level.debug;
     }
   }
