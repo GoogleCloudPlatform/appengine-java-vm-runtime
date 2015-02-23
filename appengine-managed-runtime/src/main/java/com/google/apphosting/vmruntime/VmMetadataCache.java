@@ -36,7 +36,7 @@ public class VmMetadataCache {
 
   /** The meta-data server's URL prefix. */
   public static final String DEFAULT_META_DATA_SERVER = "metadata";
-  public static final String META_DATA_PATTERN = "http://%s/0.1/meta-data/%s";
+  public static final String META_DATA_PATTERN = "http://%s/computeMetadata/v1/instance/%s";
 
   /** Maps paths to their cached values (null if a previous retrieval attempt failed). */
   private final Map<String, String> cache;
@@ -63,12 +63,15 @@ public class VmMetadataCache {
 
     String value = null;
     try {
+      // It is safe to concurrently retrieve the same server path.
       value = getMetadataFromServer(path);
 
+      // We cache missing attributes (404) as null values.
       synchronized (cache) {
         cache.put(path, value);
       }
     } catch (IOException e) {
+      // Don't cache the value if we have failed to connect or transfer.
       logger.info("Meta-data '" + path + "' path retrieval error: " + e.getMessage());
     }
     return value;
@@ -95,7 +98,9 @@ public class VmMetadataCache {
   protected HttpURLConnection openConnection(String path) throws IOException {
     String server = System.getProperty("metadata_server", DEFAULT_META_DATA_SERVER);
     URL url = new URL(String.format(META_DATA_PATTERN, server, path));
-    return (HttpURLConnection) url.openConnection();
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Metadata-Flavor", "Google");
+    return conn;
   }
 
   /**
@@ -124,8 +129,8 @@ public class VmMetadataCache {
       } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
         return null;
       }
-      throw new IOException("Meta-data request for '" + path + "' failed with error: " +
-          connection.getResponseMessage());
+      throw new IOException("Meta-data request for '" + path + "' failed with error: "
+          + connection.getResponseMessage());
     } finally {
       if (reader != null) {
         try {

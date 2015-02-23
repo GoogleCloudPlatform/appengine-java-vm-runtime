@@ -1,18 +1,19 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
- *
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import java.io.IOException;
@@ -48,14 +49,15 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
    * write the body of the response but not both. See {@link javax.servlet.ServletResponse}.
    */
   private enum OutputMode {
-    NEW,
-    WRITER,
-    OUTPUT_STREAM;
+    NEW, // No output state set.
+    WRITER, // The Writer returned by getWriter is used to write the response body.
+    OUTPUT_STREAM; // The OutputStream returned by getOutputStream is used to write the response.
   }
 
   private OutputMode mode = OutputMode.NEW;
   private PrintWriter writer = null;
 
+  // Any pending actions that have to be delayed until the request completes.
   private PendingCall pending = null;
 
   /**
@@ -103,6 +105,9 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     output.flush();
   }
 
+  /*
+   * @see javax.servlet.ServletResponse#getBufferSize()
+   */
   @Override
   public int getBufferSize() {
     return output.getBufferSize();
@@ -139,6 +144,9 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     }
     mode = OutputMode.WRITER;
     if (writer == null) {
+      // Jetty is implementing its own UTF-8 and ISO-8859-1 character encoder in HttpWriter.java.
+      // We will use the default one from OutputStreamWriter. If we notice any discrepancies we
+      // should consider refactoring this to instead use HttpWriter/HttpOutput from Jetty 8.
       writer = new PrintWriter(new OutputStreamWriter(output, getCharacterEncoding()));
     }
     return writer;
@@ -152,6 +160,9 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     return pending != null || output.isCommitted();
   }
 
+  /*
+   * @see javax.servlet.ServletResponse#reset()
+   */
   @Override
   public void reset() {
     if (isCommitted()) {
@@ -163,6 +174,9 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     super.reset();
   }
 
+  /*
+   * @see javax.servlet.ServletResponse#resetBuffer()
+   */
   @Override
   public void resetBuffer() {
     if (isCommitted()) {
@@ -226,6 +240,12 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     output.setBufferSize(size);
   }
 
+  /*
+   * Jetty's response object will commit the response if setContentLength(length) is called and the
+   * number of bytes written is equal or greater than the length specified. This means we need to
+   * interpose on each way the user can set setting content length, including calls to set/add
+   * header when the name parameter is Content-Length.
+   */
   @Override
   public void setContentLength(int len) {
     output.setContentLength(len);
@@ -278,6 +298,6 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
   @Override
   public boolean containsHeader(String name) {
     return CONTENT_LENGTH.equalsIgnoreCase(name) ? output.hasContentLength()
-            : super.containsHeader(name);
+        : super.containsHeader(name);
   }
 }

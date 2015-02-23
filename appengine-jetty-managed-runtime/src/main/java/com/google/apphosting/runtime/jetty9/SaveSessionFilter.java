@@ -38,6 +38,7 @@ import javax.servlet.http.HttpSession;
 public class SaveSessionFilter implements Filter {
 
   public void init(FilterConfig config) {
+    // No init.
   }
 
   public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -58,5 +59,6 @@ public class SaveSessionFilter implements Filter {
   }
 
   public void destroy() {
+    // No destruction.
   }
 }

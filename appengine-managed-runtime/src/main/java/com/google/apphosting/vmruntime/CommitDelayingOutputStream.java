@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,35 @@ import javax.servlet.WriteListener;
  *
  */
 class CommitDelayingOutputStream extends ServletOutputStream {
+  // The wrapped OutputStream is configured with an output buffer of 32 MB (see jetty9/jetty.xml).
+  // 32MB is also the maximum response size allowed by AppEngine. Setting the buffer size to the
+  // maximum response size ensures that no flush occurs due to full buffer.
   static final int MAX_RESPONSE_SIZE_BYTES = 32 * 1024 * 1024;
   private int bufferSize = MAX_RESPONSE_SIZE_BYTES;
 
+  // Make sure this matches responseHeaderSize value in jetty9/jetty.xml!
   static final int MAX_RESPONSE_HEADERS_SIZE_BYTES = 8192;
+  // Previous two constants are package level so unit test has access.
 
+  // The number of bytes written to the OutputStream.
+  // Used to decide if we reached the buffer size.
   private int bytesWritten = 0;
 
+  // True if the OutputStream was closed by the user. We do not forward the close call to
+  // the underlying OutputStream until closeIfClosed() is called.
   private boolean closed = false;
+  // True if an operation has been performed that would have flushed the underlying OutputStream.
   private boolean flushed = false;
 
+  // To emulate the behavior of the native Jetty9 Response OutputStream we need to know if the user
+  // set the content length header on the response. If that happens the response will be flushed as
+  // soon as "contentLength" bytes are written to the OutputStream.
   private long contentLength = -1;
   private boolean contentLengthSet = false;
 
+  // This is the underlying OutputStream where calls are forwarded. Writes are forwarded
+  // immediately. Calls that can trigger either a flush or a close are delayed until closeIfClosed()
+  // and flushIfFlushed() are called respectively.
   private final OutputStream wrappedOutputStream;
 
   /**
@@ -231,11 +247,18 @@ class CommitDelayingOutputStream extends ServletOutputStream {
    * automatically commit the stream, which defeats the purpose of this class.
    */
   private void checkResponseSize(int bytesToWrite) throws IOException {
+    // We don't check against the current buffer size, but instead the max, because we intercept
+    // the setBufferSize call, meaning the underlying HttpOutput buffer size never changes from
+    // its initial value of the max.  Also we subtract the max header size, since headers also
+    // count towards the total.
     if (bytesWritten + bytesToWrite > MAX_RESPONSE_SIZE_BYTES - MAX_RESPONSE_HEADERS_SIZE_BYTES) {
       throw new IOException("Max response size exceeded.");
     }
   }
 
+  /*
+   * @see java.io.OutputStream#write(byte[])
+   */
   @Override
   public void write(byte[] b) throws IOException {
     checkResponseSize(b.length);
@@ -244,6 +267,9 @@ class CommitDelayingOutputStream extends ServletOutputStream {
     bytesWritten(b.length);
   }
 
+  /*
+   * @see java.io.OutputStream#write(byte[], int, int)
+   */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     checkResponseSize(len);
@@ -252,6 +278,9 @@ class CommitDelayingOutputStream extends ServletOutputStream {
     bytesWritten(len);
   }
 
+  /*
+   * @see java.io.OutputStream#write(int)
+   */
   @Override
   public void write(int b) throws IOException {
     checkResponseSize(1);
@@ -262,6 +291,7 @@ class CommitDelayingOutputStream extends ServletOutputStream {
 
   @Override
   public void setWriteListener(WriteListener writeListener) {
+    // TODO(user): need to implement when really needed. (Servlet 3.1 specific).
   }
 
   @Override

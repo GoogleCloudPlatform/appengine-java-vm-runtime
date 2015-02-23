@@ -44,6 +44,8 @@ public class WarmupServlet extends HttpServlet {
   @Override
   public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
     logger.info("Executing warm-up request.");
+    // Ensure that all user jars have been processed by looking for a
+    // nonexistent file.
     Thread.currentThread().getContextClassLoader().getResources("_ah_nonexistent");
   }
 }

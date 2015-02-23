@@ -16,21 +16,22 @@
 
 package com.google.apphosting.vmruntime;
 
-import com.google.apphosting.runtime.timer.AbstractIntervalTimer;
+import com.google.apphosting.api.ApiProxy;
 
 /**
- * Minimal implementation of com.google.apphosting.runtime.timer.Timer using only the system clock.
- *
+ * Simple implementation of ApiProxy.EnvironmentFactory. It just returns the default environment,
+ * with a thread local copy of the attributes, since they are mutable.
  */
-public class VmTimer extends AbstractIntervalTimer {
+public class VmEnvironmentFactory implements ApiProxy.EnvironmentFactory {
+    private final VmApiProxyEnvironment defaultEnvironment;
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see com.google.apphosting.runtime.timer.AbstractIntervalTimer#getCurrent()
-   */
-  @Override
-  protected long getCurrent() {
-    return System.nanoTime();
-  }
+    public VmEnvironmentFactory(VmApiProxyEnvironment defaultEnvironment) {
+        this.defaultEnvironment = defaultEnvironment;
+    }
+
+    @Override
+    public ApiProxy.Environment newEnvironment() {
+        defaultEnvironment.setThreadLocalAttributes();
+        return defaultEnvironment;
+    }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ import javax.servlet.http.HttpServletResponse;
  * Additions to {@link CommitDelayingResponse} for handling extra methods introduced in Servlet 3.0.
  *
  */
+// This class requires that Servlet 3.1 (from //third_party/java/servlet/servlet_api/v3_1) is
+// (from //third_party/java/servlet/servlet_api) and it does not contain the methods overridden
+// here. This class will not compile with Servlet 2.5.
 public class CommitDelayingResponseServlet3 extends CommitDelayingResponse {
 
   public CommitDelayingResponseServlet3(HttpServletResponse response) throws IOException {
@@ -53,6 +56,7 @@ public class CommitDelayingResponseServlet3 extends CommitDelayingResponse {
   @Override
   public Collection<String> getHeaderNames() {
     if (output.hasContentLength()) {
+      // "Any changes to the returned Collection must not affect this HttpServletResponse."
       ImmutableList.Builder<String> builder = ImmutableList.builder();
       builder.addAll(super.getHeaderNames());
       if (output.hasContentLength()) {

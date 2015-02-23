@@ -1,19 +1,16 @@
-/**
- * Copyright 2014 Google Inc. All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package com.google.apphosting.utils.config;
 
@@ -46,8 +43,11 @@ public class AppEngineWebXml {
    */
   public static enum ScalingType {AUTOMATIC, MANUAL, BASIC}
 
+  // System properties defined by the application in appengine-web.xml
   private final Map<String, String> systemProperties = Maps.newHashMap();
 
+  // Beta settings defined by the application in appengine-web.xml.
+  // Using a linked hash map is not strictly needed but makes testing easier.
   private final Map<String, String> betaSettings = Maps.newLinkedHashMap();
 
   private final HealthCheck healthCheck;
@@ -56,6 +56,7 @@ public class AppEngineWebXml {
 
   private final Network network;
 
+  // Environment variables defined by the application in appengine-web.xml
   private final Map<String, String> envVariables = Maps.newHashMap();
 
   private final List<UserPermission> userPermissions = new ArrayList<UserPermission>();
@@ -106,9 +107,14 @@ public class AppEngineWebXml {
 
   private String urlStreamHandlerType = null;
 
+  // TODO(user): Set this to true at some future point.
   private boolean threadsafe = false;
+  // Keeps track of whether or not there was a <threadsafe> element in the xml.
+  // It would be easier to just make the threadsafe member variable a Boolean
+  // but we can't change the public signature of this method.
   private boolean threadsafeValueProvided = false;
 
+  // TODO(user): Revert once sequential auto id deprecation period expires.
   private String autoIdPolicy;
 
   private boolean codeLock = false;
@@ -125,6 +131,8 @@ public class AppEngineWebXml {
     TRUE,
     FALSE,
   }
+  // Identify if the user has explicitly stated if the application wishes to use Google's
+  // customized connector-j.
   private UseGoogleConnectorJ useGoogleConnectorJ = UseGoogleConnectorJ.NOT_STATED_BY_USER;
 
   public AppEngineWebXml() {
@@ -800,6 +808,7 @@ public class AppEngineWebXml {
   public boolean includesResource(String path) {
     if (resourceIncludePattern == null) {
       if (resourceFileIncludes.size() == 0) {
+        // if the user doesn't give any includes, we want everything
         resourceIncludePattern = Pattern.compile(".*");
       } else {
         resourceIncludePattern = Pattern.compile(makeRegexp(resourceFileIncludes));
@@ -808,6 +817,7 @@ public class AppEngineWebXml {
     if (resourceExcludePattern == null && resourceFileExcludes.size() > 0) {
       resourceExcludePattern = Pattern.compile(makeRegexp(resourceFileExcludes));
     } else {
+      // if there are no resourceFileExcludes, let the pattern stay NULL.
     }
     return includes(path, resourceIncludePattern, resourceExcludePattern);
   }
@@ -815,6 +825,8 @@ public class AppEngineWebXml {
   public boolean includesStatic(String path) {
     if (staticIncludePattern == null) {
       if (staticFileIncludes.size() == 0) {
+        // if the user doesn't give any includes, we want everything under
+        // publicRoot
         String staticRoot;
         if (publicRoot.length() > 0) {
           staticRoot = publicRoot + "/**";
@@ -834,6 +846,7 @@ public class AppEngineWebXml {
     if (staticExcludePattern == null && staticFileExcludes.size() > 0) {
       staticExcludePattern = Pattern.compile(makeRegexp(staticFileExcludes));
     } else {
+      // if there are no staticFileExcludes, let the pattern stay NULL.
     }
     return includes(path, staticIncludePattern, staticExcludePattern);
   }
@@ -868,6 +881,7 @@ public class AppEngineWebXml {
         builder.append('|');
       }
 
+      // Trim any leading slashes from item.
       while (item.charAt(0) == '/') {
         item = item.substring(1);
       }
@@ -891,6 +905,7 @@ public class AppEngineWebXml {
    * @return the regular expression string matching the input {@code file} pattern.
    */
   static String makeFileRegex(String fileGlob) {
+    // escape metacharacters, and replace '*' with regexp '[^/]*' and '**' with '.*'
     fileGlob = fileGlob.replaceAll("([^A-Za-z0-9\\-_/])", "\\\\$1");
     fileGlob = fileGlob.replaceAll("\\\\\\*\\\\\\*", ".*");
     fileGlob = fileGlob.replaceAll("\\\\\\*", "[^/]*");
@@ -905,6 +920,8 @@ public class AppEngineWebXml {
    */
   public void setSourcePrefix(String appRoot) {
     this.appRoot = appRoot;
+    // Invalidate the pattern cache because the patterns
+    // were generated with the previous root.
     this.resourceIncludePattern = null;
     this.resourceExcludePattern = null;
     this.staticIncludePattern = null;
@@ -1021,36 +1038,43 @@ public class AppEngineWebXml {
 
       StaticFileInclude other = (StaticFileInclude) obj;
 
+      // If patterns differ, return false.
       if (pattern != null) {
         if (!pattern.equals(other.pattern)) {
           return false;
         }
-      } else {
+      } else {  // pattern == null
         if (other.pattern != null) {
           return false;
         }
+        // else, both patterns null; thus, they do not differ.
       }
 
+      // If expirations differ, return false.
       if (expiration != null) {
         if (!expiration.equals(other.expiration)) {
           return false;
         }
-      } else {
+      } else {  // expiration == null
         if (other.expiration != null) {
           return false;
         }
+        // else, both expirations null; thus, they do not differ.
       }
 
+      // If httpHeaders differ, return false.
       if (httpHeaders != null) {
         if (!httpHeaders.equals(other.httpHeaders)) {
           return false;
         }
-      } else {
+      } else {  // httpHeaders == null
         if (other.httpHeaders != null) {
           return false;
         }
+        // else, both httpHeaders null; thus, they do not differ.
       }
 
+      // All attributes are equal; thus, this equals other.
       return true;
     }
   }
@@ -1208,6 +1232,11 @@ public class AppEngineWebXml {
    * Holder for automatic settings.
    */
   public static class AutomaticScaling {
+    /*
+     * AutomaticScaling with no fields set.
+     *
+     * Keep this private because AutomaticScaling is mutable.
+     */
     private static final AutomaticScaling EMPTY_SETTINGS = new AutomaticScaling();
 
     public static final String AUTOMATIC = "automatic";
@@ -1362,7 +1391,9 @@ public class AppEngineWebXml {
    */
   public static class CpuUtilization {
     private static final CpuUtilization EMPTY_SETTINGS = new CpuUtilization();
+    // The target of CPU utilization.
     private Double targetUtilization;
+    // The number of seconds used to aggregate CPU usage.
     private Integer aggregationWindowLengthSec;
 
     public Double getTargetUtilization() {
@@ -1417,8 +1448,14 @@ public class AppEngineWebXml {
    * Holder for health check.
    */
   public static class HealthCheck {
+    /*
+     * HealthCheck with no fields set.
+     *
+     * Keep this private because HealthCheck is mutable.
+     */
     private static final HealthCheck EMPTY_SETTINGS = new HealthCheck();
 
+    // Health check is enabled by default.
     private boolean enableHealthCheck = true;
     private Integer checkIntervalSec;
     private Integer timeoutSec;
@@ -1549,6 +1586,11 @@ public class AppEngineWebXml {
    * Holder for Resources
    */
   public static class Resources {
+    /*
+     * Resources with no fields set.
+     *
+     * Keep this private because Resources is mutable.
+     */
     private static final Resources EMPTY_SETTINGS = new Resources();
 
     private double cpu;
@@ -1619,6 +1661,11 @@ public class AppEngineWebXml {
    * Holder for network.
    */
   public static class Network {
+    /*
+     * Network with no fields set.
+     *
+     * Keep this private because Network is mutable.
+     */
     private static final Network EMPTY_SETTINGS = new Network();
 
     private String instanceTag;
@@ -1676,6 +1723,11 @@ public class AppEngineWebXml {
    * Holder for manual settings.
    */
   public static class ManualScaling {
+    /*
+     * ManualScaling with no fields set.
+     *
+     * Keep this private because ManualScaling is mutable.
+     */
     private static final ManualScaling EMPTY_SETTINGS = new ManualScaling();
 
     private String instances;
@@ -1725,6 +1777,11 @@ public class AppEngineWebXml {
    * Holder for basic settings.
    */
   public static class BasicScaling {
+    /*
+     * BasicScaling with no fields set.
+     *
+     * Keep this private because BasicScaling is mutable.
+     */
     private static final BasicScaling EMPTY_SETTINGS = new BasicScaling();
 
     private String maxInstances;
@@ -1874,6 +1931,7 @@ public class AppEngineWebXml {
       return entries;
     }
 
+    // Generated by eclipse.
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -1882,6 +1940,7 @@ public class AppEngineWebXml {
       return result;
     }
 
+    // Generated by eclipse.
     @Override
     public boolean equals(Object obj) {
       if (this == obj) return true;
@@ -1902,7 +1961,7 @@ public class AppEngineWebXml {
 
   public static class PrioritySpecifierEntry {
     private String filename;
-    private Double priority;
+    private Double priority;  // null means not present.  Default priority is 1.0.
 
     private void checkNotAlreadySet() {
       if (filename != null) {
@@ -1924,6 +1983,8 @@ public class AppEngineWebXml {
       return priority;
     }
 
+    // Returns the priority of this specifier or the assumed default priority
+    // value if it is not specified.
     public double getPriorityValue() {
       if (priority == null) {
         return 1.0d;
@@ -1944,12 +2005,14 @@ public class AppEngineWebXml {
       this.priority = Double.parseDouble(priority);
     }
 
+    // Check that this is a valid ClassLoaderConfig
     public void checkClassLoaderConfig() {
       if (filename == null) {
         throw new AppEngineConfigException("Must have a filename attribute.");
       }
     }
 
+    // Generated by eclipse.
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -1959,6 +2022,7 @@ public class AppEngineWebXml {
       return result;
     }
 
+    // Generated by eclipse.
     @Override
     public boolean equals(Object obj) {
       if (this == obj) return true;

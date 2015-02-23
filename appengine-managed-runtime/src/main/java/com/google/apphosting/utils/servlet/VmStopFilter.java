@@ -42,7 +42,7 @@ public class VmStopFilter implements Filter {
   private static final Logger logger = Logger.getLogger(VmStopFilter.class.getName());
 
   private static final long SHUTDOWN_HOOK_DEADLINE_MILLIS =
-      TimeUnit.SECONDS.convert(30, TimeUnit.MILLISECONDS);
+      TimeUnit.SECONDS.convert(60, TimeUnit.MILLISECONDS);
 
   @Override
   public void init(FilterConfig config) {
@@ -52,21 +52,21 @@ public class VmStopFilter implements Filter {
   public void destroy() {
   }
 
+  /**
+   * Handle stop requests.
+   *
+   * Stop requests are intercepted by this filter and never forwarded to user code.
+   */
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    String remoteAddress = request.getRemoteAddr();
-    logger.info("VmStopFilter invoked from remote address " + remoteAddress);
+    // Requests to /_ah/stop are filtered by the appserver (and soon VM-local nginx). Any stop
+    // requests that make it here are from trusted code.
+    logger.info("Running shutdown hook");
+    long deadline = System.currentTimeMillis() + SHUTDOWN_HOOK_DEADLINE_MILLIS;
+    LifecycleManager.getInstance().beginShutdown(deadline);
 
-    if ("127.0.0.1".equals(remoteAddress)) {
-      logger.info("Running shutdown hook");
-      long deadline = System.currentTimeMillis() + SHUTDOWN_HOOK_DEADLINE_MILLIS;
-      LifecycleManager.getInstance().beginShutdown(deadline);
-
-      response.setContentType("text/plain");
-      response.getWriter().write("ok");
-    } else {
-      chain.doFilter(request, response);
-    }
+    response.setContentType("text/plain");
+    response.getWriter().write("ok");
   }
 }

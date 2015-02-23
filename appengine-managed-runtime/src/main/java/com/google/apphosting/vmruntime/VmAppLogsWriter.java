@@ -73,11 +73,13 @@ class VmAppLogsWriter {
   private static final Logger logger =
       Logger.getLogger(VmAppLogsWriter.class.getName());
 
+  // (Some constants below package scope for testability)
   static final String LOG_CONTINUATION_SUFFIX = "\n<continued in next message>";
   static final int LOG_CONTINUATION_SUFFIX_LENGTH = LOG_CONTINUATION_SUFFIX.length();
   static final String LOG_CONTINUATION_PREFIX = "<continued from previous message>\n";
   static final int LOG_CONTINUATION_PREFIX_LENGTH = LOG_CONTINUATION_PREFIX.length();
   static final int MIN_MAX_LOG_MESSAGE_LENGTH = 1024;
+  // Log flushes generally complete fast (6 ms at the median, 46ms at the 99th percentile).
   static final int LOG_FLUSH_TIMEOUT_MS = 2000;
 
   private final int maxLogMessageLength;
@@ -130,6 +132,7 @@ class VmAppLogsWriter {
     logCutLength = maxLogMessageLength - LOG_CONTINUATION_SUFFIX_LENGTH;
     logCutLengthDiv10 = logCutLength / 10;
 
+    // This should never happen, but putting here just in case.
     if (maxBytesToFlush < this.maxLogMessageLength) {
       String message = String.format(
           "maxBytesToFlush (%s) smaller than  maxLogMessageLength (%s)",
@@ -140,6 +143,8 @@ class VmAppLogsWriter {
       this.maxBytesToFlush = maxBytesToFlush;
     }
 
+    // Always have a stopwatch even if we're not doing time based flushing
+    // to keep code a bit simpler
     stopwatch = Stopwatch.createUnstarted();
   }
 
@@ -155,6 +160,9 @@ class VmAppLogsWriter {
       logLine.setLevel(record.getLevel().ordinal());
       logLine.setTimestampUsec(record.getTimestamp());
       logLine.setMessage(record.getMessage());
+      // Use maxEncodingSize() here because it's faster and accurate
+      // enough for us.  It uses the maximum possible size for varint
+      // values, but the real size of strings.
       int maxEncodingSize = logLine.maxEncodingSize();
       if (maxBytesToFlush > 0 &&
           (currentByteCount + maxEncodingSize) > maxBytesToFlush) {
@@ -162,6 +170,10 @@ class VmAppLogsWriter {
         waitForCurrentFlushAndStartNewFlush();
       }
       if (buffer.size() == 0) {
+        // We only want to flush once a log message has been around for
+        // longer than maxSecondsBetweenFlush. So, we only start the timer
+        // when we add the first message so we don't include time when
+        // the queue is empty.
         stopwatch.start();
       }
       buffer.add(logLine);
@@ -210,6 +222,7 @@ class VmAppLogsWriter {
     if (currentFlush != null) {
       logger.info("End of request or previous flush has not yet completed, blocking.");
       try {
+        // VMApiProxyDelegate adds 1000 ms extra to the http connection deadline.
         currentFlush.get(
             VmApiProxyDelegate.ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS + LOG_FLUSH_TIMEOUT_MS,
             TimeUnit.MILLISECONDS);
@@ -240,6 +253,8 @@ class VmAppLogsWriter {
     stopwatch.reset();
     FlushRequest request = new FlushRequest();
     request.setLogsAsBytes(group.toByteArray());
+    // This assumes that we are always doing a flush from the request
+    // thread. See the TODO above.
     ApiConfig apiConfig = new ApiConfig();
     apiConfig.setDeadlineInSeconds(LOG_FLUSH_TIMEOUT_MS / 1000.0);
     return ApiProxy.makeAsyncCall("logservice", "Flush", request.toByteArray(), apiConfig);
@@ -263,6 +278,7 @@ class VmAppLogsWriter {
    */
   
   List<LogRecord> split(LogRecord aRecord){
+    // This method is public so it is testable.
     LinkedList<LogRecord> theList = new LinkedList<LogRecord>();
     String message = aRecord.getMessage();
     if (null == message || message.length() <= maxLogMessageLength){
@@ -278,13 +294,17 @@ class VmAppLogsWriter {
       } else {
         int cutLength = logCutLength;
         boolean cutAtNewline = false;
+        // Try to cut the string at a friendly point
         int friendlyCutLength = remaining.lastIndexOf('\n', logCutLength);
+        // But only if that yields a message of reasonable length
         if (friendlyCutLength > logCutLengthDiv10){
           cutLength = friendlyCutLength;
           cutAtNewline = true;
         }
         nextMessage = remaining.substring(0, cutLength) + LOG_CONTINUATION_SUFFIX;
         remaining = remaining.substring(cutLength + (cutAtNewline ? 1 : 0));
+        // Only prepend the continuation prefix if doing so would not push
+        // the length of the next message over the limit.
         if (remaining.length() > maxLogMessageLength ||
             remaining.length() + LOG_CONTINUATION_PREFIX_LENGTH <= maxLogMessageLength){
           remaining = LOG_CONTINUATION_PREFIX + remaining;

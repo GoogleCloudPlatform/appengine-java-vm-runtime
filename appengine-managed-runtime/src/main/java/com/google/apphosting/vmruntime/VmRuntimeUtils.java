@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,24 @@ import static com.google.appengine.repackaged.com.google.common.base.MoreObjects
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.base.AppId;
 import com.google.apphosting.utils.config.AppEngineWebXml;
+import com.google.apphosting.utils.http.HttpRequest;
+import com.google.apphosting.utils.http.HttpResponse;
+
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Constants and utility functions shared by the Jetty 6 and Jetty 9 VmRuntimeWebAppContext.
  *
  */
 public class VmRuntimeUtils {
+  // This should be kept in sync with HTTPProto::X_GOOGLE_INTERNAL_SKIPADMINCHECK.
   private static final String X_GOOGLE_INTERNAL_SKIPADMINCHECK = "X-Google-Internal-SkipAdminCheck";
+  // This should be kept in sync with HTTPProto::X_APPENGINE_QUEUENAME.
   private static final String X_APPENGINE_QUEUENAME = "X-AppEngine-QueueName";
+  // Keep in sync with com.google.apphosting.utils.jetty[8].AppEngineAuthentication.
   private static final String SKIP_ADMIN_CHECK_ATTR =
       "com.google.apphosting.internal.SkipAdminCheck";
 
@@ -47,6 +50,7 @@ public class VmRuntimeUtils {
   public static final long MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS = 10;
   public static final long MAX_REQUEST_THREAD_API_CALL_WAIT_MS = 30 * 1000;
   public static final long MAX_USER_API_CALL_WAIT_MS = 60 * 1000;
+  // Keep in sync with apphosting/base/http_proto.cc
   public static final String LOG_FLUSH_COUNTER_HEADER = "X-AppEngine-Log-Flush-Count";
 
   public static final String ASYNC_API_WAIT_HEADER = "X-AppEngine-Async-Api-Wait";
@@ -101,7 +105,7 @@ public class VmRuntimeUtils {
    * @param requestSpecificEnvironment The environment used by the request.
    */
   public static void flushLogsAndAddHeader(
-      HttpServletResponse response, VmApiProxyEnvironment requestSpecificEnvironment) {
+      HttpResponse response, VmApiProxyEnvironment requestSpecificEnvironment) {
     int flushCount = requestSpecificEnvironment.flushLogs();
     response.setHeader(VmRuntimeUtils.LOG_FLUSH_COUNTER_HEADER, Integer.toString(flushCount));
   }
@@ -112,10 +116,24 @@ public class VmRuntimeUtils {
    *
    * @param request The request to inspect and modify.
    */
-  public static void handleSkipAdminCheck(HttpServletRequest request) {
+  public static void handleSkipAdminCheck(HttpRequest request) {
     if (request.getHeader(VmRuntimeUtils.X_GOOGLE_INTERNAL_SKIPADMINCHECK) != null
         || request.getHeader(VmRuntimeUtils.X_APPENGINE_QUEUENAME) != null) {
       request.setAttribute(VmRuntimeUtils.SKIP_ADMIN_CHECK_ATTR, Boolean.TRUE);
+    }
+  }
+
+  /**
+   * Set the Environment system property to Development or Production.
+   */
+  
+  static void setEnvironmentSystemProperty(String partition) {
+    if ("dev".equals(partition)) {
+      System.setProperty(
+          SystemProperty.environment.key(), SystemProperty.Environment.Value.Development.name());
+    } else {
+      System.setProperty(
+          SystemProperty.environment.key(), SystemProperty.Environment.Value.Production.name());
     }
   }
 
@@ -124,8 +142,7 @@ public class VmRuntimeUtils {
    */
   public static void installSystemProperties(
       VmApiProxyEnvironment environment, AppEngineWebXml appEngineWebXml) {
-    System.setProperty(
-        SystemProperty.environment.key(), SystemProperty.Environment.Value.Production.name());
+    setEnvironmentSystemProperty(environment.getPartition());
     System.setProperty(SystemProperty.version.key(), getServerInfo());
     System.setProperty(
         SystemProperty.applicationId.key(), AppId.parse(environment.getAppId()).getLongAppId());
@@ -164,7 +181,7 @@ public class VmRuntimeUtils {
    *         False otherwise.
    */
   public static boolean waitForAsyncApiCalls(
-      VmApiProxyEnvironment requestEnvironment, HttpServletResponse response) {
+      VmApiProxyEnvironment requestEnvironment, HttpResponse response) {
     long startTime = System.currentTimeMillis();
     boolean success =
         requestEnvironment.waitForAllApiCallsToComplete(MAX_REQUEST_THREAD_API_CALL_WAIT_MS);

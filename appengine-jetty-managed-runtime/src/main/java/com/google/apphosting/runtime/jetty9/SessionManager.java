@@ -66,11 +66,15 @@ public class SessionManager extends AbstractSessionManager {
    */
   public static final double UPDATE_TIMESTAMP_RATIO = 0.75;
 
+  /* This is just useful for testing, and cheap to hold... */
   private static String lastId = null;
 
   /**
    * Specializes {@link HashSessionIdManager}, featuring strong session ids.
    */
+  // Ludo: not sure that this session id generator is any better than the
+  // AbstractSessionIdManager's generation algorithm, which is also based on the
+  // SecureRandom class.
   public static class SessionIdManager extends HashSessionIdManager {
 
     public SessionIdManager() {
@@ -86,6 +90,8 @@ public class SessionManager extends AbstractSessionManager {
     public String newSessionId(HttpServletRequest request, long created) {
       byte randomBytes[] = new byte[16];
       _random.nextBytes(randomBytes);
+      // Use a web-safe encoding in case the session identifier gets
+      // passed via a URL path parameter.
       String id = base64Url().omitPadding().encode(randomBytes);
       lastId = id;
       logger.fine("Created a random session identifier: " + id);
@@ -140,8 +146,12 @@ public class SessionManager extends AbstractSessionManager {
       if (dirty) {
         logger.fine("Session " + getId() + " is dirty, saving.");
 
-        int delay = 50;
+        int delay = 50; // Start with a delay of 50ms if a put fails.
         try {
+          // Try 10 times with exponential back-off. The tenth time the
+          // delay will be about 25 seconds. We need to eventually give
+          // up because it is possible the Datastore API is totally hosed
+          // and we want the request to eventually terminate.
           for (int attemptNum = 0; attemptNum < 10; attemptNum++) {
             try {
               synchronized (this) {
@@ -154,11 +164,14 @@ public class SessionManager extends AbstractSessionManager {
                 return;
               }
             } catch (SessionStore.Retryable retryable) {
+              // Don't break out of the loop
             } catch (ApiProxy.ApiDeadlineExceededException e) {
+              // Don't break out of the loop
             }
             try {
               Thread.sleep(delay);
             } catch (InterruptedException e) {
+              // Just try again prematurely
             }
             logger.warning("Timeout while saving session " + getId() + ".");
             delay *= 2;
@@ -234,10 +247,14 @@ public class SessionManager extends AbstractSessionManager {
 
     @Override
     protected void timeout() throws IllegalStateException {
+     // TODO(user) only called by a session scavenger thread which appengine does not have.
+     // Sessions are only checked for expiry when a request comes in for them. If the
+     // SessionData is expired in the datastore, then getSession() returns null.
     }
 
     @Override
     protected boolean access(long accessTime) {
+      // Optimize flushing of session data to persistent storage based on nearness to expiry time.
       long expirationTime = sessionData.getExpirationTime();
       long timeRemaining = expirationTime - accessTime;
       if (dirty) {
@@ -249,6 +266,7 @@ public class SessionManager extends AbstractSessionManager {
       }
       sessionData.setExpirationTime(System.currentTimeMillis()
               + getSessionExpirationInMilliseconds());
+      // Handle session being invalid, update number of requests inside session.
       return super.access(accessTime);
     }
 
@@ -288,6 +306,7 @@ public class SessionManager extends AbstractSessionManager {
   private final List<SessionStore> sessionStoresInWriteOrder;
   private final List<SessionStore> sessionStoresInReadOrder;
 
+  /* used in tests, thus package-protected */
   static String lastId() {
     return lastId;
   }
@@ -303,14 +322,18 @@ public class SessionManager extends AbstractSessionManager {
    */
   public SessionManager(List<SessionStore> sessionStoresInWriteOrder) {
     super();
+    // Ludo: prefer to do this outside of the constructor.
     setSessionIdManager(new SessionIdManager());
     this.sessionStoresInWriteOrder = sessionStoresInWriteOrder;
+    // We'll always read in the opposite order we write, so create a copy
+    // of the stores in write order and then reverse it.
     this.sessionStoresInReadOrder = new ArrayList<SessionStore>(sessionStoresInWriteOrder);
     Collections.reverse(this.sessionStoresInReadOrder);
   }
 
   @Override
   protected AppEngineSession newSession(HttpServletRequest request) {
+    // This will save the session persistently.
     return new AppEngineSession(request);
   }
 
@@ -318,6 +341,7 @@ public class SessionManager extends AbstractSessionManager {
   public AppEngineSession getSession(String sessionId) {
     SessionData data = loadSession(sessionId);
     if (data != null) {
+      // Make access time same as create time.
       long time = System.currentTimeMillis();
       return new AppEngineSession(time, time, sessionId, data);
     } else {
@@ -330,6 +354,8 @@ public class SessionManager extends AbstractSessionManager {
 
     SessionData data = null;
     for (SessionStore sessionStore : sessionStoresInReadOrder) {
+      // Keep iterating until we find a store that has the session data we
+      // want.
       try {
         data = sessionStore.getSession(key);
         if (data != null) {
@@ -363,6 +389,7 @@ public class SessionManager extends AbstractSessionManager {
       try {
         sessionStore.saveSession(key, data);
       } catch (SessionStore.Retryable retryable) {
+        // rethrowing the cause to maintain backwards compatibility
         throw retryable.getCause();
       }
     }
@@ -393,6 +420,7 @@ public class SessionManager extends AbstractSessionManager {
 
   @Override
   protected void addSession(AbstractSession session) {
+    // No list of sessions is kept in memory, so do nothing here.
   }
 
   @Override
@@ -407,5 +435,6 @@ public class SessionManager extends AbstractSessionManager {
 
   @Override
   protected void shutdownSessions() throws Exception {
+    // Called when the session manager is stopping. We don't need to do anything here.
   }
 }

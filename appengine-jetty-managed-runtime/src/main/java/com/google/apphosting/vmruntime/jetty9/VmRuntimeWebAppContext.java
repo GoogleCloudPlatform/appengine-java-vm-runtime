@@ -1,18 +1,19 @@
 /**
- * Copyright 2014 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
@@ -20,35 +21,39 @@ import static com.google.appengine.repackaged.com.google.common.base.MoreObjects
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.apphosting.api.ApiProxy.LogRecord;
+import com.google.apphosting.runtime.DatastoreSessionStore;
+import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
+import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
-import com.google.apphosting.runtime.jetty9.DatastoreSessionStore;
-import com.google.apphosting.runtime.jetty9.DeferredDatastoreSessionStore;
-import com.google.apphosting.runtime.jetty9.MemcacheSessionStore;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 import com.google.apphosting.utils.config.AppEngineWebXmlReader;
+import com.google.apphosting.utils.http.HttpRequest;
+import com.google.apphosting.utils.http.HttpResponse;
+import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
+import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
 import com.google.apphosting.vmruntime.CommitDelayingResponseServlet3;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
+import com.google.apphosting.vmruntime.VmEnvironmentFactory;
 import com.google.apphosting.vmruntime.VmMetadataCache;
+import com.google.apphosting.vmruntime.VmRequestUtils;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
+
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebAppContext.Context;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,8 +62,8 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.servlet.DispatcherType;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,17 +73,22 @@ import javax.servlet.http.HttpServletResponse;
  * functionality that installs a request specific thread local environment on each incoming request.
  */
 public class VmRuntimeWebAppContext
-        extends WebAppContext implements VmRuntimeTrustedAddressChecker {
-
+  extends WebAppContext implements VmRuntimeTrustedAddressChecker {
   private static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
+  // It's undesirable to have the user app override classes provided by us.
+  // So we mark them as Jetty system classes, which cannot be overridden.
   private static final String[] SYSTEM_CLASSES = {
+    // The trailing dot means these are all Java packages, not individual classes.
     "com.google.appengine.api.",
     "com.google.appengine.tools.",
     "com.google.apphosting.",
     "com.google.cloud.sql.jdbc.",
     "com.google.protos.cloud.sql.",
-    "com.google.storage.onestore.",};
+    "com.google.storage.onestore.",
+  };
+  // constant.  If it's much larger than this we may need to
+  // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
 
   private final String serverInfo;
@@ -86,33 +96,30 @@ public class VmRuntimeWebAppContext
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
   private VmApiProxyEnvironment defaultEnvironment;
-
+  // Indicates if the context is running via the Cloud SDK, or the real runtime.
+  
   boolean isDevMode;
-
   static {
+    // Set SPI classloader priority to prefer the WebAppClassloader.
     System.setProperty(
-            ServiceFactoryFactory.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY, Boolean.TRUE.toString());
+        ServiceFactoryFactory.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY, Boolean.TRUE.toString());
+    // Use thread context class loader for memcache deserialization.
     System.setProperty(
-            MemcacheSerialization.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY, Boolean.TRUE.toString());
+        MemcacheSerialization.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY, Boolean.TRUE.toString());
   }
 
-  private static final String HEALTH_CHECK_PATH = "/_ah/health";
-
-  static final double HEALTH_CHECK_INTERVAL_OFFSET_RATIO = 1.5;
-  private static boolean isLastSuccessful = false;
-  private static long timeStampOfLastNormalCheckMillis = 0;
-
-  static int checkIntervalSec = -1;
-  static final int DEFAULT_CHECK_INTERVAL_SEC = 5;
-  static final String LINK_LOCAL_IP_NETWORK = "169.254";
-
-  private static final String[] quickstartConfigurationClasses = {
+  // List of Jetty configuration only needed if the quickstart process has been
+  // executed, so we do not need the webinf, wedxml, fragment and annotation configurations
+  // because they have been executed via the SDK.
+  private static final String[] quickstartConfigurationClasses  = {
     org.eclipse.jetty.quickstart.QuickStartConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.JettyWebXmlConfiguration.class.getCanonicalName()
   };
 
+  // List of all the standard Jetty configurations that need to be executed when there
+  // is no quickstart-web.xml.
   private static final String[] preconfigurationClasses = {
     org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
@@ -125,6 +132,7 @@ public class VmRuntimeWebAppContext
 
   @Override
   protected void doStart() throws Exception {
+    // unpack and Adjust paths.
     Resource base = getBaseResource();
     if (base == null) {
       base = Resource.newResource(getWar());
@@ -141,28 +149,25 @@ public class VmRuntimeWebAppContext
     }
     super.doStart();
   }
-
   /**
-   * Creates a List of SessionStores based on the configuration in the provided
-   * AppEngineWebXml.
+   * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
    *
-   * @param appEngineWebXml The AppEngineWebXml containing the session
-   * configuration.
+   * @param appEngineWebXml The AppEngineWebXml containing the session configuration.
    * @return A List of SessionStores in write order.
    */
   private static List<SessionStore> createSessionStores(AppEngineWebXml appEngineWebXml) {
-    DatastoreSessionStore datastoreSessionStore
-            = appEngineWebXml.getAsyncSessionPersistence() ? new DeferredDatastoreSessionStore(
-                            appEngineWebXml.getAsyncSessionPersistenceQueueName())
-                    : new DatastoreSessionStore();
+    DatastoreSessionStore datastoreSessionStore =
+        appEngineWebXml.getAsyncSessionPersistence() ? new DeferredDatastoreSessionStore(
+            appEngineWebXml.getAsyncSessionPersistenceQueueName())
+            : new DatastoreSessionStore();
+    // Write session data to the datastore before we write to memcache.
     return Arrays.asList(datastoreSessionStore, new MemcacheSessionStore());
   }
 
   /**
-   * Checks if the request was made over HTTPS. If so it modifies the request so
-   * that {@code HttpServletRequest#isSecure()} returns true,
-   * {@code HttpServletRequest#getScheme()} returns "https", and
-   * {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets
+   * Checks if the request was made over HTTPS. If so it modifies the request so that
+   * {@code HttpServletRequest#isSecure()} returns true, {@code HttpServletRequest#getScheme()}
+   * returns "https", and {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets
    * the scheme to "http" and port to 80.
    *
    * @param request The request to modify.
@@ -173,13 +178,10 @@ public class VmRuntimeWebAppContext
       request.setSecure(true);
       request.setScheme(HttpScheme.HTTPS.toString());
       request.setServerPort(443);
-     // request.setAuthority(request.getServerName(),443);
-
     } else {
       request.setSecure(false);
       request.setScheme(HttpScheme.HTTP.toString());
       request.setServerPort(defaultEnvironment.getServerPort());
-     // request.setAuthority(request.getServerName(),defaultEnvironment.getServerPort());
     }
   }
 
@@ -190,11 +192,15 @@ public class VmRuntimeWebAppContext
     this.serverInfo = VmRuntimeUtils.getServerInfo();
     _scontext = new VmRuntimeServletContext();
 
+    // Configure the Jetty SecurityHandler to understand our method of authentication
+    // (via the UserService). Only the default ConstraintSecurityHandler is supported.
     AppEngineAuthentication.configureSecurityHandler(
-            (ConstraintSecurityHandler) getSecurityHandler(), this);
+        (ConstraintSecurityHandler) getSecurityHandler(), this);
 
     setMaxFormContentSize(MAX_RESPONSE_SIZE);
     setConfigurationClasses(preconfigurationClasses);
+    // See http://www.eclipse.org/jetty/documentation/current/configuring-webapps.html#webapp-context-attributes
+    // We also want the Jetty container libs to be scanned for annotations.
     setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*\\.jar");
     metadataCache = new VmMetadataCache();
     wallclockTimer = new VmTimer();
@@ -202,55 +208,35 @@ public class VmRuntimeWebAppContext
   }
 
   /**
-   * Simple implementation of ApiProxy.EnvironmentFactory. It just returns the
-   * default environment, with a thread local copy of the attributes, since they
-   * are mutable.
-   */
-  public static class VmEnvironmentFactory implements ApiProxy.EnvironmentFactory {
-
-    private final VmApiProxyEnvironment defaultEnvironment;
-
-    public VmEnvironmentFactory(VmApiProxyEnvironment defaultEnvironment) {
-      this.defaultEnvironment = defaultEnvironment;
-    }
-
-    @Override
-    public Environment newEnvironment() {
-      defaultEnvironment.setThreadLocalAttributes();
-      return defaultEnvironment;
-    }
-  }
-
-  /**
    * Initialize the WebAppContext for use by the VmRuntime.
    *
-   * This method initializes the WebAppContext by setting the context path and
-   * application folder. It will also parse the appengine-web.xml file provided
-   * to set System Properties and session manager accordingly.
+   * This method initializes the WebAppContext by setting the context path and application folder.
+   * It will also parse the appengine-web.xml file provided to set System Properties and session
+   * manager accordingly.
    *
    * @param appDir The war directory of the application.
-   * @param appengineWebXmlFile The appengine-web.xml file path (relative to
-   * appDir).
-   * @throws AppEngineConfigException If there was a problem finding or parsing
-   * the appengine-web.xml configuration.
+   * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
+   * @throws AppEngineConfigException If there was a problem finding or parsing the
+   *         appengine-web.xml configuration.
    * @throws IOException If the runtime was unable to find/read appDir.
    */
   public void init(String appDir, String appengineWebXmlFile)
-          throws AppEngineConfigException, IOException {
+      throws AppEngineConfigException, IOException {
     setContextPath("/");
     setWar(appDir);
     setResourceBase(appDir);
     defaultEnvironment = VmApiProxyEnvironment.createDefaultContext(
-            System.getenv(), metadataCache, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
-            VmRuntimeUtils.ONE_DAY_IN_MILLIS, new File(appDir).getCanonicalPath());
+        System.getenv(), metadataCache, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
+        VmRuntimeUtils.ONE_DAY_IN_MILLIS, new File(appDir).getCanonicalPath());
     ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
     if (ApiProxy.getEnvironmentFactory() == null) {
+      // Need the check above since certain unit tests initialize the context multiple times.
       ApiProxy.setEnvironmentFactory(new VmEnvironmentFactory(defaultEnvironment));
     }
 
     isDevMode = defaultEnvironment.getPartition().equals("dev");
-    AppEngineWebXmlReader appEngineWebXmlReader
-            = new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
+    AppEngineWebXmlReader appEngineWebXmlReader =
+        new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
     AppEngineWebXml appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     VmRuntimeLogHandler.init();
@@ -268,200 +254,126 @@ public class VmRuntimeWebAppContext
     }
     setSessionHandler(new SessionHandler(sessionManager));
 
-    checkIntervalSec = firstNonNull(appEngineWebXml.getHealthCheck().getCheckIntervalSec(),
-            DEFAULT_CHECK_INTERVAL_SEC);
+    // Get check interval second(s) to be used by special health check handler.
+    int checkIntervalSec = firstNonNull(appEngineWebXml.getHealthCheck().getCheckIntervalSec(),
+        VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
     if (checkIntervalSec <= 0) {
       logger.warning(
-              "health check interval is not positive: " + checkIntervalSec
-              + ". Using default value: " + DEFAULT_CHECK_INTERVAL_SEC);
-      checkIntervalSec = DEFAULT_CHECK_INTERVAL_SEC;
+          "health check interval is not positive: " + checkIntervalSec
+          + ". Using default value: " + VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
+      checkIntervalSec = VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC;
     }
+    VmRequestUtils.setCheckIntervalSec(checkIntervalSec);
   }
 
-  /**
-   * Checks if a remote address is trusted for the purposes of handling
-   * requests.
-   *
-   * @param remoteAddr String representation of the remote ip address.
-   * @returns True if and only if the remote address should be allowed to make
-   * requests.
-   */
   @Override
   public boolean isTrustedRemoteAddr(String remoteAddr) {
-    if (isDevMode) {
-      return isDevMode;
-    } else if (remoteAddr == null) {
-      return false;
-    } else if (remoteAddr.startsWith("172.17.")) {
-      return true;
-    } else if (remoteAddr.startsWith(LINK_LOCAL_IP_NETWORK)) {
-      return true;
-    } else if (remoteAddr.startsWith("127.0.0.")) {
-      return true;
-    }
-    return false;
-  }
-
-  public boolean isValidHealthCheckAddr(String remoteAddr) {
-    if (isTrustedRemoteAddr(remoteAddr)) {
-      return true;
-    } else if (remoteAddr == null) {
-      return false;
-    }
-    return remoteAddr.startsWith("130.211.0.")
-            || remoteAddr.startsWith("130.211.1.")
-            || remoteAddr.startsWith("130.211.2.")
-            || remoteAddr.startsWith("130.211.3.");
-  }
-
-  private static boolean isHealthCheck(HttpServletRequest request) {
-    if (HEALTH_CHECK_PATH.equalsIgnoreCase(request.getPathInfo())) {
-      return true;
-    }
-    return false;
-  }
-
-  private static boolean isLocalHealthCheck(HttpServletRequest request, String remoteAddr) {
-    String isLastSuccessfulPara = request.getParameter("IsLastSuccessful");
-    if (isLastSuccessfulPara == null && !remoteAddr.startsWith(LINK_LOCAL_IP_NETWORK)) {
-      return true;
-    }
-    return false;
+    return VmRequestUtils.isTrustedRemoteAddr(isDevMode, remoteAddr);
   }
 
   /**
-   * Record last normal health check status. It sets this.isLastSuccessful based
-   * on the value of "IsLastSuccessful" parameter from the query string ("yes"
-   * for True, otherwise False), and also updates
-   * this.timeStampOfLastNormalCheckMillis.
-   *
-   * @param request the HttpServletRequest
-   */
-  private static void recordLastNormalHealthCheckStatus(HttpServletRequest request) {
-    String isLastSuccessfulPara = request.getParameter("IsLastSuccessful");
-    if ("yes".equalsIgnoreCase(isLastSuccessfulPara)) {
-      isLastSuccessful = true;
-    } else if ("no".equalsIgnoreCase(isLastSuccessfulPara)) {
-      isLastSuccessful = false;
-    } else {
-      isLastSuccessful = false;
-      logger.warning("Wrong parameter for IsLastSuccessful: " + isLastSuccessfulPara);
-    }
 
-    timeStampOfLastNormalCheckMillis = System.currentTimeMillis();
-  }
-
-  /**
-   * Handle local health check from within the VM. If there is no previous
-   * normal check or that check has occurred more than checkIntervalSec seconds
-   * ago, it returns unhealthy. Otherwise, returns status based value of
-   * this.isLastSuccessful, "true" for success and "false" for failure.
-   *
-   * @param response the HttpServletResponse
-   * @throws IOException when it couldn't send out response
-   */
-  private static void handleLocalHealthCheck(HttpServletResponse response) throws IOException {
-    if (!isLastSuccessful) {
-      logger.warning("unhealthy (isLastSuccessful is False)");
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      return;
-    }
-    if (timeStampOfLastNormalCheckMillis == 0) {
-      logger.warning("unhealthy (no incoming remote health checks seen yet)");
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      return;
-    }
-    long timeOffset = System.currentTimeMillis() - timeStampOfLastNormalCheckMillis;
-    if (timeOffset > checkIntervalSec * HEALTH_CHECK_INTERVAL_OFFSET_RATIO * 1000) {
-      logger.warning("unhealthy (last incoming health check was " + timeOffset + "ms ago)");
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      return;
-    }
-    response.setContentType("text/plain");
-    PrintWriter writer = response.getWriter();
-    writer.write("ok");
-    writer.flush();
-    response.setStatus(HttpServletResponse.SC_OK);
-  }
-
-  /**
    * Overrides doScope from ScopedHandler.
    *
-   * Configures a thread local environment before the request is forwarded on to
-   * be handled by the SessionHandler, SecurityHandler, and ServletHandler in
-   * turn. The environment is required for AppEngine APIs to function. A request
-   * specific environment is required since some information is encoded in
-   * request headers on the request (for example current user).
+   *  Configures a thread local environment before the request is forwarded on to be handled by the
+   * SessionHandler, SecurityHandler, and ServletHandler in turn. The environment is required for
+   * AppEngine APIs to function. A request specific environment is required since some information
+   * is encoded in request headers on the request (for example current user).
    */
   @Override
   public final void doScope(
-          String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException {
-    String remoteAddr
-            = baseRequest.getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+      String target, Request baseRequest, HttpServletRequest httpServletRequest ,
+      HttpServletResponse httpServletResponse)
+      throws IOException, ServletException {
 
-    if (isHealthCheck(request)) {
-      if (!isValidHealthCheckAddr(remoteAddr)) {
+    HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
+    HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
+    String remoteAddr =
+        baseRequest.getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+
+    // Handle health check.
+    if (VmRequestUtils.isHealthCheck(httpServletRequest)) {
+      if (!VmRequestUtils.isValidHealthCheckAddr(isDevMode, remoteAddr)) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "403 Forbidden");
         return;
       }
 
-      if (isLocalHealthCheck(request, remoteAddr)) {
-        handleLocalHealthCheck(response);
+      if (VmRequestUtils.isLocalHealthCheck(httpServletRequest, remoteAddr)) {
+        VmRequestUtils.handleLocalHealthCheck(httpServletResponse);
         return;
       } else {
-        recordLastNormalHealthCheckStatus(request);
+        VmRequestUtils.recordLastNormalHealthCheckStatus(httpServletRequest);
       }
     }
     // For JSP Includes do standard processing, everything else has been done
     // in the main request before the include.
-    if (DispatcherType.INCLUDE.equals(request.getDispatcherType()) ||
-         DispatcherType.FORWARD.equals(request.getDispatcherType())) {
-      super.doScope(target, baseRequest, request, response);
-      return;     
+    if (DispatcherType.INCLUDE.equals(httpServletRequest.getDispatcherType())
+        || DispatcherType.FORWARD.equals(httpServletRequest.getDispatcherType())) {
+      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
+      return;
     }
+    // Install a thread local environment based on request headers of the current request.
     VmApiProxyEnvironment requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
-            System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
-            wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
-    CommitDelayingResponseServlet3 wrappedResponse = null;
-    if (response instanceof CommitDelayingResponseServlet3) {
-      wrappedResponse = (CommitDelayingResponseServlet3) response;
+        System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
+        wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+    CommitDelayingResponseServlet3 wrappedResponse;
+    if (httpServletResponse instanceof CommitDelayingResponseServlet3) {
+      wrappedResponse = (CommitDelayingResponseServlet3) httpServletResponse;
     } else {
-      wrappedResponse = new CommitDelayingResponseServlet3(response);
+      wrappedResponse = new CommitDelayingResponseServlet3(httpServletResponse);
     }
-    if (response instanceof org.eclipse.jetty.server.Response) {
-      ((org.eclipse.jetty.server.Response) response).getHttpOutput().setBufferSize(
-              wrappedResponse.getBufferSize());
+
+    if (httpServletResponse instanceof org.eclipse.jetty.server.Response) {
+      // The jetty 9.1 HttpOutput class has logic to commit the stream when it reaches a certain
+      // threshold.  Inexplicably, by default, that threshold is set to one-fourth its buffer size.
+      // That defeats the purpose of our commit delaying response.  Luckily, setting the buffer
+      // size again sets the commit size to same value.
+      // See go/jetty9-httpoutput.java for the relevant jetty source code.
+      ((org.eclipse.jetty.server.Response) httpServletResponse).getHttpOutput().setBufferSize(
+          wrappedResponse.getBufferSize());
     }
     try {
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
+      // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(request);
+      // Change scheme to HTTPS based on headers set by the appserver.
       setSchemeAndPort(baseRequest);
-      super.doScope(target, baseRequest, request, wrappedResponse);
+      // Forward the request to the rest of the handlers.
+      super.doScope(target, baseRequest, httpServletRequest, wrappedResponse);
     } finally {
       try {
+        // Interrupt any remaining request threads and wait for them to complete.
         VmRuntimeUtils.interruptRequestThreads(
-                requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-        if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment, wrappedResponse)) {
+            requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+        // Wait for any pending async API requests to complete.
+        if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,
+            new HttpServletResponseAdapter(wrappedResponse))) {
           logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
         }
         if (!response.isCommitted()) {
+          // Flush and set the flush count header so the appserver knows when all logs are in.
           VmRuntimeUtils.flushLogsAndAddHeader(response, requestSpecificEnvironment);
         } else {
           throw new ServletException("Response for request to '" + target
-                  + "' was already commited (code=" + ((Response) response).getStatus()
-                  + "). This might result in lost log messages.'");
+              + "' was already commited (code=" + httpServletResponse.getStatus()
+              + "). This might result in lost log messages.'");
         }
       } finally {
         try {
+          // Complete any pending actions.
           wrappedResponse.commit();
         } finally {
+          // Restore the default environment.
           ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
         }
       }
     }
   }
 
+  // N.B.(schwardo): Yuck. Jetty hardcodes all of this logic into an
+  // inner class of ContextHandler. We need to subclass WebAppContext
+  // (which extends ContextHandler) and then subclass the SContext
+  // inner class to modify its behavior.
   /**
    * ServletContext for VmRuntime applications.
    */
@@ -485,8 +397,8 @@ public class VmRuntimeWebAppContext
     /**
      * {@inheritDoc}
      *
-     * @param throwable an exception associated with this log message, or
-     * {@code null}.
+     * @param throwable an exception associated with this log message,
+     * or {@code null}.
      */
     @Override
     public void log(String message, Throwable throwable) {
@@ -501,7 +413,7 @@ public class VmRuntimeWebAppContext
 
       LogRecord.Level logLevel = throwable == null ? LogRecord.Level.info : LogRecord.Level.error;
       ApiProxy.log(new ApiProxy.LogRecord(logLevel, System.currentTimeMillis() * 1000L,
-              writer.toString()));
+          writer.toString()));
     }
 
     @Override

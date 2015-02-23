@@ -27,6 +27,8 @@ package com.google.apphosting.runtime.timer;
  *
  */
 abstract public class AbstractIntervalTimer implements Timer {
+  // This object serves as its own lock protecting the following
+  // fields.
   protected boolean running = false;
   protected long startTime = 0L;
   protected long cumulativeTime = 0L;

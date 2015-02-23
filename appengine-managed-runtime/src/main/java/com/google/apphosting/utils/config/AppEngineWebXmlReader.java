@@ -46,6 +46,7 @@ public class AppEngineWebXmlReader {
 
   public static final String DEFAULT_RELATIVE_FILENAME = "WEB-INF/appengine-web.xml";
 
+  // Absolute location of the config file
   private final String filename;
 
   /**
@@ -56,6 +57,7 @@ public class AppEngineWebXmlReader {
    * {@code appDir}.
    */
   public AppEngineWebXmlReader(String appDir, String relativeFilename) {
+    // Be friendly, make sure we end with a slash.
     if (appDir.length() > 0 && appDir.charAt(appDir.length() - 1) != File.separatorChar) {
       appDir += File.separatorChar;
     }
@@ -89,6 +91,7 @@ public class AppEngineWebXmlReader {
       logger.info("Successfully processed " + getFilename());
       if (!appEngineWebXml.getThreadsafeValueProvided()) {
         if (allowMissingThreadsafeElement()) {
+          // make some noise if there is no <threadsafe> element.
           logger.warning("appengine-web.xml does not contain a <threadsafe> element. This will "
               + "be treated as an error the next time you deploy.\nSee " + CONCURRENT_REQUESTS_URL
               + " for more information.\nYou probably want to enable concurrent requests.");
@@ -108,6 +111,8 @@ public class AppEngineWebXmlReader {
     } catch (Exception e) {
       String msg = "Received exception processing " + getFilename();
       logger.log(Level.SEVERE, msg, e);
+      // Guarantee that the only exceptions thrown from this method are of
+      // type AppEngineConfigException.
       if (e instanceof AppEngineConfigException) {
         throw (AppEngineConfigException) e;
       }
@@ -136,6 +141,7 @@ public class AppEngineWebXmlReader {
     }
   }
 
+  // broken out for testing
   protected AppEngineWebXml processXml(InputStream is) {
     return new AppEngineWebXmlProcessor().processXml(is);
   }
@@ -144,6 +150,7 @@ public class AppEngineWebXmlReader {
     try {
       return new FileInputStream(getFilename());
     } catch (FileNotFoundException fnfe) {
+      // Having the full path in the exception is helpful for debugging.
       throw new AppEngineConfigException(
           "Could not locate " + new File(getFilename()).getAbsolutePath(), fnfe);
     }
