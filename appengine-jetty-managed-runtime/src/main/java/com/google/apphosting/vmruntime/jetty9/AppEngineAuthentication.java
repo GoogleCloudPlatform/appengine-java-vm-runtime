@@ -167,10 +167,12 @@ class AppEngineAuthentication {
       if (!mandatory) {
         return new DeferredAuthentication(this);
       }
-      HttpChannel channel = HttpChannel.getCurrentHttpChannel();
-      String remoteAddr = null;
-      if (channel != null) {
-        remoteAddr = channel.getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+      String remoteAddr = request.getHeader(VmApiProxyEnvironment.REAL_IP_HEADER);
+      if (remoteAddr == null) {
+        HttpChannel<?> channel = HttpChannel.getCurrentHttpChannel();
+        if (channel != null) {
+          remoteAddr = channel.getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+        }
       }
       // Untrusted inbound ip for a login page, 307 the user to a server that we can trust.
       if (!checker.isTrustedRemoteAddr(remoteAddr)) {

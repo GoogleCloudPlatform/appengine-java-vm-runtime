@@ -288,9 +288,11 @@ public class VmRuntimeWebAppContext
 
     HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
     HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
-    String remoteAddr =
-        baseRequest.getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
-
+    String remoteAddr = request.getHeader(VmApiProxyEnvironment.REAL_IP_HEADER);
+    if (remoteAddr == null) {
+      remoteAddr = baseRequest.
+          getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
+    }
     // Handle health check.
     if (VmRequestUtils.isHealthCheck(httpServletRequest)) {
       if (!VmRequestUtils.isValidHealthCheckAddr(isDevMode, remoteAddr)) {
