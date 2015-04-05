@@ -55,14 +55,26 @@ class XmlUtils {
     return node.getTextContent().trim();
 }
 
-    public static Document parseXml(InputStream inputStream)
-        throws ParserConfigurationException, SAXException, IOException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(inputStream);
-        doc.getDocumentElement().normalize();
-        return doc;
+  public static Document parseXml(InputStream inputStream) {
+    try {
+      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+      Document doc = dBuilder.parse(inputStream);
+      doc.getDocumentElement().normalize();
+      return doc;
+    } catch (IOException e) {
+      String msg = "Received IOException parsing the input stream.";
+      throw new AppEngineConfigException(msg, e);
+    } catch (SAXException e) {
+      String msg = "Received SAXException parsing the input stream.";
+      throw new AppEngineConfigException(msg, e);
+    } catch (ParserConfigurationException e) {
+      String msg
+              = "Received ParserConfigurationException parsing the input stream.";
+      throw new AppEngineConfigException(msg, e);
     }
+
+  }
 
     public static String getChildElementBody(Element element, String tagName) {
         return getChildElementBody(element, tagName, true);
