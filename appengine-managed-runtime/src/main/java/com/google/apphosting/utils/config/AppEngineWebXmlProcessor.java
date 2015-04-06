@@ -33,16 +33,11 @@ import com.google.apphosting.utils.config.AppEngineWebXml.Resources;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Constructs an {@link AppEngineWebXml} from an xml document corresponding to
@@ -106,21 +101,7 @@ class AppEngineWebXmlProcessor {
    * @throws AppEngineConfigException If the input stream cannot be parsed.
    */
   Element getTopLevelNode(InputStream is) {
-    try {
-      return XmlUtils.parseXml(is).getDocumentElement();
-    } catch (IOException e) {
-      String msg = "Received IOException parsing the input stream.";
-      logger.log(Level.SEVERE, msg, e);
-      throw new AppEngineConfigException(msg, e);
-    } catch (SAXException e) {
-      String msg = "Received SAXException parsing the input stream.";
-      logger.log(Level.SEVERE, msg, e);
-      throw new AppEngineConfigException(msg, e);
-    } catch (ParserConfigurationException e) {
-      String msg = "Received ParserConfigurationException parsing the input stream.";
-      logger.log(Level.SEVERE, msg, e);
-      throw new AppEngineConfigException(msg, e);
-    }
+    return XmlUtils.parseXml(is).getDocumentElement();
   }
 
   @SuppressWarnings("IfCanBeSwitch")
@@ -471,6 +452,10 @@ class AppEngineWebXmlProcessor {
       Element subNode = nodeIter.next();
       String forwardedPort = getTextNode(subNode);
       network.addForwardedPort(forwardedPort);
+    }
+    String name = trim(getChildNodeText(settingsNode, "name"));
+    if (name != null && !name.isEmpty()) {
+      network.setName(name);
     }
   }
 
