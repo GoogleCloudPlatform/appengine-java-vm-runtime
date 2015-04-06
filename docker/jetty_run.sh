@@ -25,13 +25,13 @@ if [[ "$GAE_PARTITION" = "dev" ]]; then
   fi
 else
   # Get OAuth token from metadata service.
-  TOKEN_URL="http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
+  TOKEN_URL="http://metadata/computeMetadata/v1/instance/service-accounts/default/token"
   METADATA_HEADER="Metadata-Flavor: Google"
   OAUTH_TOKEN="$( wget -q -O - "$@" --no-cookies --header "${METADATA_HEADER}" "${TOKEN_URL}" | \
                   sed -e 's/.*"access_token"\ *:\ *"\([^"]*\)".*$/\1/g' )"
 
   # Download the agent
-  CDBG_REF_URL="http://metadata.google.internal/0.1/meta-data/attributes/gae_debugger_filename"
+  CDBG_REF_URL="http://metadata/computeMetadata/v1/instance/attributes/gae_debugger_filename"
   if [[ -z "${CDBG_AGENT_URL}" ]]; then
     CDBG_AGENT_URL="https://storage.googleapis.com/vm-config.${GAE_LONG_APP_ID}.appspot.com/"
     CDBG_AGENT_URL+="$( wget -q -O - "$@" --no-cookies --header "${METADATA_HEADER}" "${CDBG_REF_URL}" )"
@@ -46,22 +46,38 @@ else
   DBG_AGENT="$( cdbg/format-env-appengine-vm.sh )"
 fi
 
-JETTY_HOME=${RUNTIME_DIR}
-JETTY_VERSION=9.2.5.v20141112
+PROF_AGENT=
+# Download and install the cloud profiler agent if $CP_ENABLE is set
+# CP_AGENT_URL can be set to download alternate versions of the agent
+if [[ -n "${CP_ENABLE}" ]]; then
+  if [[ -z "${CP_AGENT_URL}" ]] ; then
+    CP_AGENT_URL="https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz"
+  fi
 
+  echo "Downloading Cloud Profiler agent from ${CP_AGENT_URL}"
+  wget -O cloud_profiler_java_agent.tar.gz -nv --no-cookies -t 3 "${CP_AGENT_URL}"
+
+  # Extract the agent and format the command line arguments.
+  mkdir -p cp ; tar xzf cloud_profiler_java_agent.tar.gz -C cp
+  PROF_AGENT="$( cp/format-env-appengine-vm.sh )"
+fi
+
+JETTY_HOME=${RUNTIME_DIR}
+JETTY_VERSION=9.2.10.v20150310
+ls -l ${JETTY_HOME}/lib/ext/  >/var/log/ludo
 # to generate the good, fast cli:
 #/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run
 
-/usr/bin/java ${JAVA_OPTS} ${DBG_AGENT} \
+/usr/bin/java ${JAVA_OPTS} ${DBG_AGENT} ${PROF_AGENT} \
 -Djava.io.tmpdir=/tmp \
 -Djetty.home=${JETTY_HOME} \
 -Djetty.base=${JETTY_HOME} \
 -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} \
 -XX:PermSize=${PERM_SIZE} -XX:MaxPermSize=${MAX_PERM_SIZE} \
 -cp \
-${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk-1.9.17.jar:\
-${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime-1.9.17.jar:\
-${JETTY_HOME}/lib/ext/appengine-managed-runtime-1.9.17.jar:\
+${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk.jar:\
+${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime.jar:\
+${JETTY_HOME}/lib/ext/appengine-managed-runtime.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.apache-jsp-${JETTY_VERSION}.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-el-8.0.9.M3.jar:\

@@ -15,17 +15,17 @@
 FROM google/debian:wheezy
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -q update && \
-    apt-get -y -q --no-install-recommends install ca-certificates curl openjdk-7-jre-headless wget && \
+    apt-get -y -q --no-install-recommends install ca-certificates curl openjdk-7-jre-headless wget netbase && \
     apt-get clean && \
     rm /var/lib/apt/lists/*_*
 
 RUN mkdir -p /var/lib/jetty
-RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.5.v20141112/jetty-distribution-9.2.5.v20141112.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
+RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.10.v20150310/jetty-distribution-9.2.10.v20150310.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
 
 # Managed VM related jars:
-RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.17/appengine-api-1.0-sdk-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-api-1.0-sdk-1.9.17.jar
-RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.17/appengine-jetty-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-jetty-managed-runtime-1.9.17.jar
-RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.17/appengine-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-managed-runtime-1.9.17.jar
+RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.18/appengine-api-1.0-sdk-1.9.18.jar -o /var/lib/jetty/lib/ext/appengine-api-1.0-sdk.jar
+RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.17/appengine-jetty-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-jetty-managed-runtime.jar
+RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.17/appengine-managed-runtime-1.9.17.jar -o /var/lib/jetty/lib/ext/appengine-managed-runtime.jar
 ADD . /var/lib/jetty/
 
 RUN ln -s var/lib/jetty/webapps/root /app

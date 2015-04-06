@@ -107,6 +107,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   
   static final String IS_TRUSTED_IP_HEADER = "X-AppEngine-Trusted-IP-Request";
 
+  // Set from the nginx proxy if running.
+  public static final String REAL_IP_HEADER = "X-Google-Real-IP";
+
   // See flags in: java/com/google/apphosting/runtime/JavaRuntimeFactory.java
   // Log flush byte count boosted from 100K to 1M (same as python) to improve logging throughput.
   private static final long DEFAULT_FLUSH_APP_LOGS_EVERY_BYTE_COUNT = 1024 * 1024L;

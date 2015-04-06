@@ -237,11 +237,11 @@ public class AppEngineWebXml {
     this.instanceClass = toNullIfEmptyOrWhitespace(instanceClass);
   }
 
-  private static boolean isEmptyOrWhitespace( String string) {
+  private static boolean isEmptyOrWhitespace(String string) {
     return string == null || CharMatcher.WHITESPACE.matchesAllOf(string);
   }
 
-  private static String toNullIfEmptyOrWhitespace( String string) {
+  private static String toNullIfEmptyOrWhitespace(String string) {
     return isEmptyOrWhitespace(string) ? null : string;
   }
 
@@ -1686,6 +1686,16 @@ public class AppEngineWebXml {
 
     public void addForwardedPort(String forwardedPort) {
       forwardedPorts.add(forwardedPort);
+    }
+
+    private String name;
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
     }
 
     public boolean isEmpty() {

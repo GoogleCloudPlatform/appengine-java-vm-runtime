@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.18-SNAPSHOT</version>
+    <version>1.9.19-SNAPSHOT</version>
   </parent>
   <artifactId>appengine-jetty-managed-runtime</artifactId>
   <packaging>jar</packaging>
@@ -40,38 +40,32 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-managed-runtime</artifactId>
-      <version>1.9.18-SNAPSHOT</version>
+      <version>1.9.19-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>9.2.5.v20141112</version>
+      <version>9.2.10.v20150310</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>9.2.5.v20141112</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>tomcat-api</artifactId>
-      <version>8.0.15</version>
+      <version>9.2.10.v20150310</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-quickstart</artifactId>
-      <version>9.2.5.v20141112</version>
+      <version>9.2.10.v20150310</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-servlet-api</artifactId>
-      <version>8.0.15</version>
+      <version>8.0.21</version>
       <type>jar</type>
     </dependency>
   </dependencies>

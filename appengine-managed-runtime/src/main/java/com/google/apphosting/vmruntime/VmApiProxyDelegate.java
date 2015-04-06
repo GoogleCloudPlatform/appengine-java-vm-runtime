@@ -76,6 +76,10 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
   protected static final String API_DEADLINE_KEY =
       "com.google.apphosting.api.ApiProxy.api_deadline_key";
 
+  // Default timeout for RPC calls.
+  static final int DEFAULT_RPC_TIMEOUT_MS = 60 * 1000;
+
+  // Wait for 1000 ms in addition to the RPC timeout before closing the HTTP connection.
   static final int ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS = 1000;
 
   protected int defaultTimeoutMs;
@@ -98,7 +102,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
   
   VmApiProxyDelegate(HttpClient httpclient) {
-    this.defaultTimeoutMs = 5 * 60 * 1000;
+    this.defaultTimeoutMs = DEFAULT_RPC_TIMEOUT_MS;
     this.executor = Executors.newCachedThreadPool();
     this.httpclient = httpclient;
     this.monitorThread = new IdleConnectionMonitorThread(httpclient.getConnectionManager());
