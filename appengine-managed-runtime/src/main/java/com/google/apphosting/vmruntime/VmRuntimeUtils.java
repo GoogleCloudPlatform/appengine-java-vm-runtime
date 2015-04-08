@@ -16,18 +16,17 @@
 
 package com.google.apphosting.vmruntime;
 
-import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
-
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.base.AppId;
-import com.google.apphosting.utils.config.AppEngineWebXml;
+import com.google.apphosting.utils.config.appengineweb.AppengineWebAppType;
+import com.google.apphosting.utils.config.appengineweb.PropertyType;
 import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 
-
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Constants and utility functions shared by the Jetty 6 and Jetty 9 VmRuntimeWebAppContext.
@@ -141,15 +140,15 @@ public class VmRuntimeUtils {
    * Install system properties based on the provided VmApiProxyEnvironment.
    */
   public static void installSystemProperties(
-      VmApiProxyEnvironment environment, AppEngineWebXml appEngineWebXml) {
+      VmApiProxyEnvironment environment, AppengineWebAppType appEngineWebXml) {
     setEnvironmentSystemProperty(environment.getPartition());
     System.setProperty(SystemProperty.version.key(), getServerInfo());
     System.setProperty(
         SystemProperty.applicationId.key(), AppId.parse(environment.getAppId()).getLongAppId());
     System.setProperty(SystemProperty.applicationVersion.key(), environment.getVersionId());
     System.setProperty("appengine.jetty.also_log_to_apiproxy", "true");
-    for (Map.Entry<String, String> entry : appEngineWebXml.getSystemProperties().entrySet()) {
-      System.setProperty(entry.getKey(), entry.getValue());
+    for (PropertyType propertyType : appEngineWebXml.getSystemProperties().getProperty()) {
+      System.setProperty(propertyType.getName(), propertyType.getValue());
     }
   }
 
