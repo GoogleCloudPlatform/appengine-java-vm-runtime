@@ -16,8 +16,6 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
-
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -28,25 +26,13 @@ import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.timer.Timer;
-import com.google.apphosting.utils.config.AppEngineConfigException;
-import com.google.apphosting.utils.config.AppEngineWebXml;
-import com.google.apphosting.utils.config.AppEngineWebXmlReader;
+import com.google.apphosting.utils.config.appengineweb.AppengineWebAppType;
+import com.google.apphosting.utils.config.appengineweb.AsyncSessionPersistenceType;
 import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
-import com.google.apphosting.vmruntime.CommitDelayingResponseServlet3;
-import com.google.apphosting.vmruntime.VmApiProxyDelegate;
-import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
-import com.google.apphosting.vmruntime.VmEnvironmentFactory;
-import com.google.apphosting.vmruntime.VmMetadataCache;
-import com.google.apphosting.vmruntime.VmRequestUtils;
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
-import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
-import com.google.apphosting.vmruntime.VmRuntimeUtils;
-import com.google.apphosting.vmruntime.VmTimer;
-
-
+import com.google.apphosting.vmruntime.*;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
@@ -55,6 +41,11 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXB;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -63,10 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -150,16 +138,18 @@ public class VmRuntimeWebAppContext
     super.doStart();
   }
   /**
-   * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
+   * Creates a List of SessionStores based on the configuration in the appengine-web.xml.
    *
-   * @param appEngineWebXml The AppEngineWebXml containing the session configuration.
    * @return A List of SessionStores in write order.
    */
-  private static List<SessionStore> createSessionStores(AppEngineWebXml appEngineWebXml) {
-    DatastoreSessionStore datastoreSessionStore =
-        appEngineWebXml.getAsyncSessionPersistence() ? new DeferredDatastoreSessionStore(
-            appEngineWebXml.getAsyncSessionPersistenceQueueName())
-            : new DatastoreSessionStore();
+  private static List<SessionStore> createSessionStores(AppengineWebAppType appEngineWebXml) {
+    DatastoreSessionStore datastoreSessionStore;
+    AsyncSessionPersistenceType asyncSessionPersistence = appEngineWebXml.getAsyncSessionPersistence();
+    if (asyncSessionPersistence != null && asyncSessionPersistence.isEnabled()) {
+      datastoreSessionStore = new DeferredDatastoreSessionStore(asyncSessionPersistence.getQueueName());
+    } else {
+      datastoreSessionStore = new DatastoreSessionStore();
+    }
     // Write session data to the datastore before we write to memcache.
     return Arrays.asList(datastoreSessionStore, new MemcacheSessionStore());
   }
@@ -216,12 +206,9 @@ public class VmRuntimeWebAppContext
    *
    * @param appDir The war directory of the application.
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
-   * @throws AppEngineConfigException If there was a problem finding or parsing the
-   *         appengine-web.xml configuration.
    * @throws IOException If the runtime was unable to find/read appDir.
    */
-  public void init(String appDir, String appengineWebXmlFile)
-      throws AppEngineConfigException, IOException {
+  public void init(String appDir, String appengineWebXmlFile) throws IOException {
     setContextPath("/");
     setWar(appDir);
     setResourceBase(appDir);
@@ -235,9 +222,8 @@ public class VmRuntimeWebAppContext
     }
 
     isDevMode = defaultEnvironment.getPartition().equals("dev");
-    AppEngineWebXmlReader appEngineWebXmlReader =
-        new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
-    AppEngineWebXml appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
+    AppengineWebAppType appEngineWebXml =
+            JAXB.unmarshal(new File(appDir, appengineWebXmlFile), AppengineWebAppType.class);
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();
@@ -247,7 +233,7 @@ public class VmRuntimeWebAppContext
     }
 
     AbstractSessionManager sessionManager;
-    if (appEngineWebXml.getSessionsEnabled()) {
+    if (appEngineWebXml.isSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
     } else {
       sessionManager = new StubSessionManager();
@@ -255,8 +241,8 @@ public class VmRuntimeWebAppContext
     setSessionHandler(new SessionHandler(sessionManager));
 
     // Get check interval second(s) to be used by special health check handler.
-    int checkIntervalSec = firstNonNull(appEngineWebXml.getHealthCheck().getCheckIntervalSec(),
-        VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
+    long checkIntervalSec = firstNonNull(appEngineWebXml.getHealthCheck().getCheckIntervalSec(),
+            VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
     if (checkIntervalSec <= 0) {
       logger.warning(
           "health check interval is not positive: " + checkIntervalSec

@@ -32,7 +32,7 @@ public class VmRequestUtils {
   private static final String HEALTH_CHECK_PATH = "/_ah/health";
 
   public static final double HEALTH_CHECK_INTERVAL_OFFSET_RATIO = 1.5;
-  public static final int DEFAULT_CHECK_INTERVAL_SEC = 5;
+  public static final long DEFAULT_CHECK_INTERVAL_SEC = 5;
   public static final String LINK_LOCAL_IP_NETWORK = "169.254";
 
   // For better understanding of isLastSuccessful and timeStampOfLastNormalCheckMillis, please see
@@ -40,13 +40,13 @@ public class VmRequestUtils {
   private static boolean isLastSuccessful = false;
   // The time stamp of last normal health check, in milliseconds.
   private static long timeStampOfLastNormalCheckMillis = 0;
-  private static int checkIntervalSec = -1;
+  private static long checkIntervalSec = -1;
 
   /**
    * Set the value in seconds of the interval to determine if a health check
    * request is valid.
    */
-  public static void setCheckIntervalSec(int checkIntervalSec) {
+  public static void setCheckIntervalSec(long checkIntervalSec) {
     VmRequestUtils.checkIntervalSec = checkIntervalSec;
   }
 
@@ -55,7 +55,7 @@ public class VmRequestUtils {
    * @return the interval in seconds to determine if a health check
    * request is valid.
    */
-  public static int getCheckIntervalSec() {
+  public static long getCheckIntervalSec() {
     return checkIntervalSec;
   }
 
