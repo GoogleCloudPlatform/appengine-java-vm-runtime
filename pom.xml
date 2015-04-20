@@ -3,13 +3,13 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.19</version>
+  <version>1.9.20-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>appengine-java-vm-runtime</name>
   <url>http://maven.apache.org</url>
   <scm>
     <connection>scm:git:https://github.com/ludoch/appengine-runtime-java-docker-image.git</connection>
-    <tag>appengine-java-vm-runtime-1.9.19</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
