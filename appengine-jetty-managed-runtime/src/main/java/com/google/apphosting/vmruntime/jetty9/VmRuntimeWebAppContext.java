@@ -294,17 +294,21 @@ public class VmRuntimeWebAppContext
           getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
     }
     // Handle health check.
+    // See //apphosting/ext/vmruntime/meta_app.py:ServeHealthCheck for full health check logic.
     if (VmRequestUtils.isHealthCheck(httpServletRequest)) {
       if (!VmRequestUtils.isValidHealthCheckAddr(isDevMode, remoteAddr)) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "403 Forbidden");
         return;
       }
 
-      if (VmRequestUtils.isLocalHealthCheck(httpServletRequest, remoteAddr)) {
-        VmRequestUtils.handleLocalHealthCheck(httpServletResponse);
-        return;
-      } else {
-        VmRequestUtils.recordLastNormalHealthCheckStatus(httpServletRequest);
+      VmApiProxyEnvironment environment = (VmApiProxyEnvironment) ApiProxy.getCurrentEnvironment();
+      if (!environment.getUseMvmAgent()) {
+        if (VmRequestUtils.isLocalHealthCheck(httpServletRequest, remoteAddr)) {
+          VmRequestUtils.handleLocalHealthCheck(httpServletResponse);
+          return;
+        } else {
+          VmRequestUtils.recordLastNormalHealthCheckStatus(httpServletRequest);
+        }
       }
     }
     // For JSP Includes do standard processing, everything else has been done
