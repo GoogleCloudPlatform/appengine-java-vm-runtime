@@ -33,7 +33,7 @@ else
   # Download the agent
   CDBG_REF_URL="http://metadata/computeMetadata/v1/instance/attributes/gae_debugger_filename"
   if [[ -z "${CDBG_AGENT_URL}" ]]; then
-    CDBG_AGENT_URL="https://storage.googleapis.com/vm-config.${GAE_LONG_APP_ID}.appspot.com/"
+    CDBG_AGENT_URL="https://storage.googleapis.com/vm-config.$(echo ${GAE_LONG_APP_ID} | sed -e 's/^\(.*\)\:\(.*\)$/\2.\1.a/g').appspot.com/"
     CDBG_AGENT_URL+="$( wget -q -O - "$@" --no-cookies --header "${METADATA_HEADER}" "${CDBG_REF_URL}" )"
   fi
 
@@ -47,15 +47,15 @@ else
 fi
 
 PROF_AGENT=
-# Download and install the cloud profiler agent if $CP_ENABLE is set
-# CP_AGENT_URL can be set to download alternate versions of the agent
-if [[ -n "${CP_ENABLE}" ]]; then
-  if [[ -z "${CP_AGENT_URL}" ]] ; then
-    CP_AGENT_URL="https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz"
+# Download and install the cloud profiler agent if $CPROF_ENABLE is set
+# CPROF_AGENT_URL can be set to download alternate versions of the agent
+if [[ -n "${CPROF_ENABLE}" ]]; then
+  if [[ -z "${CPROF_AGENT_URL}" ]] ; then
+    CPROF_AGENT_URL="https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz"
   fi
 
-  echo "Downloading Cloud Profiler agent from ${CP_AGENT_URL}"
-  wget -O cloud_profiler_java_agent.tar.gz -nv --no-cookies -t 3 "${CP_AGENT_URL}"
+  echo "Downloading Cloud Profiler agent from ${CPROF_AGENT_URL}"
+  wget -O cloud_profiler_java_agent.tar.gz -nv --no-cookies -t 3 "${CPROF_AGENT_URL}"
 
   # Extract the agent and format the command line arguments.
   mkdir -p cp ; tar xzf cloud_profiler_java_agent.tar.gz -C cp
@@ -64,7 +64,6 @@ fi
 
 JETTY_HOME=${RUNTIME_DIR}
 JETTY_VERSION=9.2.10.v20150310
-ls -l ${JETTY_HOME}/lib/ext/  >/var/log/ludo
 # to generate the good, fast cli:
 #/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run
 

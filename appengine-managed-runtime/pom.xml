@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.20-SNAPSHOT</version>
+  <version>1.9.21-SNAPSHOT</version>
   </parent>
   <artifactId>appengine-managed-runtime</artifactId>
   <packaging>jar</packaging>
@@ -19,7 +19,7 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.19</version>
+      <version>1.9.21</version>
       <type>jar</type>
     </dependency>
     <dependency>
