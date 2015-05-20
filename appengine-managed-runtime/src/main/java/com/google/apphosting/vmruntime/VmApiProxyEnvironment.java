@@ -73,6 +73,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   static final String APPENGINE_HOSTNAME_ATTRIBUTE = "attributes/gae_appengine_hostname";
   static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
 
+  // Attribute is only for testing.
+  static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
+  static final String USE_MVM_AGENT_KEY = "USE_MVM_AGENT";
+
   public static final String TICKET_HEADER = "X-AppEngine-Api-Ticket";
   public static final String EMAIL_HEADER = "X-AppEngine-User-Email";
   public static final String IS_ADMIN_HEADER = "X-AppEngine-User-Is-Admin";
@@ -268,6 +272,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String email = null;
     final boolean admin = false;
     final String authDomain = null;
+    final boolean useMvmAgent = Boolean.parseBoolean(getEnvOrMetadata(
+        envMap, cache, USE_MVM_AGENT_KEY, USE_MVM_AGENT_ATTRIBUTE));
+
     Map<String, Object> attributes = new HashMap<String, Object>();
     // Fill in default attributes values.
     for (AttributeMapping mapping : AttributeMapping.values()) {
@@ -284,7 +291,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(INSTANCE_ID_KEY, instance);
     VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
-        authDomain, wallTimer, millisUntilSoftDeadline, attributes);
+        authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
     // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(null));
     // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
@@ -317,6 +324,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String majorVersion = defaultEnvironment.getMajorVersion();
     final String minorVersion = defaultEnvironment.getMinorVersion();
     final String appengineHostname = defaultEnvironment.getAppengineHostname();
+    final boolean useMvmAgent = defaultEnvironment.getUseMvmAgent();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String ticket = request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
@@ -362,7 +370,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
-        authDomain, wallTimer, millisUntilSoftDeadline, attributes);
+        authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
     // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(requestEnvironment));
     // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
@@ -386,6 +394,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final String email;
   private final boolean admin;
   private final String authDomain;
+  private final boolean useMvmAgent;
   private final Map<String, Object> attributes;
   private ThreadLocal<Map<String, Object>> threadLocalAttributes;
   private final Timer wallTimer;  // may be null if millisUntilSoftDeadline is null.
@@ -411,6 +420,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param email the user's e-mail address (may be null).
    * @param admin true if the user is an administrator.
    * @param authDomain the user's authentication domain (may be null).
+   * @param useMvmAgent if true, the mvm agent is in use.
    * @param wallTimer optional wall clock timer for the current request (required for deadline).
    * @param millisUntilSoftDeadline optional soft deadline in milliseconds relative to 'wallTimer'.
    * @param attributes map containing any attributes set on this environment.
@@ -418,7 +428,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private VmApiProxyEnvironment(
       String server, String ticket, String appId, String partition, String module,
       String majorVersion, String minorVersion, String instance, String appengineHostname,
-      String email, boolean admin, String authDomain, Timer wallTimer,
+      String email, boolean admin, String authDomain, boolean useMvmAgent, Timer wallTimer,
       Long millisUntilSoftDeadline, Map<String, Object> attributes) {
     if (server == null || server.isEmpty()) {
       throw new IllegalArgumentException("proxy server host:port must be specified");
@@ -459,6 +469,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     this.email = email == null ? "" : email;
     this.admin = admin;
     this.authDomain = authDomain == null ? "" : authDomain;
+    this.useMvmAgent = useMvmAgent;
     this.wallTimer = wallTimer;
     this.millisUntilSoftDeadline = millisUntilSoftDeadline;
     // Environments are associated with requests, and can be
@@ -548,6 +559,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   @Override
   public String getAuthDomain() {
     return authDomain;
+  }
+
+  public boolean getUseMvmAgent() {
+    return useMvmAgent;
   }
 
   @Deprecated

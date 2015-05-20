@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  * version in AppYaml.java.
  *
  */
-public class AppEngineWebXml {
+public class AppEngineWebXml implements Cloneable {
   /**
    * Enumeration of supported scaling types.
    */
@@ -151,6 +151,14 @@ public class AppEngineWebXml {
     resourceFileExcludes = new ArrayList<String>();
     inboundServices = new LinkedHashSet<String>();
     apiEndpointIds = new ArrayList<String>();
+  }
+
+  public AppEngineWebXml clone() {
+    try {
+      return (AppEngineWebXml) super.clone();
+    } catch (CloneNotSupportedException ce) {
+      throw new RuntimeException("Could not clone AppEngineWebXml", ce);
+    }
   }
 
   /**

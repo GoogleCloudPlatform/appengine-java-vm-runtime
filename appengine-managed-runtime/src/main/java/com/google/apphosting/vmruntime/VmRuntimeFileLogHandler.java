@@ -41,6 +41,8 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern";
   // Log files to /var/log/app_engine/app.[0-2].log.json
   private static final String DEFAULT_LOG_PATTERN = "/var/log/app_engine/app.%g.log.json";
+  private static final String APP_ENGINE_LOG_CONFIG_PATTERN_ENV =
+      "APP_ENGINE_LOG_CONFIG_PATTERN";
   private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;
 
@@ -51,11 +53,16 @@ public class VmRuntimeFileLogHandler extends FileHandler {
   }
 
   private static String fileLogPattern() {
-    String pattern = System.getProperty(LOG_PATTERN_CONFIG_PROPERTY);
-    if (pattern == null) {
-      return DEFAULT_LOG_PATTERN;
+    String pattern = System.getenv(APP_ENGINE_LOG_CONFIG_PATTERN_ENV);
+    // For Cloud SDK usage only for local Jetty processes.
+    if (pattern != null) {
+      return pattern;
     }
-    return pattern;
+    pattern = System.getProperty(LOG_PATTERN_CONFIG_PROPERTY);
+    if (pattern != null) {
+      return pattern;
+    }
+    return DEFAULT_LOG_PATTERN;
   }
 
   /**
