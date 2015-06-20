@@ -7,7 +7,11 @@ It has 2 Java libraries, one generic for default servlets, filters and App Engin
 The Java librairies are pushed to Maven Central, and used by the [docker/Dockerfile](docker/Dockerfile) that build the image. To use the image, you need to build it:
 
        git clone https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime.git
-       cd appengine-java-vm-runtime/docker
+       cd appengine-java-vm-runtime
+       mvn clean install
+       cp appengine-jetty-managed-runtime/target/appengine-jetty-managed-runtime*.jar docker/lib//ext/appengine-jetty-managed-runtime.jar
+       cp appengine-managed-runtime/target/appengine-managed-runtime*.jar docker/lib/ext/appengine-managed-runtime.jar
+       cd docker
        docker build -t myimage .
 
 Then, for a Java Web Application Archive, put a Dockerfile at the top directory (for example, with a Maven build, create the Dockerfile in ./src/main/webapp directory) and from this Docker image, just add your Web Application content into the /app of the container.
