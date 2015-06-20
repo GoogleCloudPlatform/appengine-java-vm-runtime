@@ -6,7 +6,7 @@ if [ -z "$RUNTIME_DIR" ]; then
   exit 1
 fi
 HEAP_SIZE_FRAC=0.8
-RAM_RESERVED_MB=150
+RAM_RESERVED_MB=400  # Ram used by containers outside of the app.
 HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
   print int($2/1024*frac-res) "M" } ' /proc/meminfo)
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"

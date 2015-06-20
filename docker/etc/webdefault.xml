@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!--
-TODO(isdal): Merge this file with webdefault.xml from
-//java/com/google/apphosting/runtime/jetty/
-once the apphosting/runtime/jetty build target has been refactored into two
-parts. We only want a subset of the filters in there applied to VM runtimes.
-Tracked by b/7551850
--->
 
 <!-- ===================================================================== -->
 <!-- This file contains the default descriptor for web applications.       -->
