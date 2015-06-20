@@ -245,14 +245,6 @@ public class AppEngineWebXml implements Cloneable {
     this.instanceClass = toNullIfEmptyOrWhitespace(instanceClass);
   }
 
-  private static boolean isEmptyOrWhitespace(String string) {
-    return string == null || CharMatcher.WHITESPACE.matchesAllOf(string);
-  }
-
-  private static String toNullIfEmptyOrWhitespace(String string) {
-    return isEmptyOrWhitespace(string) ? null : string;
-  }
-
   public String getInstanceClass() {
     return instanceClass;
   }
@@ -938,6 +930,13 @@ public class AppEngineWebXml implements Cloneable {
 
   public String getSourcePrefix() {
     return this.appRoot;
+  }
+
+  private static String toNullIfEmptyOrWhitespace(String string) {
+    if (string == null || CharMatcher.WHITESPACE.matchesAllOf(string)) {
+      return null;
+    }
+    return string;
   }
 
   /**

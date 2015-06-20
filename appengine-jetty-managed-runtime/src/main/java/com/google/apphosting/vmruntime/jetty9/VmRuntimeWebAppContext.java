@@ -16,8 +16,6 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import static com.google.appengine.repackaged.com.google.common.base.MoreObjects.firstNonNull;
-
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -253,17 +251,6 @@ public class VmRuntimeWebAppContext
       sessionManager = new StubSessionManager();
     }
     setSessionHandler(new SessionHandler(sessionManager));
-
-    // Get check interval second(s) to be used by special health check handler.
-    int checkIntervalSec = firstNonNull(appEngineWebXml.getHealthCheck().getCheckIntervalSec(),
-        VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
-    if (checkIntervalSec <= 0) {
-      logger.warning(
-          "health check interval is not positive: " + checkIntervalSec
-          + ". Using default value: " + VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC);
-      checkIntervalSec = VmRequestUtils.DEFAULT_CHECK_INTERVAL_SEC;
-    }
-    VmRequestUtils.setCheckIntervalSec(checkIntervalSec);
   }
 
   @Override
@@ -288,29 +275,7 @@ public class VmRuntimeWebAppContext
 
     HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
     HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
-    String remoteAddr = request.getHeader(VmApiProxyEnvironment.REAL_IP_HEADER);
-    if (remoteAddr == null) {
-      remoteAddr = baseRequest.
-          getHttpChannel().getEndPoint().getRemoteAddress().getAddress().getHostAddress();
-    }
-    // Handle health check.
-    // See //apphosting/ext/vmruntime/meta_app.py:ServeHealthCheck for full health check logic.
-    if (VmRequestUtils.isHealthCheck(httpServletRequest)) {
-      if (!VmRequestUtils.isValidHealthCheckAddr(isDevMode, remoteAddr)) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "403 Forbidden");
-        return;
-      }
 
-      VmApiProxyEnvironment environment = (VmApiProxyEnvironment) ApiProxy.getCurrentEnvironment();
-      if (!environment.getUseMvmAgent()) {
-        if (VmRequestUtils.isLocalHealthCheck(httpServletRequest, remoteAddr)) {
-          VmRequestUtils.handleLocalHealthCheck(httpServletResponse);
-          return;
-        } else {
-          VmRequestUtils.recordLastNormalHealthCheckStatus(httpServletRequest);
-        }
-      }
-    }
     // For JSP Includes do standard processing, everything else has been done
     // in the main request before the include.
     if (DispatcherType.INCLUDE.equals(httpServletRequest.getDispatcherType())
