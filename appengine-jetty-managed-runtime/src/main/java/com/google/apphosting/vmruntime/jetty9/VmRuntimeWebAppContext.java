@@ -33,7 +33,7 @@ import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
-import com.google.apphosting.vmruntime.CommitDelayingResponseServlet3;
+import com.google.apphosting.vmruntime.CommitDelayingResponse;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
@@ -287,11 +287,11 @@ public class VmRuntimeWebAppContext
     VmApiProxyEnvironment requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
         System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
         wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
-    CommitDelayingResponseServlet3 wrappedResponse;
-    if (httpServletResponse instanceof CommitDelayingResponseServlet3) {
-      wrappedResponse = (CommitDelayingResponseServlet3) httpServletResponse;
+    CommitDelayingResponse wrappedResponse;
+    if (httpServletResponse instanceof CommitDelayingResponse) {
+      wrappedResponse = (CommitDelayingResponse) httpServletResponse;
     } else {
-      wrappedResponse = new CommitDelayingResponseServlet3(httpServletResponse);
+      wrappedResponse = new CommitDelayingResponse(httpServletResponse);
     }
 
     if (httpServletResponse instanceof org.eclipse.jetty.server.Response) {

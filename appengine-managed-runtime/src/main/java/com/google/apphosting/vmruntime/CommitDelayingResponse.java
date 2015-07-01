@@ -16,9 +16,13 @@
 
 package com.google.apphosting.vmruntime;
 
+import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collection;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -299,5 +303,35 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
   public boolean containsHeader(String name) {
     return CONTENT_LENGTH.equalsIgnoreCase(name) ? output.hasContentLength()
         : super.containsHeader(name);
+  }
+
+    @Override
+  public String getHeader(String name) {
+    if (name.equals(CONTENT_LENGTH)) {
+      return output.hasContentLength() ? Long.toString(output.getContentLength()) : null;
+    }
+    return super.getHeader(name);
+  }
+
+  @Override
+  public Collection<String> getHeaders(String name) {
+    if (name.equals(CONTENT_LENGTH) && output.hasContentLength()) {
+      return Arrays.asList(new String[] {Long.toString(output.getContentLength())});
+    }
+    return super.getHeaders(name);
+  }
+
+  @Override
+  public Collection<String> getHeaderNames() {
+    if (output.hasContentLength()) {
+      // "Any changes to the returned Collection must not affect this HttpServletResponse."
+      ImmutableList.Builder<String> builder = ImmutableList.builder();
+      builder.addAll(super.getHeaderNames());
+      if (output.hasContentLength()) {
+        builder.add(CONTENT_LENGTH);
+      }
+      return builder.build();
+    }
+    return super.getHeaderNames();
   }
 }

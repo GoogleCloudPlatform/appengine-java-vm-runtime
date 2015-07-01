@@ -88,7 +88,7 @@ public class AppEngineWebXmlReader {
     try {
       is = getInputStream();
       appEngineWebXml = processXml(is);
-      logger.info("Successfully processed " + getFilename());
+      logger.fine("Successfully processed " + getFilename());
       if (!appEngineWebXml.getThreadsafeValueProvided()) {
         if (allowMissingThreadsafeElement()) {
           // make some noise if there is no <threadsafe> element.

@@ -254,7 +254,6 @@ class AppEngineWebXmlProcessor {
     }
     return result;
   }
-
   private void processAutomaticScalingNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     AutomaticScaling automaticScaling = appEngineWebXml.getAutomaticScaling();
     automaticScaling.setMinPendingLatency(getChildNodeText(settingsNode, "min-pending-latency"));
@@ -270,6 +269,26 @@ class AppEngineWebXmlProcessor {
     automaticScaling.setCoolDownPeriodSec(
         getChildNodePositiveInteger(settingsNode, "cool-down-period-sec"));
     processCpuUtilizationNode(settingsNode, automaticScaling);
+    automaticScaling.setTargetNetworkSentBytesPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-network-sent-bytes-per-sec"));
+    automaticScaling.setTargetNetworkSentPacketsPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-network-sent-packets-per-sec"));
+    automaticScaling.setTargetNetworkReceivedBytesPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-network-received-bytes-per-sec"));
+    automaticScaling.setTargetNetworkReceivedPacketsPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-network-received-packets-per-sec"));
+    automaticScaling.setTargetDiskWriteBytesPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-disk-write-bytes-per-sec"));
+    automaticScaling.setTargetDiskWriteOpsPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-disk-write-ops-per-sec"));
+    automaticScaling.setTargetDiskReadBytesPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-disk-read-bytes-per-sec"));
+    automaticScaling.setTargetDiskReadOpsPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-disk-read-ops-per-sec"));
+    automaticScaling.setTargetRequestCountPerSec(
+        getChildNodePositiveInteger(settingsNode, "target-request-count-per-sec"));
+    automaticScaling.setTargetConcurrentRequests(
+        getChildNodePositiveInteger(settingsNode, "target-concurrent-requests"));
   }
 
   private void processCpuUtilizationNode(Element settingsNode, AutomaticScaling automaticScaling) {

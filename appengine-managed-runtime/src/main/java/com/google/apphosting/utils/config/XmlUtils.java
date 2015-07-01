@@ -16,22 +16,33 @@
 
 package com.google.apphosting.utils.config;
 
+import com.google.appengine.repackaged.com.google.common.base.Charsets;
+import com.google.appengine.repackaged.com.google.common.io.Files;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 
-class XmlUtils {
+/**
+ * Utility functions for processing XML.
+ */
+public class XmlUtils {
 
    /* Returns the trimmed text from the passed XmlParser.Node in node or an empty
    * if the passed in node does not contain any text.
@@ -74,6 +85,59 @@ class XmlUtils {
       throw new AppEngineConfigException(msg, e);
     }
 
+  }
+
+  /**
+   * Validates a given XML document against a given schema.
+   *
+   * @param xmlFilename filename with XML document.
+   * @param schema XSD schema to validate with.
+   *
+   * @throws AppEngineConfigException for malformed XML, or IO errors
+   */
+  public static void validateXml(String xmlFilename, File schema) {
+    File xml = new File(xmlFilename);
+    if (!xml.exists()) {
+      throw new AppEngineConfigException("Xml file: " + xml.getPath() + " does not exist.");
+    }
+    if (!schema.exists()) {
+      throw new AppEngineConfigException("Schema file: " + schema.getPath() + " does not exist.");
+    }
+    try {
+      validateXmlContent(Files.toString(xml, Charsets.UTF_8), schema);
+    } catch (IOException ex) {
+      throw new AppEngineConfigException(
+          "IO error validating " + xmlFilename + " against " + schema.getPath(), ex);
+    }
+  }
+
+  /**
+   * Validates a given XML document against a given schema.
+   *
+   * @param content a String containing the entire XML to validate.
+   * @param schema XSD schema to validate with.
+   *
+   * @throws AppEngineConfigException for malformed XML, or IO errors
+   */
+  public static void validateXmlContent(String content, File schema) {
+    if (!schema.exists()) {
+      throw new AppEngineConfigException("Schema file: " + schema.getPath() + " does not exist.");
+    }
+    try {
+      SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      try {
+        factory
+            .newSchema(schema)
+            .newValidator()
+            .validate(new StreamSource(new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))));
+      } catch (SAXException ex) {
+        throw new AppEngineConfigException(
+            "XML error validating " + content + " against " + schema.getPath(), ex);
+      }
+    } catch (IOException ex) {
+      throw new AppEngineConfigException(
+          "IO error validating " + content + " against " + schema.getPath(), ex);
+    }
   }
 
     public static String getChildElementBody(Element element, String tagName) {

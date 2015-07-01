@@ -1258,6 +1258,17 @@ public class AppEngineWebXml implements Cloneable {
     private Integer coolDownPeriodSec;
     private CpuUtilization cpuUtilization;
 
+    private Integer targetNetworkSentBytesPerSec;
+    private Integer targetNetworkSentPacketsPerSec;
+    private Integer targetNetworkReceivedBytesPerSec;
+    private Integer targetNetworkReceivedPacketsPerSec;
+    private Integer targetDiskWriteBytesPerSec;
+    private Integer targetDiskWriteOpsPerSec;
+    private Integer targetDiskReadBytesPerSec;
+    private Integer targetDiskReadOpsPerSec;
+    private Integer targetRequestCountPerSec;
+    private Integer targetConcurrentRequests;
+
     public String getMinPendingLatency() {
       return minPendingLatency;
     }
@@ -1349,11 +1360,96 @@ public class AppEngineWebXml implements Cloneable {
       this.cpuUtilization = cpuUtilization;
     }
 
+    public Integer getTargetNetworkSentBytesPerSec() {
+      return targetNetworkSentBytesPerSec;
+    }
+
+    public void setTargetNetworkSentBytesPerSec(Integer targetNetworkSentBytesPerSec) {
+      this.targetNetworkSentBytesPerSec = targetNetworkSentBytesPerSec;
+    }
+
+    public Integer getTargetNetworkSentPacketsPerSec() {
+      return targetNetworkSentPacketsPerSec;
+    }
+
+    public void setTargetNetworkSentPacketsPerSec(Integer targetNetworkSentPacketsPerSec) {
+      this.targetNetworkSentPacketsPerSec = targetNetworkSentPacketsPerSec;
+    }
+
+    public Integer getTargetNetworkReceivedBytesPerSec() {
+      return targetNetworkReceivedBytesPerSec;
+    }
+
+    public void setTargetNetworkReceivedBytesPerSec(Integer targetNetworkReceivedBytesPerSec) {
+      this.targetNetworkReceivedBytesPerSec = targetNetworkReceivedBytesPerSec;
+    }
+
+    public Integer getTargetNetworkReceivedPacketsPerSec() {
+      return targetNetworkReceivedPacketsPerSec;
+    }
+
+    public void setTargetNetworkReceivedPacketsPerSec(Integer targetNetworkReceivedPacketsPerSec) {
+      this.targetNetworkReceivedPacketsPerSec = targetNetworkReceivedPacketsPerSec;
+    }
+
+    public Integer getTargetDiskWriteBytesPerSec() {
+      return targetDiskWriteBytesPerSec;
+    }
+
+    public void setTargetDiskWriteBytesPerSec(Integer targetDiskWriteBytesPerSec) {
+      this.targetDiskWriteBytesPerSec = targetDiskWriteBytesPerSec;
+    }
+
+    public Integer getTargetDiskWriteOpsPerSec() {
+      return targetDiskWriteOpsPerSec;
+    }
+
+    public void setTargetDiskWriteOpsPerSec(Integer targetDiskWriteOpsPerSec) {
+      this.targetDiskWriteOpsPerSec = targetDiskWriteOpsPerSec;
+    }
+
+    public Integer getTargetDiskReadBytesPerSec() {
+      return targetDiskReadBytesPerSec;
+    }
+
+    public void setTargetDiskReadBytesPerSec(Integer targetDiskReadBytesPerSec) {
+      this.targetDiskReadBytesPerSec = targetDiskReadBytesPerSec;
+    }
+
+    public Integer getTargetDiskReadOpsPerSec() {
+      return targetDiskReadOpsPerSec;
+    }
+
+    public void setTargetDiskReadOpsPerSec(Integer targetDiskReadOpsPerSec) {
+      this.targetDiskReadOpsPerSec = targetDiskReadOpsPerSec;
+    }
+
+    public Integer getTargetRequestCountPerSec() {
+      return targetRequestCountPerSec;
+    }
+
+    public void setTargetRequestCountPerSec(Integer targetRequestCountPerSec) {
+      this.targetRequestCountPerSec = targetRequestCountPerSec;
+    }
+
+    public Integer getTargetConcurrentRequests() {
+      return targetConcurrentRequests;
+    }
+
+    public void setTargetConcurrentRequests(Integer targetConcurrentRequests) {
+      this.targetConcurrentRequests = targetConcurrentRequests;
+    }
+
     @Override
     public int hashCode() {
       return Objects.hash(maxPendingLatency, minPendingLatency, maxIdleInstances,
-                              minIdleInstances, maxConcurrentRequests, minNumInstances,
-                              maxNumInstances, coolDownPeriodSec, cpuUtilization);
+          minIdleInstances, maxConcurrentRequests, minNumInstances,
+          maxNumInstances, coolDownPeriodSec, cpuUtilization,
+          targetNetworkSentBytesPerSec, targetNetworkSentPacketsPerSec,
+          targetNetworkReceivedBytesPerSec, targetNetworkReceivedPacketsPerSec,
+          targetDiskWriteBytesPerSec, targetDiskWriteOpsPerSec,
+          targetDiskReadBytesPerSec, targetDiskReadOpsPerSec,
+          targetRequestCountPerSec, targetConcurrentRequests);
     }
 
     @Override
@@ -1376,7 +1472,19 @@ public class AppEngineWebXml implements Cloneable {
           && Objects.equals(minNumInstances, other.minNumInstances)
           && Objects.equals(maxNumInstances, other.maxNumInstances)
           && Objects.equals(coolDownPeriodSec, other.coolDownPeriodSec)
-          && Objects.equals(cpuUtilization, other.cpuUtilization);
+          && Objects.equals(cpuUtilization, other.cpuUtilization)
+          && Objects.equals(targetNetworkSentBytesPerSec, other.targetNetworkSentBytesPerSec)
+          && Objects.equals(targetNetworkSentPacketsPerSec, other.targetNetworkSentPacketsPerSec)
+          && Objects.equals(targetNetworkReceivedBytesPerSec,
+              other.targetNetworkReceivedBytesPerSec)
+          && Objects.equals(targetNetworkReceivedPacketsPerSec,
+              other.targetNetworkReceivedPacketsPerSec)
+          && Objects.equals(targetDiskWriteBytesPerSec, other.targetDiskWriteBytesPerSec)
+          && Objects.equals(targetDiskWriteOpsPerSec, other.targetDiskWriteOpsPerSec)
+          && Objects.equals(targetDiskReadBytesPerSec, other.targetDiskReadBytesPerSec)
+          && Objects.equals(targetDiskReadOpsPerSec, other.targetDiskReadOpsPerSec)
+          && Objects.equals(targetRequestCountPerSec, other.targetRequestCountPerSec)
+          && Objects.equals(targetConcurrentRequests, other.targetConcurrentRequests);
     }
 
     @Override
@@ -1389,7 +1497,18 @@ public class AppEngineWebXml implements Cloneable {
           + ", minNumInstances=" + minNumInstances
           + ", maxNumInstances=" + maxNumInstances
           + ", coolDownPeriodSec=" + coolDownPeriodSec
-          + ", cpuUtilization=" + cpuUtilization + "]";
+          + ", cpuUtilization=" + cpuUtilization
+          + ", targetNetworkSentBytesPerSec=" + targetNetworkSentBytesPerSec
+          + ", targetNetworkSentPacketsPerSec=" + targetNetworkSentPacketsPerSec
+          + ", targetNetworkReceivedBytesPerSec=" + targetNetworkReceivedBytesPerSec
+          + ", targetNetworkReceivedPacketsPerSec=" + targetNetworkReceivedPacketsPerSec
+          + ", targetDiskWriteBytesPerSec=" + targetDiskWriteBytesPerSec
+          + ", targetDiskWriteOpsPerSec=" + targetDiskWriteOpsPerSec
+          + ", targetDiskReadBytesPerSec=" + targetDiskReadBytesPerSec
+          + ", targetDiskReadOpsPerSec=" + targetDiskReadOpsPerSec
+          + ", targetRequestCountPerSec=" + targetRequestCountPerSec
+          + ", targetConcurrentRequests=" + targetConcurrentRequests
+          + "]";
     }
   }
 

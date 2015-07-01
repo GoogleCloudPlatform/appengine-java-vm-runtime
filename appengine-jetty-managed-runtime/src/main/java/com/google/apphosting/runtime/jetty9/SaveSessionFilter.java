@@ -37,10 +37,12 @@ import javax.servlet.http.HttpSession;
  */
 public class SaveSessionFilter implements Filter {
 
+  @Override
   public void init(FilterConfig config) {
     // No init.
   }
 
+  @Override
   public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
       throws IOException, ServletException {
     HttpServletRequest httpReq = (HttpServletRequest) req;
@@ -58,6 +60,7 @@ public class SaveSessionFilter implements Filter {
     }
   }
 
+  @Override
   public void destroy() {
     // No destruction.
   }

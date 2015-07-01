@@ -204,7 +204,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     String headerKey;
     String attributeKey;
     Object defaultValue;
-    private boolean trustedAppOnly;
+    private final boolean trustedAppOnly;
 
     /**
      * Creates a mapping between an incoming request header and the thread local request attribute
@@ -275,7 +275,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final boolean useMvmAgent = Boolean.parseBoolean(getEnvOrMetadata(
         envMap, cache, USE_MVM_AGENT_KEY, USE_MVM_AGENT_ATTRIBUTE));
 
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     // Fill in default attributes values.
     for (AttributeMapping mapping : AttributeMapping.values()) {
       if (mapping.trustedAppOnly) {
@@ -340,7 +340,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String authDomain = request.getHeader(AUTH_DOMAIN_HEADER);
     boolean trustedApp = request.getHeader(IS_TRUSTED_IP_HEADER) != null;
 
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     // Fill in the attributes from the AttributeMapping.
     for (AttributeMapping mapping : AttributeMapping.values()) {
       if (mapping.trustedAppOnly && !trustedApp) {
@@ -357,7 +357,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     // Fill in the special attributes that do not fit the simple mapping model.
     boolean federatedId = request.getHeader(AttributeMapping.FEDERATED_IDENTITY.headerKey) != null;
-    attributes.put(IS_FEDERATED_USER_KEY, Boolean.valueOf(federatedId));
+    attributes.put(IS_FEDERATED_USER_KEY, federatedId);
 
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
@@ -365,7 +365,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     if (trustedApp) {
       // The trusted IP attribute is a boolean.
       boolean trustedIp = "1".equals(request.getHeader(IS_TRUSTED_IP_HEADER));
-      attributes.put(IS_TRUSTED_IP_KEY, Boolean.valueOf(trustedIp));
+      attributes.put(IS_TRUSTED_IP_KEY, trustedIp);
     }
 
     VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
@@ -582,9 +582,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    */
   public synchronized void setThreadLocalAttributes() {
     if (threadLocalAttributes == null) {
-      threadLocalAttributes = new ThreadLocal<Map<String, Object>>();
+      threadLocalAttributes = new ThreadLocal<>();
     }
-    threadLocalAttributes.set(new HashMap<String, Object>(attributes));
+    threadLocalAttributes.set(new HashMap<>(attributes));
   }
 
   @Override
