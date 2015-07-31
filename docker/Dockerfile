@@ -14,13 +14,18 @@
 
 FROM google/debian:wheezy
 ENV DEBIAN_FRONTEND noninteractive
+RUN echo  "deb http://ftp.us.debian.org/debian sid main" >> /etc/apt/sources.list
+
 RUN apt-get -q update && \
-    apt-get -y -q --no-install-recommends install ca-certificates curl openjdk-7-jre-headless wget netbase && \
+    apt-get -y -q --no-install-recommends install curl openjdk-8-jre ca-certificates wget netbase && \
     apt-get clean && \
     rm /var/lib/apt/lists/*_*
 
+# workaround for https://bugs.debian.org/775775
+RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
 RUN mkdir -p /var/lib/jetty
-RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.10.v20150310/jetty-distribution-9.2.10.v20150310.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
+RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.3.1.v20150714/jetty-distribution-9.3.1.v20150714.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
 
 # Managed VM related jars:
 RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.22/appengine-api-1.0-sdk-1.9.22.jar -o /var/lib/jetty/lib/ext/appengine-api-1.0-sdk.jar

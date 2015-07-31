@@ -11,10 +11,6 @@ HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
   print int($2/1024*frac-res) "M" } ' /proc/meminfo)
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"
 
-# Increase initial permsize.
-PERM_SIZE=64M  # Default = 21757952 (20.75M)
-MAX_PERM_SIZE=166M  # Default = 174063616 (166M)
-
 DBG_AGENT=
 
 if [[ "$GAE_PARTITION" = "dev" ]]; then
@@ -63,7 +59,7 @@ if [[ -n "${CPROF_ENABLE}" ]]; then
 fi
 
 JETTY_HOME=${RUNTIME_DIR}
-JETTY_VERSION=9.2.10.v20150310
+JETTY_VERSION=9.3.1.v20150714
 # to generate the good, fast cli:
 #/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run
 
@@ -72,15 +68,14 @@ JETTY_VERSION=9.2.10.v20150310
 -Djetty.home=${JETTY_HOME} \
 -Djetty.base=${JETTY_HOME} \
 -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} \
--XX:PermSize=${PERM_SIZE} -XX:MaxPermSize=${MAX_PERM_SIZE} \
 -cp \
 ${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk.jar:\
 ${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime.jar:\
 ${JETTY_HOME}/lib/ext/appengine-managed-runtime.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.apache-jsp-${JETTY_VERSION}.jar:\
 ${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-el-8.0.9.M3.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-jsp-8.0.9.M3.jar:\
+${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-el-8.0.23.M1.jar:\
+${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-jsp-8.0.23.M1.jar:\
 ${JETTY_HOME}/lib/apache-jstl/org.apache.taglibs.taglibs-standard-impl-1.2.1.jar:\
 ${JETTY_HOME}/lib/apache-jstl/org.apache.taglibs.taglibs-standard-spec-1.2.1.jar:\
 ${JETTY_HOME}/lib/servlet-api-3.1.jar:\
@@ -104,11 +99,11 @@ ${JETTY_HOME}/lib/jetty-plus-${JETTY_VERSION}.jar:\
 ${JETTY_HOME}/lib/jetty-annotations-${JETTY_VERSION}.jar:\
 ${JETTY_HOME}/lib/jetty-quickstart-${JETTY_VERSION}.jar \
 org.eclipse.jetty.xml.XmlConfiguration \
-http.timeout=30000 \
+jetty.http.idleTimeout=30000 \
 jetty.dump.start=false \
 jetty.dump.stop=false \
 jetty.output.buffer.size=32768 \
-jetty.port=8080 \
+jetty.http.port=8080 \
 jetty.request.header.size=8192 \
 jetty.response.header.size=8192 \
 jetty.send.date.header=false \
