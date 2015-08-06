@@ -28,6 +28,8 @@ RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0
 #RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.21/appengine-managed-runtime-1.9.21.jar -o /var/lib/jetty/lib/ext/appengine-managed-runtime.jar
 ADD . /var/lib/jetty/
 
+RUN java -jar /var/lib/jetty/start.jar --add-to-startd=http,deploy,annotations,plus,quickstart,jsp,jstl
+
 RUN ln -s var/lib/jetty/webapps/root /app
 
 WORKDIR /app

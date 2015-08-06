@@ -294,15 +294,6 @@ public class VmRuntimeWebAppContext
       wrappedResponse = new CommitDelayingResponse(httpServletResponse);
     }
 
-    if (httpServletResponse instanceof org.eclipse.jetty.server.Response) {
-      // The jetty 9.1 HttpOutput class has logic to commit the stream when it reaches a certain
-      // threshold.  Inexplicably, by default, that threshold is set to one-fourth its buffer size.
-      // That defeats the purpose of our commit delaying response.  Luckily, setting the buffer
-      // size again sets the commit size to same value.
-      // See go/jetty9-httpoutput.java for the relevant jetty source code.
-      ((org.eclipse.jetty.server.Response) httpServletResponse).getHttpOutput().setBufferSize(
-          wrappedResponse.getBufferSize());
-    }
     try {
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
       // Check for SkipAdminCheck and set attributes accordingly.

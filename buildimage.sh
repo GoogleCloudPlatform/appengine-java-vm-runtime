@@ -7,6 +7,6 @@ cp appengine-managed-runtime/target/appengine-managed-runtime-*.jar docker/lib/e
 cd docker
 output=${1:-appengine-mvn-opensource}
 echo using $output as the image name [you can overwrite it by passing the desired name in the command]
-docker build -t appengine-mvn-opensource .
+docker build -t ${output} .
 
 
