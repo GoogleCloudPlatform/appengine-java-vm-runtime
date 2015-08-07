@@ -1,6 +1,7 @@
 .DS_Store
 target
-/docker/lib/
+docker/lib/
+docker/jetty-distribution.tar.gz
 .project
 .settings
 .classpath

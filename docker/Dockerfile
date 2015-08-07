@@ -20,13 +20,20 @@ RUN apt-get -q update && \
     rm /var/lib/apt/lists/*_*
 
 RUN mkdir -p /var/lib/jetty
-RUN curl -0 http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.10.v20150310/jetty-distribution-9.2.10.v20150310.tar.gz | tar -C /var/lib/jetty --strip-components=1 -zx
+COPY jetty-distribution.tar.gz /tmp/
+RUN tar -C /var/lib/jetty --strip-components=1 -zxf /tmp/jetty-distribution.tar.gz
+RUN rm /tmp/jetty-distribution.tar.gz
 
 # Managed VM related jars:
+# TODO get this from maven target same as jetty-distribution.tar.gz
 RUN curl -0 http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.22/appengine-api-1.0-sdk-1.9.22.jar -o /var/lib/jetty/lib/ext/appengine-api-1.0-sdk.jar
 #RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-jetty-managed-runtime/1.9.21/appengine-jetty-managed-runtime-1.9.21.jar -o /var/lib/jetty/lib/ext/appengine-jetty-managed-runtime.jar
 #RUN curl -0 https://oss.sonatype.org/content/repositories/google-releases/com/google/appengine/appengine-managed-runtime/1.9.21/appengine-managed-runtime-1.9.21.jar -o /var/lib/jetty/lib/ext/appengine-managed-runtime.jar
-ADD . /var/lib/jetty/
+ADD jetty_run.sh /var/lib/jetty/
+ADD etc /var/lib/jetty/etc/
+ADD lib /var/lib/jetty/lib/
+ADD modules /var/lib/jetty/modules/
+ADD webapps /var/lib/jetty/webapps/
 
 RUN java -jar /var/lib/jetty/start.jar --add-to-startd=gae
 RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini
