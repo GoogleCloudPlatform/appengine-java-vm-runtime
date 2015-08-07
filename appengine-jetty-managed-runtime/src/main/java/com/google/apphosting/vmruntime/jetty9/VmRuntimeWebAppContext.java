@@ -49,6 +49,7 @@ import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -245,10 +246,8 @@ public class VmRuntimeWebAppContext
     AbstractSessionManager sessionManager;
     if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-    } else {
-      sessionManager = new StubSessionManager();
+      getSessionHandler().setSessionManager(sessionManager);
     }
-    setSessionHandler(new SessionHandler(sessionManager));
   }
 
   @Override

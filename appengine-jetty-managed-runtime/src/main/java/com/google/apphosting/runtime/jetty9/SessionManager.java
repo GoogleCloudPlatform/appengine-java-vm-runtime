@@ -25,9 +25,12 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.apphosting.runtime.SessionData;
 import com.google.apphosting.runtime.SessionStore;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -44,6 +47,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * Implements the Jetty {@link AbstractSessionManager} and, as an
@@ -322,8 +326,6 @@ public class SessionManager extends AbstractSessionManager {
    */
   public SessionManager(List<SessionStore> sessionStoresInWriteOrder) {
     super();
-    // Ludo: prefer to do this outside of the constructor.
-    setSessionIdManager(new SessionIdManager());
     this.sessionStoresInWriteOrder = sessionStoresInWriteOrder;
     // We'll always read in the opposite order we write, so create a copy
     // of the stores in write order and then reverse it.
@@ -418,7 +420,22 @@ public class SessionManager extends AbstractSessionManager {
             stringWriter.toString());
   }
 
+
+
+
+
   @Override
+  public void doStart() throws Exception {
+  	// always use our special id manager one
+  	System.err.println("Using special session id manager");
+  	_sessionIdManager = new SessionIdManager();
+  	_sessionIdManager.start();
+  	addBean(_sessionIdManager,true);
+
+  	super.doStart();
+  }
+
+@Override
   protected void addSession(AbstractSession session) {
     // No list of sessions is kept in memory, so do nothing here.
   }
