@@ -19,7 +19,7 @@ etc/gae.xml
 ## Google AppEngine Defaults
 
 ## Make the aggregation size the same as the output buffer size
-jetty.output.aggregation.size=32786
+jetty.output.aggregation.size=32768
 
 header.cache.size=512
 

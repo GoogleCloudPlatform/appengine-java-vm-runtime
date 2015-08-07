@@ -51,7 +51,7 @@
     <Ref refid="Handlers">
       <Call name="addHandler">
         <Arg>
-          <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler"/>
+          <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler">
 	    <Set name="requestLog">
 	      <New id="RequestLogImpl" class="org.eclipse.jetty.server.NCSARequestLog">
 		<Arg><SystemProperty name="jetty.logs" default="/var/log/app_engine"/>/request.yyyy_mm_dd.log</Arg>
@@ -63,7 +63,8 @@
 		<Set name="preferProxiedForAddress">true</Set>
 	      </New>
 	    </Set>
-          </Arg>
+          </New>
+        </Arg>
       </Call>
     </Ref>
 </Configure>
