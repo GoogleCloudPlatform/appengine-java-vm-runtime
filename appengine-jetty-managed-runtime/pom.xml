@@ -28,7 +28,7 @@
   
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.2.10.v20150310</jetty.version>
+    <jetty.version>9.2.12.v20150709</jetty.version>
   </properties>
   
   <dependencies>
