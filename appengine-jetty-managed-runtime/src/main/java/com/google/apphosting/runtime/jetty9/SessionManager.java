@@ -427,7 +427,6 @@ public class SessionManager extends AbstractSessionManager {
   @Override
   public void doStart() throws Exception {
   	// always use our special id manager one
-  	System.err.println("Using special session id manager");
   	_sessionIdManager = new SessionIdManager();
   	_sessionIdManager.start();
   	addBean(_sessionIdManager,true);
