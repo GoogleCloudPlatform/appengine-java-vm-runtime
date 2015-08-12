@@ -13,13 +13,14 @@
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    <appengine.api.version>1.9.22</appengine.api.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.22</version>
+      <version>${appengine.api.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -157,7 +158,7 @@
                 <artifactItem>
                   <groupId>com.google.appengine</groupId>
                   <artifactId>appengine-api-1.0-sdk</artifactId>
-                  <version>${jetty.version}</version>
+                  <version>${appengine.api.version}</version>
                   <type>jar</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
