@@ -20,15 +20,14 @@ RUN apt-get -q update && \
     rm /var/lib/apt/lists/*_*
 
 RUN mkdir -p /var/lib/jetty
-COPY jetty-distribution.tar.gz /tmp/
-RUN tar -C /var/lib/jetty --strip-components=1 -zxf /tmp/jetty-distribution.tar.gz
-RUN rm /tmp/jetty-distribution.tar.gz
-
+ADD jetty /var/lib/jetty
 ADD jetty_run.sh /var/lib/jetty/
 ADD etc /var/lib/jetty/etc/
 ADD lib /var/lib/jetty/lib/
 ADD modules /var/lib/jetty/modules/
 ADD webapps /var/lib/jetty/webapps/
+
+RUN ls -l /var/lib/jetty
 
 WORKDIR /var/lib/jetty
 RUN java -jar start.jar --add-to-start=server
