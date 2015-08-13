@@ -11,7 +11,7 @@
     <connection>scm:git:https://github.com/ludoch/appengine-runtime-java-docker-image.git</connection>
     <tag>HEAD</tag>
   </scm>
-
+  
   <developers>
     <developer>
       <id>ludo</id>
