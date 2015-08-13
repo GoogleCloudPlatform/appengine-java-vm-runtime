@@ -16,6 +16,29 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.HttpChannelState;
+import org.eclipse.jetty.server.HttpInput;
+import org.eclipse.jetty.server.HttpOutput;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
+
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -43,29 +66,6 @@ import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
-
-
-import org.eclipse.jetty.http.HttpScheme;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -280,10 +280,19 @@ public class VmRuntimeWebAppContext
       super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
       return;
     }
+    
     // Install a thread local environment based on request headers of the current request.
-    VmApiProxyEnvironment requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
-        System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
-        wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+    // First look for an instance that was made on a prior dispatch of this request
+    VmApiProxyEnvironment requestSpecificEnvironment = (VmApiProxyEnvironment)baseRequest.getAttribute(VmApiProxyEnvironment.class.getName());
+    if (requestSpecificEnvironment==null)
+    {
+      // No instance found, so create a new environment
+      requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
+    	        System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
+    	        wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+    	baseRequest.setAttribute(VmApiProxyEnvironment.class.getName(), requestSpecificEnvironment);
+    }
+    
     CommitDelayingResponse wrappedResponse;
     if (httpServletResponse instanceof CommitDelayingResponse) {
       wrappedResponse = (CommitDelayingResponse) httpServletResponse;
@@ -292,7 +301,9 @@ public class VmRuntimeWebAppContext
     }
 
     try {
+      // Apply the request environment
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
+      
       // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(request);
       // Change scheme to HTTPS based on headers set by the appserver.
@@ -328,6 +339,48 @@ public class VmRuntimeWebAppContext
       }
     }
   }
+
+  
+  @Override
+  public void handle(Runnable runnable) {
+    // This method is called to condition async IO callback threads
+    // and other threads created with AsyncContext.start(Runnable)
+    // We need to decorate the thread with the request specific environment,
+    // but to do that we need the request.   Currently this is a bit ugly 
+    // to retrieve, but can be tidied up in a future jetty release
+    // TODO tidy up request recovery
+    
+    Request baseRequest=null;
+    if (runnable instanceof HttpOutput)
+      baseRequest=((HttpOutput)runnable).getHttpChannel().getRequest();
+    else if (runnable instanceof HttpInput<?>)
+    {
+      try {
+        Field field = HttpInput.class.getField("_channelState");
+        field.setAccessible(true);
+        baseRequest = ((HttpChannelState)field.get(runnable)).getBaseRequest();
+      } catch (Exception e) {
+        logger.warning(e.toString());
+      }
+    }
+    
+    VmApiProxyEnvironment requestSpecificEnvironment = baseRequest==null?null:(VmApiProxyEnvironment)baseRequest.getAttribute(VmApiProxyEnvironment.class.getName());
+    
+    if (requestSpecificEnvironment==null)
+      super.handle(runnable);
+    else
+    {
+      try {
+        // Apply the request environment
+        ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
+        super.handle(runnable);
+      }finally{
+        // Restore the default environment.
+        ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
+      }
+    }
+  }
+
 
   // N.B.(schwardo): Yuck. Jetty hardcodes all of this logic into an
   // inner class of ContextHandler. We need to subclass WebAppContext
