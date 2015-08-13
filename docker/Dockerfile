@@ -27,8 +27,6 @@ ADD lib /var/lib/jetty/lib/
 ADD modules /var/lib/jetty/modules/
 ADD webapps /var/lib/jetty/webapps/
 
-RUN ls -l /var/lib/jetty
-
 WORKDIR /var/lib/jetty
 RUN java -jar start.jar --add-to-start=server
 RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see below)/' start.ini
