@@ -56,7 +56,6 @@ import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
-import com.google.apphosting.vmruntime.CommitDelayingResponse;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
@@ -296,12 +295,6 @@ public class VmRuntimeWebAppContext
     	baseRequest.setAttribute(VmApiProxyEnvironment.class.getName(), requestSpecificEnvironment);
     }
     
-    CommitDelayingResponse wrappedResponse;
-    if (httpServletResponse instanceof CommitDelayingResponse) {
-      wrappedResponse = (CommitDelayingResponse) httpServletResponse;
-    } else {
-      wrappedResponse = new CommitDelayingResponse(httpServletResponse);
-    }
 
     try {
       // Apply the request environment
@@ -312,7 +305,7 @@ public class VmRuntimeWebAppContext
       // Change scheme to HTTPS based on headers set by the appserver.
       setSchemeAndPort(baseRequest);
       // Forward the request to the rest of the handlers.
-      super.doScope(target, baseRequest, httpServletRequest, wrappedResponse);
+      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
     } finally {
       try {
         // Interrupt any remaining request threads and wait for them to complete.
@@ -320,7 +313,7 @@ public class VmRuntimeWebAppContext
             requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
         // Wait for any pending async API requests to complete.
         if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,
-            new HttpServletResponseAdapter(wrappedResponse))) {
+            new HttpServletResponseAdapter(httpServletResponse))) {
           logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
         }
         if (!response.isCommitted()) {
@@ -332,13 +325,8 @@ public class VmRuntimeWebAppContext
               + "). This might result in lost log messages.'");
         }
       } finally {
-        try {
-          // Complete any pending actions.
-          wrappedResponse.commit();
-        } finally {
           // Restore the default environment.
           ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
-        }
       }
     }
   }
