@@ -33,7 +33,6 @@ import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
-import com.google.apphosting.vmruntime.CommitDelayingResponse;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
@@ -49,12 +48,9 @@ import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -284,12 +280,6 @@ public class VmRuntimeWebAppContext
     VmApiProxyEnvironment requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
         System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
         wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
-    CommitDelayingResponse wrappedResponse;
-    if (httpServletResponse instanceof CommitDelayingResponse) {
-      wrappedResponse = (CommitDelayingResponse) httpServletResponse;
-    } else {
-      wrappedResponse = new CommitDelayingResponse(httpServletResponse);
-    }
 
     try {
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
@@ -298,7 +288,7 @@ public class VmRuntimeWebAppContext
       // Change scheme to HTTPS based on headers set by the appserver.
       setSchemeAndPort(baseRequest);
       // Forward the request to the rest of the handlers.
-      super.doScope(target, baseRequest, httpServletRequest, wrappedResponse);
+      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
     } finally {
       try {
         // Interrupt any remaining request threads and wait for them to complete.
@@ -306,7 +296,7 @@ public class VmRuntimeWebAppContext
             requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
         // Wait for any pending async API requests to complete.
         if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,
-            new HttpServletResponseAdapter(wrappedResponse))) {
+            new HttpServletResponseAdapter(httpServletResponse))) {
           logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
         }
         if (!response.isCommitted()) {
@@ -318,13 +308,8 @@ public class VmRuntimeWebAppContext
               + "). This might result in lost log messages.'");
         }
       } finally {
-        try {
-          // Complete any pending actions.
-          wrappedResponse.commit();
-        } finally {
           // Restore the default environment.
           ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
-        }
       }
     }
   }
