@@ -54,7 +54,6 @@ import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 import com.google.apphosting.utils.config.AppEngineWebXmlReader;
-import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
@@ -152,6 +151,7 @@ public class VmRuntimeWebAppContext
     }
     super.doStart();
   }
+  
   /**
    * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
    *
@@ -282,15 +282,8 @@ public class VmRuntimeWebAppContext
       return;
     }
     
-    // Install a thread local environment based on request headers of the current request.
-    // First look for an instance that was made on a prior dispatch of this request
-    RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
-    if (requestContext==null)
-    {
-      // No instance found, so create a new environment
-      requestContext=new RequestContext(baseRequest);
-      baseRequest.setAttribute(RequestContext.class.getName(), requestContext);
-    }
+    // Find or create a Request specific context
+    RequestContext requestContext = getRequestContext(baseRequest);
     
     try {
       // Enter the request environment
@@ -303,8 +296,8 @@ public class VmRuntimeWebAppContext
       setSchemeAndPort(baseRequest);
       // Forward the request to the rest of the handlers.
       super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
+      
     } finally {
-
       // Exit the request environment
       requestContext.exitDispatch();
     }
@@ -346,6 +339,17 @@ public class VmRuntimeWebAppContext
         requestContext.exit();
       }
     }
+  }
+
+  public RequestContext getRequestContext(Request baseRequest) {
+    RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
+    if (requestContext==null)
+    {
+      // No instance found, so create a new environment
+      requestContext=new RequestContext(baseRequest);
+      baseRequest.setAttribute(RequestContext.class.getName(), requestContext);
+    }
+    return requestContext;
   }
 
 
@@ -400,6 +404,8 @@ public class VmRuntimeWebAppContext
       log(msg, exception);
     }
   }
+  
+  
   
   private class RequestContext extends HttpServletRequestAdapter implements AsyncListener
   { 
