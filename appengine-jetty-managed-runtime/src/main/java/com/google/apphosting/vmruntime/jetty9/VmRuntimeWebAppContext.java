@@ -134,13 +134,16 @@ public class VmRuntimeWebAppContext
     // unpack and Adjust paths.
     Resource base = getBaseResource();
     if (base == null) {
+      String war=getWar();
+      if (war==null)
+        throw new IllegalStateException("No war");
       base = Resource.newResource(getWar());
     }
     Resource dir;
     if (base.isDirectory()) {
       dir = base;
     } else {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("Bad base:"+base);
     }
     Resource qswebxml = dir.addPath("/WEB-INF/quickstart-web.xml");
     if (qswebxml.exists()) {
@@ -348,7 +351,7 @@ public class VmRuntimeWebAppContext
     // We need to decorate the thread with the request specific environment,
     // but to do that we need the request.   Currently this is a bit ugly 
     // to retrieve, but can be tidied up in a future jetty release
-    // TODO tidy up request recovery
+    // TODO tidy up request recovery by using jetty 9.3.(>3) ContextHandler.ContextScopeListener
     
     Request baseRequest=null;
     if (runnable instanceof HttpOutput)
