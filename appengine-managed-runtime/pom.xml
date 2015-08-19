@@ -13,7 +13,7 @@
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <appengine.api.version>1.9.22</appengine.api.version>
+    <appengine.api.version>1.9.25</appengine.api.version>
   </properties>
 
   <dependencies>
