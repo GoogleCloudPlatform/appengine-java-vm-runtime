@@ -31,6 +31,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
@@ -48,9 +49,8 @@ public  class VmRuntimeTestBase extends TestCase {
       + "com/google/apphosting/vmruntime/jetty9/" + HOME_FOLDER;
 
 
-  // Wait at the most 30 seconds (30*1000ms) for Jetty to come up.
-  private static final int JETTY_MAX_CONNECT_ATTEMPTS = 30;
-  private static final int JETTY_RECONNECT_DELAY = 1000;
+  // Wait at the most 30 seconds for Jetty to come up.
+  private static final int JETTY_START_DELAY = 30;
 
   public static final String PROJECT = "google.com:test-project";
   public static final String PARTITION = "testpartition";
@@ -159,33 +159,6 @@ public  class VmRuntimeTestBase extends TestCase {
     metadataThread.start();
   }
 
-  /**
-   * Wait for Jetty to come up.
-   *
-   * @throws Exception
-   */
-  protected void waitForJettyStart() throws Exception {
-    for (int i = 0; i < JETTY_MAX_CONNECT_ATTEMPTS; i++) {
-      try {
-        URL url = createUrl("/test");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.connect();
-        if (connection.getResponseCode() == HttpServletResponse.SC_OK) {
-          logger.fine("got 200 from test servlet, jetty load is completed.");
-          return;
-        } else {
-          logger.warning("got non-200 response from test servlet: " + connection.getResponseCode()
-              + " url=" + url.toExternalForm());
-        }
-      } catch (ConnectException ex) {
-        if (!"Connection refused".equals(ex.getMessage())) {
-          throw ex;
-        }
-      }
-      Thread.sleep(JETTY_RECONNECT_DELAY);
-    }
-    fail("Jetty never came up!");
-  }
 
   @Override
   protected void setUp() throws Exception {
@@ -194,11 +167,12 @@ public  class VmRuntimeTestBase extends TestCase {
     externalPort = port;
     stubMetadataRequests();
     // Start jetty using the Runnable configured by the sub class.
-    Thread jettyRunnerThread = new Thread(new JettyRunner(port));
+    JettyRunner runner = new JettyRunner(port);
+    Thread jettyRunnerThread = new Thread(runner);
     jettyRunnerThread.setName("JettyRunnerThread");
     jettyRunnerThread.setDaemon(true);
     jettyRunnerThread.start();
-    waitForJettyStart();
+    runner.waitForStarted(JETTY_START_DELAY, TimeUnit.SECONDS);
   }
 
   @Override

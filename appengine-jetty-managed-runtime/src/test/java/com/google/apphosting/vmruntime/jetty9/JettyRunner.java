@@ -16,48 +16,133 @@
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
+
 import java.io.File;
 import java.io.IOException;
-import org.apache.jasper.runtime.JspFactoryImpl;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import javax.servlet.jsp.JspFactory;
-import org.eclipse.jetty.start.Main;
+import org.eclipse.jetty.io.MappedByteBufferPool;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 class JettyRunner implements Runnable {
 
   static final String JETTY9_XML_FILE_DIR = VmRuntimeTestBase.JETTY_HOME_PATTERN + "/etc";
   static final String LOG_FILE_PATTERN = /*TestUtil.getTmpDir() +*/ "log.%g";
-  int port;
-
+  
+  private Server server;
+  private int port;
+  private CountDownLatch started = new CountDownLatch(1);
+  
   public JettyRunner(int port) {
     this.port = port;
   }
 
+  public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
+    started.await(timeout, units);
+    if (!server.isStarted())
+      throw new IllegalStateException("server state="+server.getState());
+  }
+  
   @Override
   public void run() {
 
-    try {
-      // We need to initialize this factory as it seems the Jetty start method does not call it.
-      setSystemPropertiesForJetty();
-      JspFactory.setDefaultFactory(new JspFactoryImpl());
-      // Start jetty by calling main with the same arguments as when
-      // we are starting it from the command line inside the VM.
-      System.setProperty(
-              "START", "javatests/com/google/apphosting/vmruntime/jetty9/start.config");
-      // Make the file logger log to a directory the test can write to.
-      System.setProperty(
-              "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", LOG_FILE_PATTERN);
+    try
+    {
+      // Set GAE SystemProperties
+      setSystemProperties();
+            
+      // Create the server, connector and associated instances
+      QueuedThreadPool threadpool = new QueuedThreadPool();
+      server = new Server(threadpool);
+      HttpConfiguration httpConfig = new HttpConfiguration();
+      ServerConnector connector = new ServerConnector(server,new HttpConnectionFactory(httpConfig));
+      connector.setPort(port);
+      server.addConnector(connector);
 
-      org.eclipse.jetty.start.Main.main(new String[]{
-        "/Users/ludo/a/appengine-java-vm-runtime/docker/etc/gae.xml"
-     //     JETTY9_XML_FILE_DIR + "/jetty.xml",
-      //     JETTY9_XML_FILE_DIR + "/jetty-http.xml",
-      //    JETTY9_XML_FILE_DIR + "/jetty-deploy.xml"
-      });
+      MappedByteBufferPool bufferpool = new MappedByteBufferPool();
 
+      // Basic jetty.xml handler setup
+      HandlerCollection handlers = new HandlerCollection();
+      ContextHandlerCollection contexts = new ContextHandlerCollection();  // TODO is a context handler collection needed for a single context?
+      handlers.setHandlers(new Handler[] {contexts,new DefaultHandler()});
+      server.setHandler(handlers);
+      
+      // Configuration as done by gae.mod/gae.ini
+      httpConfig.setOutputAggregationSize(32768);
+
+      threadpool.setMinThreads(10);
+      threadpool.setMaxThreads(500);
+      threadpool.setIdleTimeout(60000);
+
+      httpConfig.setOutputBufferSize(32768);
+      httpConfig.setRequestHeaderSize(8192);
+      httpConfig.setResponseHeaderSize(8192);
+      httpConfig.setSendServerVersion(true);
+      httpConfig.setSendDateHeader(false);
+      httpConfig.setDelayDispatchUntilContent(false);
+
+      // Setup Server as done by gae.xml
+      server.addBean(bufferpool);
+
+      httpConfig.setHeaderCacheSize(512);
+
+      RequestLogHandler requestLogHandler = new RequestLogHandler();
+      handlers.addHandler(requestLogHandler);
+      File logs=File.createTempFile("logs", "logs");
+      logs.delete();
+      logs.mkdirs();
+      NCSARequestLog requestLog=new NCSARequestLog(logs.getCanonicalPath()+"/request.yyyy_mm_dd.log");
+      requestLogHandler.setRequestLog(requestLog);
+      requestLog.setRetainDays(2);
+      requestLog.setAppend(true);
+      requestLog.setExtended(true);
+      requestLog.setLogTimeZone("GMT");
+      requestLog.setLogLatency(true);
+      requestLog.setPreferProxiedForAddress(true);
+
+    
+      // configuration from root.xml
+      VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
+      context.setContextPath("/");
+      context.setResourceBase(JETTY_HOME_PATTERN);
+      context.init("WEB-INF/appengine-web.xml");
+      context.setParentLoaderPriority(true); // true in tests for easier mocking
+      
+      context.setDefaultsDescriptor("webdefault.xml");
+     
+      contexts.addHandler(context);
+      
+      // start and join
+      server.start();
+      
     } catch (Exception e) {
       e.printStackTrace();
     }
+    finally
+    {
+      started.countDown();
+    }
+
+    try {
+      if (Log.getLogger(Server.class).isDebugEnabled())
+        server.dumpStdErr();
+      server.join(); 
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
   }
 
   /**
@@ -65,18 +150,19 @@ class JettyRunner implements Runnable {
    *
    * @throws IOException
    */
-  protected void setSystemPropertiesForJetty() throws IOException {
-    System.setProperty("org.eclipse.jetty.LEVEL", "DEBUG");
-    System.setProperty("jetty.port", port + "");
-    System.setProperty("jetty.host", "0.0.0.0");
+  protected void setSystemProperties() throws IOException {
+
+    System.setProperty(
+            "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", LOG_FILE_PATTERN);
     System.setProperty("jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
-    // Set the classloader to load the VM API proxy in the parent class loader so we can
-    // access it from tests for easier mocking.
-    System.setProperty("jetty_parent_classloader", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
-    System.setProperty("jetty.logs",
-            File.createTempFile("logs", "logs").getParentFile().getCanonicalPath());
+  }
+  
+  
+  public static void main(String... args)
+  {
+    new JettyRunner(8080).run(); 
   }
 }
