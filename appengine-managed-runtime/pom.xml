@@ -13,13 +13,14 @@
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    <appengine.api.version>1.9.22</appengine.api.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.22</version>
+      <version>${appengine.api.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -138,6 +139,32 @@
                   <result>com.google.apphosting.repackaged.org.apache.commons.logging.@1</result>
                 </rule> 
               </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>appengine-api-1.0-sdk</artifactId>
+                  <version>${appengine.api.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>target</outputDirectory>
+                </artifactItem>
+              </artifactItems>
             </configuration>
           </execution>
         </executions>

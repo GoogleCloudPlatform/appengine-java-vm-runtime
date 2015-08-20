@@ -58,62 +58,6 @@ if [[ -n "${CPROF_ENABLE}" ]]; then
   PROF_AGENT="$( cp/format-env-appengine-vm.sh )"
 fi
 
-JETTY_HOME=${RUNTIME_DIR}
-JETTY_VERSION=9.3.1.v20150714
-# to generate the good, fast cli:
-#/usr/bin/java -Djetty.home=${RUNTIME_DIR} -Djetty.base=${RUNTIME_DIR} -jar ${RUNTIME_DIR}/start.jar --dry-run
-
-/usr/bin/java ${JAVA_OPTS} ${DBG_AGENT} ${PROF_AGENT} \
--Djava.io.tmpdir=/tmp \
--Djetty.home=${JETTY_HOME} \
--Djetty.base=${JETTY_HOME} \
--Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} \
--cp \
-${JETTY_HOME}/lib/ext/appengine-api-1.0-sdk.jar:\
-${JETTY_HOME}/lib/ext/appengine-jetty-managed-runtime.jar:\
-${JETTY_HOME}/lib/ext/appengine-managed-runtime.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.apache-jsp-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.eclipse.jetty.orbit.org.eclipse.jdt.core-3.8.2.v20130121.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-el-8.0.23.M1.jar:\
-${JETTY_HOME}/lib/apache-jsp/org.mortbay.jasper.apache-jsp-8.0.23.M1.jar:\
-${JETTY_HOME}/lib/apache-jstl/org.apache.taglibs.taglibs-standard-impl-1.2.1.jar:\
-${JETTY_HOME}/lib/apache-jstl/org.apache.taglibs.taglibs-standard-spec-1.2.1.jar:\
-${JETTY_HOME}/lib/servlet-api-3.1.jar:\
-${JETTY_HOME}/lib/jetty-schemas-3.1.jar:\
-${JETTY_HOME}/lib/annotations/asm-5.0.1.jar:\
-${JETTY_HOME}/lib/annotations/asm-commons-5.0.1.jar:\
-${JETTY_HOME}/lib/annotations/javax.annotation-api-1.2.jar:\
-${JETTY_HOME}/lib/jndi/javax.mail.glassfish-1.4.1.v201005082020.jar:\
-${JETTY_HOME}/lib/jndi/javax.transaction-api-1.2.jar:\
-${JETTY_HOME}/lib/jetty-http-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-server-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-xml-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-util-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-io-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-jndi-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-security-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-servlet-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-webapp-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-deploy-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-plus-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-annotations-${JETTY_VERSION}.jar:\
-${JETTY_HOME}/lib/jetty-quickstart-${JETTY_VERSION}.jar \
-org.eclipse.jetty.xml.XmlConfiguration \
-jetty.http.idleTimeout=30000 \
-jetty.dump.start=false \
-jetty.dump.stop=false \
-jetty.output.buffer.size=32768 \
-jetty.http.port=8080 \
-jetty.request.header.size=8192 \
-jetty.response.header.size=8192 \
-jetty.send.date.header=false \
-jetty.send.server.version=true \
-jsp-impl=apache \
-threads.max=200 \
-threads.min=10 \
-threads.timeout=60000 \
-${JETTY_HOME}/etc/jetty.xml \
-${JETTY_HOME}/etc/jetty-http.xml \
-${JETTY_HOME}/etc/jetty-deploy.xml \
-${JETTY_HOME}/etc/jetty-plus.xml \
-${JETTY_HOME}/etc/jetty-annotations.xml
+# use generated fast cli:
+cd /var/lib/jetty
+source /var/lib/jetty/jetty_cmd.sh
