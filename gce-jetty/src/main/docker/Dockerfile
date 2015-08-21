@@ -22,17 +22,14 @@ ENV JETTY_HOME /usr/local/jetty
 ENV PATH $JETTY_HOME/bin:$PATH
 ADD jetty-distribution.tar.gz /usr/local/
 RUN mv /usr/local/jetty-distribution-* $JETTY_HOME && chown -R jetty:jetty $JETTY_HOME
-RUN ls -lR $JETTY_HOME
 
 # Create Jetty Base
 ENV JETTY_BASE /var/lib/jetty
 RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
-RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,setuid && chown -R jetty:jetty $JETTY_BASE
-RUN ls -lR $JETTY_BASE
-
-# Create TMP
-RUN mkdir /tmp/jetty
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,setuid && \
+    chown -R jetty:jetty $JETTY_BASE && \
+    mkdir /tmp/jetty
 
 # Start Jetty directly
 EXPOSE 8080
