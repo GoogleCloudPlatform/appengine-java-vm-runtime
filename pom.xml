@@ -52,7 +52,7 @@
   
   <modules>
     <module>gce-debian-java8</module>
-    <module>gce-jetty-docker</module>
+    <module>gce-jetty</module>
     <module>appengine-managed-runtime</module>
     <module>appengine-jetty-managed-runtime</module>
   </modules>

@@ -21,9 +21,9 @@
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.23-SNAPSHOT</version>
   </parent>
-  <artifactId>computeengine-debian-java8</artifactId>
+  <artifactId>gce-debian-java8</artifactId>
   <packaging>pom</packaging>
-  <name>computerengine-debian-java8</name>
+  <name>gce-debian-java8</name>
   
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>

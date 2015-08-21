@@ -21,23 +21,15 @@
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.23-SNAPSHOT</version>
   </parent>
-  <artifactId>computeengine-jetty-docker</artifactId>
+  <artifactId>gce-jetty</artifactId>
   <packaging>pom</packaging>
-  <name>computerengine-jetty-docker</name>
+  <name>gce-jetty</name>
   
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.2.v20150730</jetty.version>
   </properties>
   
-  <dependencies>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-distribution</artifactId>
-      <version>${jetty.version}</version>
-      <type>tar.gz</type>
-    </dependency>
-  </dependencies>
   <build>
     <plugins>
       <plugin>
