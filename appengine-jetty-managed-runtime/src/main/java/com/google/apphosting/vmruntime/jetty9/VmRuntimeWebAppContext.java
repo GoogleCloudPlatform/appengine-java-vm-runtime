@@ -49,6 +49,7 @@ import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -212,20 +213,18 @@ public class VmRuntimeWebAppContext
    * It will also parse the appengine-web.xml file provided to set System Properties and session
    * manager accordingly.
    *
-   * @param appDir The war directory of the application.
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
    * @throws AppEngineConfigException If there was a problem finding or parsing the
    *         appengine-web.xml configuration.
    * @throws IOException If the runtime was unable to find/read appDir.
    */
-  public void init(String appDir, String appengineWebXmlFile)
+  public void init(String appengineWebXmlFile)
       throws AppEngineConfigException, IOException {
-    setContextPath("/");
-    setWar(appDir);
-    setResourceBase(appDir);
+	  
+	String appDir=getBaseResource().getFile().getCanonicalPath();  
     defaultEnvironment = VmApiProxyEnvironment.createDefaultContext(
         System.getenv(), metadataCache, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
-        VmRuntimeUtils.ONE_DAY_IN_MILLIS, new File(appDir).getCanonicalPath());
+        VmRuntimeUtils.ONE_DAY_IN_MILLIS, appDir);
     ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
     if (ApiProxy.getEnvironmentFactory() == null) {
       // Need the check above since certain unit tests initialize the context multiple times.
@@ -247,10 +246,8 @@ public class VmRuntimeWebAppContext
     AbstractSessionManager sessionManager;
     if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-    } else {
-      sessionManager = new StubSessionManager();
+      getSessionHandler().setSessionManager(sessionManager);
     }
-    setSessionHandler(new SessionHandler(sessionManager));
   }
 
   @Override
@@ -294,15 +291,6 @@ public class VmRuntimeWebAppContext
       wrappedResponse = new CommitDelayingResponse(httpServletResponse);
     }
 
-    if (httpServletResponse instanceof org.eclipse.jetty.server.Response) {
-      // The jetty 9.1 HttpOutput class has logic to commit the stream when it reaches a certain
-      // threshold.  Inexplicably, by default, that threshold is set to one-fourth its buffer size.
-      // That defeats the purpose of our commit delaying response.  Luckily, setting the buffer
-      // size again sets the commit size to same value.
-      // See go/jetty9-httpoutput.java for the relevant jetty source code.
-      ((org.eclipse.jetty.server.Response) httpServletResponse).getHttpOutput().setBufferSize(
-          wrappedResponse.getBufferSize());
-    }
     try {
       ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
       // Check for SkipAdminCheck and set attributes accordingly.
