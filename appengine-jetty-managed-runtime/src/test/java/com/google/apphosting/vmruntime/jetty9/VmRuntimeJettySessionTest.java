@@ -21,7 +21,7 @@ import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheSetRequest;
 import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheSetResponse;
 import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheSetResponse.SetStatusCode;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.datastore.DatastoreV3Pb.PutResponse;
+import com.google.apphosting.api.DatastorePb.PutResponse;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.storage.onestore.v3.OnestoreEntity.Path;
 import com.google.storage.onestore.v3.OnestoreEntity.Path.Element;

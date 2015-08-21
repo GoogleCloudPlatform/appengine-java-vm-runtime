@@ -24,7 +24,8 @@ import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueBulkAddResponse.T
 import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueServiceError.ErrorCode;
 import com.google.apphosting.api.ApiBasePb.VoidProto;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
+//import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
+import com.google.apphosting.api.DatastorePb.Transaction;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;

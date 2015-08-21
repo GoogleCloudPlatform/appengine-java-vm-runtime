@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
-import com.google.apphosting.tests.usercode.testservlets.AuthServlet;
 
 import junit.framework.TestCase;
 
@@ -61,6 +60,7 @@ public class AppEngineAuthenticationTest extends TestCase {
   private static final String TEST_ENV_DOMAIN = "gmail.com";
 
   private class MockAddressChecker implements VmRuntimeTrustedAddressChecker {
+    @Override
     public boolean isTrustedRemoteAddr(String remoteAddr) {
       return true;
     }
@@ -138,10 +138,10 @@ public class AppEngineAuthenticationTest extends TestCase {
     doReturn(response).when(request).getResponse();
 
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    PrintWriter writer = new PrintWriter(output);
-    when(response.getWriter()).thenReturn(writer);
-    securityHandler.handle(path, request, request, response);
-    writer.close();
+    try (PrintWriter writer = new PrintWriter(output)) {
+      when(response.getWriter()).thenReturn(writer);
+      securityHandler.handle(path, request, request, response);
+    }
     return new String(output.toByteArray());
   }
 

@@ -1,0 +1,10 @@
+<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+  <application>helloworld-java-maxr</application>
+  <version>1</version>
+  <!-- TODO(???) please update threadsafe to true if code is threadsafe -->
+  <threadsafe>false</threadsafe>
+  <user-permissions>
+    <permission class="com.google.apphosting.tests.usercode.testservlets.CheckPermissionServlet$CustomPermission" name="foo"/>
+  </user-permissions>
+  <threadsafe>true</threadsafe>
+</appengine-web-app>

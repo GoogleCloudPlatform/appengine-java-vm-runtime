@@ -38,12 +38,11 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 class JettyRunner implements Runnable {
 
-  static final String JETTY9_XML_FILE_DIR = VmRuntimeTestBase.JETTY_HOME_PATTERN + "/etc";
-  static final String LOG_FILE_PATTERN = /*TestUtil.getTmpDir() +*/ "log.%g";
+  static final String LOG_FILE_PATTERN = "target/log.%g";
   
   private Server server;
-  private int port;
-  private CountDownLatch started = new CountDownLatch(1);
+  private final int port;
+  private final CountDownLatch started = new CountDownLatch(1);
   
   public JettyRunner(int port) {
     this.port = port;
@@ -111,16 +110,22 @@ class JettyRunner implements Runnable {
       requestLog.setLogTimeZone("GMT");
       requestLog.setLogLatency(true);
       requestLog.setPreferProxiedForAddress(true);
-
+   
+      // Ugly hack to delete possible previous run lock file
+      new File("target/log.0.lck").delete();
+      new File("target/log.0.1.lck").delete();
     
       // configuration from root.xml
       VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
-      context.setResourceBase(JETTY_HOME_PATTERN);
+      // Hack to find the sibling testwebapp target
+      File currentDir = new File("").getAbsoluteFile();
+      File webAppLocation = new File(currentDir.getParentFile(), "testwebapp/target/testwebapp-1.0-SNAPSHOT");
+      context.setResourceBase(webAppLocation.getAbsolutePath());
       context.init("WEB-INF/appengine-web.xml");
       context.setParentLoaderPriority(true); // true in tests for easier mocking
-      
-      context.setDefaultsDescriptor("webdefault.xml");
+      File webDefault = new File(currentDir.getParentFile(), "docker/etc/webdefault.xml");
+      context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
       
@@ -160,7 +165,7 @@ class JettyRunner implements Runnable {
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
   }
   
-  
+
   public static void main(String... args)
   {
     new JettyRunner(8080).run(); 

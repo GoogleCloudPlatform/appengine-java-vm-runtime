@@ -1,0 +1,19 @@
+<queue-entries>
+  <total-storage-limit>102M</total-storage-limit>
+  <queue>
+    <name>default</name>
+    <rate>5/s</rate>
+  </queue>
+  <queue>
+    <name>another-queue</name>
+    <rate>2000/d</rate>
+    <bucket-size>10</bucket-size>
+  </queue>
+  <queue>
+    <name>pull-queue</name>
+    <mode>pull</mode>
+    <acl>
+      <user-email>nverne@google.com</user-email>
+    </acl>
+  </queue>
+</queue-entries>

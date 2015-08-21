@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app
+   xmlns="http://java.sun.com/xml/ns/javaee"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+   version="2.5">
+  <display-name>Test Servlets</display-name>
+
+  <servlet>
+    <servlet-name>monitoredByAppstats</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.appstats.AppstatsMonitoredServlet</servlet-class>
+  </servlet>
+
+  <filter>
+    <filter-name>appstatsFilter</filter-name>
+    <filter-class>com.google.appengine.tools.appstats.AppstatsFilter</filter-class>
+    <init-param>
+      <param-name>payloadRenderer</param-name>
+      <param-value>com.google.appengine.tools.appstats.FullPayloadRenderer</param-value>
+    </init-param>
+    <init-param>
+      <param-name>onPendingAsyncCall</param-name>
+      <param-value>WAIT_UNTIL_FINISHED</param-value>
+    </init-param>    
+  </filter>
+
+  <servlet>
+    <servlet-name>appstatsFrontend</servlet-name>
+    <servlet-class>com.google.appengine.tools.appstats.AppstatsServlet</servlet-class>
+    <init-param>
+      <param-name>requireAdminAuthentication</param-name>
+      <param-value>false</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>monitoredByAppstats</servlet-name>
+    <url-pattern>/monitoredByAppstats</url-pattern>
+  </servlet-mapping>
+
+  <filter-mapping>
+    <filter-name>appstatsFilter</filter-name>
+    <url-pattern>/monitoredByAppstats</url-pattern>
+  </filter-mapping>
+
+  <servlet-mapping>
+    <servlet-name>appstatsFrontend</servlet-name>
+    <url-pattern>/appstats/*</url-pattern>
+  </servlet-mapping>
+</web-app>
