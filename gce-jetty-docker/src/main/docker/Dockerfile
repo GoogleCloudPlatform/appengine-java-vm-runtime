@@ -1,0 +1,42 @@
+# Copyright 2014 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM gce-debian-java8 
+
+# create jetty group and user
+RUN groupadd -r jetty 
+RUN useradd -r -g jetty jetty
+
+# Create Jetty Home
+ENV JETTY_HOME /usr/local/jetty
+ENV PATH $JETTY_HOME/bin:$PATH
+ADD jetty-distribution.tar.gz /usr/local/
+RUN mv /usr/local/jetty-distribution-* $JETTY_HOME
+RUN chown -R jetty:jetty $JETTY_HOME
+RUN ls -lR $JETTY_HOME
+
+# Create Jetty Base
+ENV JETTY_BASE /var/lib/jetty
+RUN mkdir -p $JETTY_BASE
+WORKDIR $JETTY_BASE
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,setuid
+RUN chown -R jetty:jetty $JETTY_BASE
+RUN ls -lR $JETTY_BASE
+
+# Create TMP
+RUN mkdir /tmp/jetty
+
+# Start Jetty directly
+CMD []
+ENTRYPOINT ["java","-Djava.io.tmpdir=/tmp/jetty","-jar","/usr/local/jetty/start.jar"]
