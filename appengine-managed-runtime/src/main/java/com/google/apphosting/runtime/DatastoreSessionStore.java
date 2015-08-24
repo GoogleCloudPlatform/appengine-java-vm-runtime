@@ -41,8 +41,7 @@ import java.util.logging.Logger;
  */
 public class DatastoreSessionStore implements SessionStore {
 
-  private static final Logger logger =
-      Logger.getLogger(DatastoreSessionStore.class.getName());
+  private static final Logger logger = Logger.getLogger(DatastoreSessionStore.class.getName());
 
   static final String SESSION_ENTITY_TYPE = "_ah_SESSION";
   static final String EXPIRES_PROP = "_expires";
@@ -69,7 +68,9 @@ public class DatastoreSessionStore implements SessionStore {
     data.setExpirationTime((Long) entity.getProperty(EXPIRES_PROP));
 
     Blob valueBlob = (Blob) entity.getProperty(VALUES_PROP);
-    data.setValueMap((Map<String, Object>) deserialize(valueBlob.getBytes()));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> valueMap = (Map<String, Object>) deserialize(valueBlob.getBytes());
+    data.setValueMap(valueMap);
     return data;
   }
 

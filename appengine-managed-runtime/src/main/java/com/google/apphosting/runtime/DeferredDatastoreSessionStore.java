@@ -47,10 +47,12 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
   private static final Constructor<DeferredTask> deleteDeferredTaskConstructor;
 
   static {
-    putDeferredTaskConstructor = getConstructor(
-        DeferredTask.class.getPackage().getName() + ".DatastorePutDeferredTask", Entity.class);
-    deleteDeferredTaskConstructor = getConstructor(
-        DeferredTask.class.getPackage().getName() + ".DatastoreDeleteDeferredTask", Key.class);
+    putDeferredTaskConstructor =
+        getConstructor(
+            DeferredTask.class.getPackage().getName() + ".DatastorePutDeferredTask", Entity.class);
+    deleteDeferredTaskConstructor =
+        getConstructor(
+            DeferredTask.class.getPackage().getName() + ".DatastoreDeleteDeferredTask", Key.class);
   }
 
   private final Queue queue;
@@ -72,8 +74,9 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
       // The length of this timeout has been chosen arbitrarily.  Maybe let
       // users set it?
       Entity e = DatastoreSessionStore.createEntityForSession(key, data);
-      queue.add(withPayload(newDeferredTask(putDeferredTaskConstructor, e))
-          .retryOptions(withTaskAgeLimitSeconds(SAVE_TASK_AGE_LIMIT_SECS)));
+      queue.add(
+          withPayload(newDeferredTask(putDeferredTaskConstructor, e))
+              .retryOptions(withTaskAgeLimitSeconds(SAVE_TASK_AGE_LIMIT_SECS)));
     } catch (TransientFailureException e) {
       throw new Retryable(e);
     }
