@@ -118,12 +118,15 @@ class JettyRunner implements Runnable {
       // configuration from root.xml
       VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
-      // Hack to find the sibling testwebapp target
+      
+      // find the sibling testwebapp target
       File currentDir = new File("").getAbsoluteFile();
-      File webAppLocation = new File(currentDir.getParentFile(), "testwebapp/target/testwebapp-1.0-SNAPSHOT");
+      File webAppLocation = new File(currentDir, "target/webapps/testwebapp");
       context.setResourceBase(webAppLocation.getAbsolutePath());
       context.init("WEB-INF/appengine-web.xml");
       context.setParentLoaderPriority(true); // true in tests for easier mocking
+      
+      // Hack to find the webdefault.xml
       File webDefault = new File(currentDir.getParentFile(), "docker/etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
