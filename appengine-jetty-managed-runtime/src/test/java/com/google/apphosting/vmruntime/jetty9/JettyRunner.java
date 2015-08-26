@@ -46,7 +46,7 @@ class JettyRunner implements Runnable {
   
   public JettyRunner(int port) {
     this.port = port;
-  }
+ }
 
   public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
     started.await(timeout, units);
@@ -166,6 +166,7 @@ class JettyRunner implements Runnable {
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
+    System.setProperty("GAE_SERVER_PORT", ""+port);
   }
   
 

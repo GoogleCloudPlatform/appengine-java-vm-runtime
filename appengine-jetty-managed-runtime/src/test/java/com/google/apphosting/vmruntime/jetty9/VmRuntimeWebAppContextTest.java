@@ -30,7 +30,6 @@ public class VmRuntimeWebAppContextTest extends VmRuntimeTestBase {
 
   public void testIsTrustedRemoteAddr() throws Exception {
     VmRuntimeWebAppContext vm = new VmRuntimeWebAppContext();
-    vm.init("javatests/com/google/apphosting/vmruntime/jetty9/appengine-web.xml");
     assertTrue(vm.isTrustedRemoteAddr("127.0.0.1")); // Local host
     assertTrue(vm.isTrustedRemoteAddr("172.17.42.1")); // Docker
     assertTrue(vm.isTrustedRemoteAddr("169.254.160.2")); // Virtual Peers
