@@ -42,7 +42,7 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-managed-runtime</artifactId>
-      <version>1.9.23-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>jar</type>
     </dependency>
 
@@ -62,12 +62,6 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-quickstart</artifactId>
       <version>${jetty.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>tomcat-servlet-api</artifactId>
-      <version>8.0.21</version>
       <type>jar</type>
     </dependency>
     
@@ -157,7 +151,28 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy</id>
+            <id>test-webapp</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.appengine.demos</groupId>
+                  <artifactId>testwebapp</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <type>war</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/webapps/</outputDirectory>
+                  <destFileName>testwebapp.war</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <execution>
+            <id>jetty-distro</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>copy</goal>
@@ -171,7 +186,7 @@
                   <type>tar.gz</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>target</outputDirectory>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
                   <destFileName>jetty-distribution.tar.gz</destFileName>
                 </artifactItem>
               </artifactItems>
@@ -179,6 +194,26 @@
           </execution>
         </executions>
       </plugin>
+      
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <phase>generate-test-resources</phase>
+            <configuration>
+              <target>
+                <unzip src="${project.build.directory}/webapps/testwebapp.war" dest="${project.build.directory}/webapps/testwebapp"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
 </project>
