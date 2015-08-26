@@ -21,9 +21,9 @@
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.23-SNAPSHOT</version>
   </parent>
-  <artifactId>gce-debian-java8</artifactId>
+  <artifactId>gce-debian-openjdk8</artifactId>
   <packaging>pom</packaging>
-  <name>gce-debian-java8</name>
+  <name>gce-debian-openjdk8</name>
   
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
@@ -43,8 +43,8 @@
               <goal>build</goal>
             </goals>
 	    <configuration>
-	      <imageName>gce-debian-java8</imageName>
-	      <dockerDirectory>src/main/docker</dockerDirectory>
+	      <imageName>gce-debian-openjdk8</imageName>
+	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
 	    </configuration>
 	  </execution>
 	</executions>

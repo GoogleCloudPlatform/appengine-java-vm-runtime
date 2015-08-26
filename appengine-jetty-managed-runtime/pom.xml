@@ -110,7 +110,7 @@
                   <type>jar</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>target/docker/lib/gae</outputDirectory>
+                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.google.appengine</groupId>
@@ -119,7 +119,7 @@
                   <type>jar</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>target/docker/lib/gae</outputDirectory>
+                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -140,7 +140,7 @@
             </goals>
             <configuration>
               <imageName>appengine-mvn-opensource</imageName>
-              <dockerDirectory>src/main/docker</dockerDirectory>        
+	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
               <resources>
                 <resource>
                   <targetPath>/lib/gae</targetPath>

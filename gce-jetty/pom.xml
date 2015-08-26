@@ -58,7 +58,7 @@
                   <type>tar.gz</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>target/docker</outputDirectory>
+                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
                   <destFileName>jetty-distribution.tar.gz</destFileName>
                 </artifactItem>
               </artifactItems>
@@ -80,7 +80,7 @@
             </goals>
             <configuration>
 	      <imageName>gce-jetty-9.3</imageName>
-	      <dockerDirectory>src/main/docker</dockerDirectory>
+	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
 	    </configuration>
 	  </execution>
 	</executions>
