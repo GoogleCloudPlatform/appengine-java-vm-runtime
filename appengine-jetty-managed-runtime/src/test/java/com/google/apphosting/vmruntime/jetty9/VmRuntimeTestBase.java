@@ -149,8 +149,8 @@ public  class VmRuntimeTestBase extends TestCase {
     metadataServer.addMetadata(VmApiProxyEnvironment.VERSION_ATTRIBUTE, VERSION);
     metadataServer.addMetadata(VmApiProxyEnvironment.INSTANCE_ATTRIBUTE, INSTANCE);
 //    metadataServer.addMetadata(VmApiProxyEnvironment.AFFINITY_ATTRIBUTE, AFFINITY);
- //   metadataServer.addMetadata(
- //       VmApiProxyEnvironment.APPENGINE_HOSTNAME_ATTRIBUTE, APPENGINE_HOSTNAME);
+    metadataServer.addMetadata(
+        VmApiProxyEnvironment.APPENGINE_HOSTNAME_ATTRIBUTE, APPENGINE_HOSTNAME);
  //   metadataServer.addMetadata(
  //       VmApiProxyEnvironment.USE_MVM_AGENT_ATTRIBUTE, getUseMvmAgent());
     Thread metadataThread = new Thread(metadataServer);

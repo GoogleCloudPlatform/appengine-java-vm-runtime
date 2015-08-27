@@ -70,7 +70,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   static final String MINOR_VERSION_KEY = "GAE_MINOR_VERSION";
 
-  static final String APPENGINE_HOSTNAME_ATTRIBUTE = "attributes/gae_appengine_hostname";
+  public static final String APPENGINE_HOSTNAME_ATTRIBUTE = "attributes/gae_appengine_hostname";
   static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
 
   // Attribute is only for testing.
