@@ -49,9 +49,10 @@ class JettyRunner implements Runnable {
  }
 
   public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
-    started.await(timeout, units);
-    if (!server.isStarted())
+    if (!started.await(timeout, units) || !server.isStarted())
       throw new IllegalStateException("server state="+server.getState());
+
+    Log.getLogger(Server.class).info("Waited!");
   }
   
   @Override
@@ -140,6 +141,7 @@ class JettyRunner implements Runnable {
     }
     finally
     {
+      Log.getLogger(Server.class).info("Started!");
       started.countDown();
     }
 

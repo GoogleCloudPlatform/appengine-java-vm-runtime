@@ -303,7 +303,6 @@ public class VmRuntimeWebAppContext
     }
   }
 
-  
   @Override
   public void handle(Runnable runnable) {
     // This method is called to condition async IO callback threads
@@ -318,7 +317,7 @@ public class VmRuntimeWebAppContext
     else if (runnable instanceof HttpInput<?>)
     {
       try {
-        Field field = HttpInput.class.getField("_channelState");
+        Field field = HttpInput.class.getDeclaredField("_channelState");
         field.setAccessible(true);
         baseRequest = ((HttpChannelState)field.get(runnable)).getBaseRequest();
       } catch (Exception e) {
@@ -424,7 +423,7 @@ public class VmRuntimeWebAppContext
           wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
     }
     
-    public void enter() {      
+    public void enter() {    
       ApiProxy.setEnvironmentForCurrentThread(getRequestSpecificEnvironment());
     }
 
