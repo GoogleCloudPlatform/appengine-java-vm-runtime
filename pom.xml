@@ -51,8 +51,9 @@
   </distributionManagement>
   
   <modules>
-    <module>appengine-managed-runtime</module>
-    <module>appengine-jetty-managed-runtime</module>
+      <module>testwebapp</module>
+      <module>appengine-managed-runtime</module>
+      <module>appengine-jetty-managed-runtime</module>
   </modules>
   <build>
     <plugins>
