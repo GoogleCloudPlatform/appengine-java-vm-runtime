@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+  - Attempt to perform an XXE attack on Jetty.
+  - We can't find a text file to read that we have permissions to, so we
+  - read a directory instead.
+  -->
+<!DOCTYPE doc [ <!ENTITY ent SYSTEM 
+    "file:javatests/com/google/apphosting/runtime/testdata-fileset">]>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+  <servlet>
+    <servlet-name>xxe</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.xxe.XXEServlet</servlet-class>
+    <init-param>
+      <param-name>private-file</param-name>
+      <param-value>&ent;</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>xxe</servlet-name>
+    <url-pattern>/xxe</url-pattern>
+  </servlet-mapping>
+</web-app>

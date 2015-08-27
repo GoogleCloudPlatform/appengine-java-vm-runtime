@@ -452,7 +452,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     }
     this.server = server;
     this.partition = partition;
-    String port = System.getenv(GAE_SERVER_PORT) == null ? "80" : System.getenv(GAE_SERVER_PORT);
+    String port = System.getenv(GAE_SERVER_PORT) == null ? 
+            System.getProperty("GAE_SERVER_PORT", "80"): System.getenv(GAE_SERVER_PORT);
     this.serverPort = Integer.decode(port);
     if (appId == null) {
       this.appId = "";

@@ -1,0 +1,37 @@
+<!DOCTYPE appengine-web-app [
+  <!ENTITY sysprops SYSTEM "javatests/com/google/apphosting/tests/usercode/testservlets/war-contents/WEB-INF/external_sysprops.xml">
+]>
+<!--As of openjdk v4, external entity resolution is disabled. As a result the
+sys props defined in external_sysprops.xml are _not_ registered. We assert this
+in DevAppServerIntegrationTest.testSystemPropertiesFromAppEngineWebXml -->
+<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+  <application>helloworld-java-maxr</application>
+  <version>1</version>
+  <!-- TODO(???) please update threadsafe to true if code is threadsafe -->
+  <threadsafe>false</threadsafe>
+  <system-properties>
+    <property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>
+    <property name="sysprop1 key" value="sysprop1 value"/>
+    <property name="sysprop2 key" value="sysprop2 value"/>
+    &sysprops;
+  </system-properties>
+  <env-variables>
+    <env-var name="envvar1 key" value="envvar1 value"/>
+    <env-var name="envvar2 key" value="envvar2 value"/>
+  </env-variables>
+  <inbound-services>
+    <service>mail</service>
+  </inbound-services>
+  <threadsafe>true</threadsafe>
+
+  <static-files>
+    <include path="/**">
+      <http-header name="Owned" value="all your base"/>
+      <http-header name="Chance-To-Survive" value="no"/>
+      <http-header name="Cause" value="great justice"/>
+    </include>
+    <exclude path="/WEB-INF/**"/>
+    <exclude path="**/*.jsp"/>
+  </static-files>
+
+</appengine-web-app>

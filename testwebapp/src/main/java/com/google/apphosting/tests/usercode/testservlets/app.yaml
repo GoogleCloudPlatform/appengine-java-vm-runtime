@@ -1,0 +1,4 @@
+application: helloworld-java
+version: 1
+runtime: public
+threadsafe: False
