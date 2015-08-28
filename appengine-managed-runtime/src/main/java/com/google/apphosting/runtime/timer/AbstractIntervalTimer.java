@@ -26,13 +26,14 @@ package com.google.apphosting.runtime.timer;
  * <p>This class is thread-safe.
  *
  */
-abstract public class AbstractIntervalTimer implements Timer {
+public abstract class AbstractIntervalTimer implements Timer {
   // This object serves as its own lock protecting the following
   // fields.
   protected boolean running = false;
   protected long startTime = 0L;
   protected long cumulativeTime = 0L;
 
+  @Override
   public synchronized void start() {
     if (running) {
       throw new IllegalStateException("already running");
@@ -42,6 +43,7 @@ abstract public class AbstractIntervalTimer implements Timer {
     running = true;
   }
 
+  @Override
   public synchronized void stop() {
     if (!running) {
       throw new IllegalStateException("not running");
@@ -51,10 +53,12 @@ abstract public class AbstractIntervalTimer implements Timer {
     running = false;
   }
 
+  @Override
   public synchronized void update() {
     update(getCurrent());
   }
 
+  @Override
   public long getNanoseconds() {
     double ratio = getRatio();
     synchronized (this) {
@@ -75,7 +79,6 @@ abstract public class AbstractIntervalTimer implements Timer {
   }
 
   protected void update(long currentValue) {
-    double ratio = getRatio();
     synchronized (this) {
       long increment = (long) ((currentValue - startTime) * getRatio());
       cumulativeTime += increment;
@@ -83,5 +86,5 @@ abstract public class AbstractIntervalTimer implements Timer {
     }
   }
 
-  abstract protected long getCurrent();
+  protected abstract long getCurrent();
 }

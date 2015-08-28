@@ -35,8 +35,7 @@ import java.util.logging.Logger;
  */
 public class MemcacheSessionStore implements SessionStore {
 
-  private static final Logger logger =
-      Logger.getLogger(MemcacheSessionStore.class.getName());
+  private static final Logger logger = Logger.getLogger(MemcacheSessionStore.class.getName());
 
   private final MemcacheService memcache;
 

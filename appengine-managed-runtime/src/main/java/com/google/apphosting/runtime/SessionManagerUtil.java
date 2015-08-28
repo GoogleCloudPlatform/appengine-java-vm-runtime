@@ -54,18 +54,19 @@ public class SessionManagerUtil {
     // permission though, so use a doPrivileged block to get user code
     // off the stack.
     ClassLoader classLoader =
-        AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-          public ClassLoader run() {
-            return Thread.currentThread().getContextClassLoader();
-          }
-        });
+        AccessController.doPrivileged(
+            new PrivilegedAction<ClassLoader>() {
+              public ClassLoader run() {
+                return Thread.currentThread().getContextClassLoader();
+              }
+            });
     // TODO(user): It seems strange that we need to do this.  It
     // would be safer and cleaner if we could find a way to have user
     // code initiate this serialization, rather than having
     // implementation code perform it on the user's behalf.
     try {
-      ObjectInputStream ois = new DelegatingObjectInputStream(
-          new ByteArrayInputStream(bytes), classLoader);
+      ObjectInputStream ois =
+          new DelegatingObjectInputStream(new ByteArrayInputStream(bytes), classLoader);
       return ois.readObject();
     } catch (IOException ex) {
       throw new RuntimeException(ex);
@@ -88,6 +89,7 @@ public class SessionManagerUtil {
   public static class DelegatingObjectInputStream extends ObjectInputStream {
 
     private static final Map<String, Class> primitiveTypes = new HashMap<String, Class>(8, 1.0f);
+
     static {
       primitiveTypes.put("boolean", boolean.class);
       primitiveTypes.put("byte", byte.class);

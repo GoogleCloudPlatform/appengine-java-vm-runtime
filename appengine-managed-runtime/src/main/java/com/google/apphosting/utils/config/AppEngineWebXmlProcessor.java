@@ -65,6 +65,8 @@ class AppEngineWebXmlProcessor {
   public AppEngineWebXml processXml(InputStream is) {
     Element config = getTopLevelNode(is);
     AppEngineWebXml appEngineWebXml = new AppEngineWebXml();
+    // Warmup requests are on by default for Java applications
+    // configured via an appengine-web.xml.
     appEngineWebXml.setWarmupRequestsEnabled(true);
     NodeList nodes = config.getChildNodes();
     for (int i = 0; i < nodes.getLength(); i++) {
@@ -167,6 +169,8 @@ class AppEngineWebXmlProcessor {
       processCodeLockNode(elt, appEngineWebXml);
     } else if (elementName.equals("vm")) {
       processVmNode(elt, appEngineWebXml);
+    } else if (elementName.equals("env")) {
+      processEnvNode(elt, appEngineWebXml);
     } else if (elementName.equals("api-config")) {
       processApiConfigNode(elt, appEngineWebXml);
     } else if (elementName.equals("pagespeed")) {
@@ -311,8 +315,7 @@ class AppEngineWebXmlProcessor {
     }
   }
 
-  private void processManualScalingNode(Element settingsNode,
-      AppEngineWebXml appEngineWebXml) {
+  private void processManualScalingNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     ManualScaling manualScaling = appEngineWebXml.getManualScaling();
     manualScaling.setInstances(getChildNodeText(settingsNode, "instances"));
   }
@@ -335,6 +338,9 @@ class AppEngineWebXmlProcessor {
     boolean enabled = getBooleanAttributeValue(node, "enabled");
     appEngineWebXml.setAsyncSessionPersistence(enabled);
     String queueName = trim(node.getAttribute("queue-name"));
+    if (queueName.equals("")) {
+      queueName = null;
+    }
     appEngineWebXml.setAsyncSessionPersistenceQueueName(queueName);
   }
 
@@ -362,13 +368,23 @@ class AppEngineWebXmlProcessor {
     appEngineWebXml.setUseVm(getBooleanValue(node));
   }
 
+  private void processEnvNode(Element node, AppEngineWebXml appEngineWebXml) {
+    appEngineWebXml.setEnv(getTextNode(node));
+  }
+
   private void processFilesetNode(Element node, AppEngineWebXml appEngineWebXml, FileType type) {
     Iterator<Element> nodeIter = getNodeIterator(node, "include");
     while (nodeIter.hasNext()) {
       Element includeNode = nodeIter.next();
       String path = trim(includeNode.getAttribute("path"));
+      if (path.equals("")) {
+        path = null;
+      }
       if (type == FileType.STATIC) {
         String expiration = trim(includeNode.getAttribute("expiration"));
+        if (expiration.equals("")) {
+          expiration = null;
+        }
         AppEngineWebXml.StaticFileInclude staticFileInclude =
             appEngineWebXml.includeStaticPattern(path, expiration);
 
@@ -493,8 +509,17 @@ class AppEngineWebXmlProcessor {
     while (nodeIter.hasNext()) {
       Element subNode = nodeIter.next();
       String className = trim(subNode.getAttribute("class"));
+      if (className.equals("")) {
+        className = null;
+      }
       String name = trim(subNode.getAttribute("name"));
+      if (name.equals("")) {
+        name = null;
+      }
       String actions = trim(subNode.getAttribute("actions"));
+      if (actions.equals("")) {
+        actions = null;
+      }
       appEngineWebXml.addUserPermission(className, name, actions);
     }
   }
@@ -523,7 +548,13 @@ class AppEngineWebXmlProcessor {
     while (nodeIter.hasNext()) {
       Element subNode = nodeIter.next();
       String file = trim(subNode.getAttribute("file"));
+      if (file.equals("")) {
+        file = null;
+      }
       String errorCode = trim(subNode.getAttribute("error-code"));
+      if (errorCode.equals("")) {
+        errorCode = null;
+      }
       appEngineWebXml.addErrorHandler(new ErrorHandler(file, errorCode));
     }
   }
