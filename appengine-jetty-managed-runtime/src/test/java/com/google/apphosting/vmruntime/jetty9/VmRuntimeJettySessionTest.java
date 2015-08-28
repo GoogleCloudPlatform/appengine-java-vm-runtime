@@ -48,7 +48,6 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
   @Override
   protected void setUp() throws Exception {
   	appengineWebXml = "WEB-INF/sessions-enabled-appengine-web.xml";
-    externalPort = 80;
     super.setUp();
   }
 
@@ -60,19 +59,21 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
 
  
 
-  public void TODOLUDOtestSsl_NoSSL() throws Exception {
+  public void testSsl_NoSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
-    assertEquals("false:http:http://localhost/test-ssl", get.getResponseBodyAsString());
+    String expected = "false:http:http://localhost:"+port+"/test-ssl";
+    assertEquals(expected, get.getResponseBodyAsString());
   }
 
   public void testSsl_WithSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
+    URL url = createUrl("/test-ssl");
+    GetMethod get = new GetMethod(url.toString());
     get.addRequestHeader(VmApiProxyEnvironment.HTTPS_HEADER, "on");
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);

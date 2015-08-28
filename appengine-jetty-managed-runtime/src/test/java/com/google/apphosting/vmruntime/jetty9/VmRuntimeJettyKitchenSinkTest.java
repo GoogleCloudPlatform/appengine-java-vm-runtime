@@ -174,13 +174,14 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     }
   }
 
-  public void TODOLUDOtestSsl_NoSSL() throws Exception {
+  public void testSsl_NoSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
-    assertEquals("false:http:http://localhost/test-ssl", get.getResponseBodyAsString());
+    String expected = "false:http:http://localhost:"+port+"/test-ssl";
+    assertEquals(expected, get.getResponseBodyAsString());
   }
 
   public void testSsl_WithSSL() throws Exception {
