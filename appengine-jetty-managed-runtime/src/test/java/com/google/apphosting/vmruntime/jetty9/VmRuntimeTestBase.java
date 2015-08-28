@@ -62,6 +62,7 @@ public  class VmRuntimeTestBase extends TestCase {
 
   public int port;
   public int externalPort;
+  public String appengineWebXml = "WEB-INF/appengine-web.xml";
 
   /**
    * Returns the host:port the server is listening on externally. For VM Runtimes the local server
@@ -168,6 +169,7 @@ public  class VmRuntimeTestBase extends TestCase {
     stubMetadataRequests();
     // Start jetty using the Runnable configured by the sub class.
     JettyRunner runner = new JettyRunner(port);
+    runner.setAppEngineWebXml(appengineWebXml);
     Thread jettyRunnerThread = new Thread(runner);
     jettyRunnerThread.setName("JettyRunnerThread");
     jettyRunnerThread.setDaemon(true);

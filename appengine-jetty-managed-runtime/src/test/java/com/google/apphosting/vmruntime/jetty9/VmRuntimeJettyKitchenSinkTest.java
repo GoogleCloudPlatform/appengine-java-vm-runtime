@@ -38,7 +38,15 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
-  /**
+	
+
+	@Override
+	protected void setUp() throws Exception {
+		appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
+		super.setUp();
+	}
+
+	/**
    * Test that non compiled jsp files can be served.
    *
    * @throws Exception
@@ -152,16 +160,17 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   }
   
   /**
-   * Test that sessions are disabled. Tests that enable sessions should override
-   * this method.
+   * Test that sessions are disabled. Disabling sessions means that the default HashSessionManager 
+   * is being used, which keeps sessions in memory only. Enabling sessions uses the appengine SessionManager
+   * which will use Datastore and memcache as persistent backing stores.
    *
    * @throws Exception
    */
-  public void TODOLUDOtestSessions() throws Exception {
+  public void testSessions() throws Exception {
     for (int i = 1; i <= 5; i++) {
       String[] lines = fetchUrl(createUrl("/count?type=session"));
       assertEquals(1, lines.length);
-      assertEquals("-1", lines[0]); // When sessions are disabled we should get -1 every time.
+      assertEquals("1", lines[0]); // We're not passing in any session cookie so each request is a fresh session.
     }
   }
 

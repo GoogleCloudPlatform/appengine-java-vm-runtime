@@ -42,12 +42,19 @@ class JettyRunner implements Runnable {
   
   private Server server;
   private final int port;
+  private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
   
   public JettyRunner(int port) {
     this.port = port;
  }
 
+  public void setAppEngineWebXml (String appengineWebXml)
+  {
+  	this.appengineWebXml = appengineWebXml;
+  }
+  
+  
   public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
     started.await(timeout, units);
     if (!server.isStarted())
@@ -123,7 +130,7 @@ class JettyRunner implements Runnable {
       File currentDir = new File("").getAbsoluteFile();
       File webAppLocation = new File(currentDir, "target/webapps/testwebapp");
       context.setResourceBase(webAppLocation.getAbsolutePath());
-      context.init("WEB-INF/appengine-web.xml");
+      context.init((appengineWebXml==null?"WEB-INF/appengine-web.xml":appengineWebXml));
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
