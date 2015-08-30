@@ -1,0 +1,12 @@
+<backends>
+  <backend name="hello">
+    <instances>1</instances>
+  </backend>
+  <backend name="memcache">
+    <instances>2</instances>
+    <class>B2</class>
+    <options>
+      <public>true</public>
+    </options>
+  </backend>
+</backends>

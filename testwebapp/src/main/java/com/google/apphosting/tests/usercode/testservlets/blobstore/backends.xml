@@ -1,0 +1,8 @@
+<backends>
+  <backend name="mybackend">
+    <instances>1</instances>
+    <options>
+      <public>true</public>
+    </options>
+  </backend>
+</backends>

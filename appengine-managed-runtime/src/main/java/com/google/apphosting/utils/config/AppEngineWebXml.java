@@ -119,6 +119,8 @@ public class AppEngineWebXml implements Cloneable {
 
   private boolean codeLock = false;
   private boolean useVm = false;
+  // Default env is 1 (GAE V1)
+  private String env = "1";
   private ApiConfig apiConfig;
   private final List<String> apiEndpointIds;
   private Pagespeed pagespeed;
@@ -463,6 +465,14 @@ public class AppEngineWebXml implements Cloneable {
 
   public boolean getUseVm() {
     return useVm;
+  }
+
+  public void setEnv(String env) {
+    this.env = env;
+  }
+
+  public String getEnv() {
+    return env;
   }
 
   public ApiConfig getApiConfig() {

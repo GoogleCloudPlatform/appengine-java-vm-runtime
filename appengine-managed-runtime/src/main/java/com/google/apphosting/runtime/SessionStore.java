@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public interface SessionStore {
   SessionData getSession(String key);
-    /**
+  /**
    * Return null if the store cannot retrieve session data.
    *
    * @return all sessions or null if they cannot be retrieved
@@ -33,6 +33,7 @@ public interface SessionStore {
   Map<String, SessionData> getAllSessions();
 
   void saveSession(String key, SessionData data) throws Retryable;
+
   void deleteSession(String key);
 
   /**

@@ -331,6 +331,7 @@ public class SessionManager extends AbstractSessionManager {
     // of the stores in write order and then reverse it.
     this.sessionStoresInReadOrder = new ArrayList<SessionStore>(sessionStoresInWriteOrder);
     Collections.reverse(this.sessionStoresInReadOrder);
+    _sessionIdManager = new SessionIdManager();
   }
 
   @Override
@@ -427,7 +428,6 @@ public class SessionManager extends AbstractSessionManager {
   @Override
   public void doStart() throws Exception {
   	// always use our special id manager one
-  	_sessionIdManager = new SessionIdManager();
   	_sessionIdManager.start();
   	addBean(_sessionIdManager,true);
 

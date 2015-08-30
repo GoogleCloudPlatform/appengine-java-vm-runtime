@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app 
+   xmlns="http://java.sun.com/xml/ns/javaee" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+   version="2.5"> 
+  <display-name>Test Servlets</display-name>
+
+  <filter>
+    <filter-name>_ah_ParseBlobUploadFilter</filter-name>
+    <filter-class>
+      com.google.apphosting.utils.servlet.ParseBlobUploadFilter
+    </filter-class>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>_ah_ParseBlobUploadFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <servlet>
+    <servlet-name>serve-blob</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.ServeBlobServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>upload-blob</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.TestBlobUploadServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>test</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.TestServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>serve-blob</servlet-name>
+    <url-pattern>/serve-blob</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>upload-blob</servlet-name>
+    <url-pattern>/upload-blob</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>test</servlet-name>
+    <url-pattern>/test</url-pattern>
+  </servlet-mapping>
+</web-app>

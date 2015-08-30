@@ -241,6 +241,17 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
           VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey, (String) dapperHeader);
     }
 
+    // If the incoming request has a Cloud trace header: set it on outgoing API calls
+    // so they are tied to the original request.
+    // TODO(user): For now, this uses the incoming span id - use the one from the active span.
+    Object traceHeader = environment.getAttributes()
+        .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
+    if (traceHeader instanceof String) {
+      request.setHeader(
+          VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.headerKey,
+          (String) traceHeader);
+    }
+
     ByteArrayEntity postPayload = new ByteArrayEntity(remoteRequest.toByteArray(),
         ContentType.APPLICATION_OCTET_STREAM);
     postPayload.setChunked(false);

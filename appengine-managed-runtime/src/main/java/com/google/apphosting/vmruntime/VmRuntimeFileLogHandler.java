@@ -16,6 +16,7 @@
 
 package com.google.apphosting.vmruntime;
 
+import com.google.apphosting.api.ApiProxy;
 
 import com.google.gson.Gson;
 
@@ -132,12 +133,15 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     private LogTimestamp timestamp;
     private String thread;
     private String severity;
+    private String traceId;
 
-    LogData(String message, long seconds, long nanos, String thread, String severity) {
+    LogData(String message, long seconds, long nanos, String thread, String severity,
+        String traceId) {
       this.message = message;
       this.timestamp = new LogTimestamp(seconds, nanos);
       this.thread = thread;
       this.severity = severity;
+      this.traceId = traceId;
     }
 
     public String getMessage() {
@@ -154,6 +158,10 @@ public class VmRuntimeFileLogHandler extends FileHandler {
 
     public String getSeverity() {
       return severity;
+    }
+
+    public String getTraceId() {
+      return traceId;
     }
   }
 
@@ -197,7 +205,35 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       long nanos = (record.getMillis() % 1000) * 1000000;
       String thread = Integer.toString(record.getThreadID());
       String severity = convertLogLevel(record.getLevel());
-      return gson.toJson(new LogData(message, seconds, nanos, thread, severity)) + "\n";
+      String traceId = getCurrentTraceId();
+      return gson.toJson(new LogData(message, seconds, nanos, thread, severity, traceId)) + "\n";
+    }
+
+    private static String getCurrentTraceId() {
+      // TODO(user, qike): Get the trace context directly.
+      ApiProxy.Environment environment = ApiProxy.getCurrentEnvironment();
+      if (environment == null) {
+        return null;
+      }
+      Object value = environment.getAttributes()
+          .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
+      if (!(value instanceof String)) {
+        return null;
+      }
+      String fullTraceId = (String) value;
+
+      // Extract the trace id from the header.
+      // TODO(user, qike): Use the code from the Trace SDK when it's available in /third_party.
+      if (fullTraceId.isEmpty() || Character.digit(fullTraceId.charAt(0), 16) < 0) {
+        return null;
+      }
+      for (int index = 1; index < fullTraceId.length(); index++) {
+        char ch = fullTraceId.charAt(index);
+        if (Character.digit(ch, 16) < 0) {
+          return fullTraceId.substring(0, index);
+        }
+      }
+      return null;
     }
   }
 }
