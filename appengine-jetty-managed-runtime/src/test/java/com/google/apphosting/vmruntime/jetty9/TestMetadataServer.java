@@ -36,6 +36,7 @@ public class TestMetadataServer implements Runnable {
   private static final String PATH_PREFIX = "/computeMetadata/v1/instance/";
   private final int metadataPort;
   private HashMap<String, String> responses = new HashMap<String, String>();
+  private boolean run = true;
 
   /**
    * Constructor.
@@ -63,9 +64,10 @@ public class TestMetadataServer implements Runnable {
   public void run() {
     ServerSocket serverSocket = null;
     try {
+      logger.fine("TRYING TO Listen for metadata requests at port: " + metadataPort);
       serverSocket = new ServerSocket(metadataPort);
-      logger.info("Listening for metadata requests at port: " + metadataPort);
-      while (true) {
+      logger.fine("Listening for metadata requests at port: " + metadataPort);
+      while (run) {
         final Socket clientSocket = serverSocket.accept();
         BufferedWriter responseWriter = null;
         try {
@@ -94,6 +96,9 @@ public class TestMetadataServer implements Runnable {
           responseWriter.write("HTTP/1.0 200 OK\r\n");
           responseWriter.write("Content-Type: text/plain\r\n\r\n");
           responseWriter.write(returnData + "\r\n");
+          if (requestedPath.endsWith("/STOP")) {
+            run = false;
+          }
         } finally {
           if (responseWriter != null) {
             responseWriter.close();
@@ -107,6 +112,8 @@ public class TestMetadataServer implements Runnable {
       try {
         if (serverSocket != null) {
           serverSocket.close();
+          logger.fine("CLOSING metadata requests at port: " + metadataPort);
+
         }
       } catch (IOException e) {
         logger.log(Level.WARNING, "got Exception when closing the server socket.", e);

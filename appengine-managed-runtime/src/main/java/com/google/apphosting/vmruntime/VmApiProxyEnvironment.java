@@ -74,7 +74,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
 
   // Attribute is only for testing.
-  static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
+  public static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
   static final String USE_MVM_AGENT_KEY = "USE_MVM_AGENT";
 
   public static final String AFFINITY_ATTRIBUTE = "attributes/gae_affinity";

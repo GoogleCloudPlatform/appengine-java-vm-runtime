@@ -17,6 +17,8 @@
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
+import static com.google.apphosting.vmruntime.VmMetadataCache.DEFAULT_META_DATA_SERVER;
+import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
 
 import junit.framework.TestCase;
 
@@ -63,6 +65,8 @@ public  class VmRuntimeTestBase extends TestCase {
   public int port;
   public int externalPort;
   public String appengineWebXml = "WEB-INF/appengine-web.xml";
+  TestMetadataServer metadataServer;
+  JettyRunner runner;
 
   /**
    * Returns the host:port the server is listening on externally. For VM Runtimes the local server
@@ -143,17 +147,18 @@ public  class VmRuntimeTestBase extends TestCase {
   private void stubMetadataRequests() {
     int metadataPort = me.alexpanov.net.FreePortFinder.findFreeLocalPort();
     System.setProperty("metadata_server", "127.0.0.1:" + metadataPort);
-    TestMetadataServer metadataServer = new TestMetadataServer(metadataPort);
+    metadataServer = new TestMetadataServer(metadataPort);
+    metadataServer.addMetadata("STOP", "STOP");
     metadataServer.addMetadata(VmApiProxyEnvironment.PROJECT_ATTRIBUTE, PROJECT);
     metadataServer.addMetadata(VmApiProxyEnvironment.PARTITION_ATTRIBUTE, PARTITION);
     metadataServer.addMetadata(VmApiProxyEnvironment.BACKEND_ATTRIBUTE, BACKEND);
     metadataServer.addMetadata(VmApiProxyEnvironment.VERSION_ATTRIBUTE, VERSION);
     metadataServer.addMetadata(VmApiProxyEnvironment.INSTANCE_ATTRIBUTE, INSTANCE);
-//    metadataServer.addMetadata(VmApiProxyEnvironment.AFFINITY_ATTRIBUTE, AFFINITY);
+    metadataServer.addMetadata(VmApiProxyEnvironment.AFFINITY_ATTRIBUTE, AFFINITY);
     metadataServer.addMetadata(
         VmApiProxyEnvironment.APPENGINE_HOSTNAME_ATTRIBUTE, APPENGINE_HOSTNAME);
- //   metadataServer.addMetadata(
- //       VmApiProxyEnvironment.USE_MVM_AGENT_ATTRIBUTE, getUseMvmAgent());
+    metadataServer.addMetadata(
+        VmApiProxyEnvironment.USE_MVM_AGENT_ATTRIBUTE, getUseMvmAgent());
     Thread metadataThread = new Thread(metadataServer);
     metadataThread.setName("Metadata server");
     metadataThread.setDaemon(true);
@@ -168,7 +173,7 @@ public  class VmRuntimeTestBase extends TestCase {
     externalPort = port;
     stubMetadataRequests();
     // Start jetty using the Runnable configured by the sub class.
-    JettyRunner runner = new JettyRunner(port);
+    runner = new JettyRunner(port);
     runner.setAppEngineWebXml(appengineWebXml);
     Thread jettyRunnerThread = new Thread(runner);
     jettyRunnerThread.setName("JettyRunnerThread");
@@ -179,8 +184,55 @@ public  class VmRuntimeTestBase extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-
+    runner.stop();
+    getMetadataFromServer("STOP");
     super.tearDown();
+    Thread.sleep(50);
+  }
+
+   protected HttpURLConnection openConnection(String path) throws IOException {
+    String server = System.getProperty("metadata_server", DEFAULT_META_DATA_SERVER);
+    URL url = new URL(String.format(META_DATA_PATTERN, server, path));
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Metadata-Flavor", "Google");
+    return conn;
+}
+    /** Timeout in milliseconds to retrieve data from the server. */
+  private static final int TIMEOUT_MILLIS = 120 * 1000;
+  
+   protected String getMetadataFromServer(String path) throws IOException {
+    BufferedReader reader = null;
+    HttpURLConnection connection = null;
+    try {
+      connection = openConnection(path);
+      connection.setConnectTimeout(TIMEOUT_MILLIS);
+      connection.setReadTimeout(TIMEOUT_MILLIS);
+      reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      StringBuffer result = new StringBuffer();
+      char[] buffer = new char[4096];
+      int read;
+      while ((read = reader.read(buffer)) != -1) {
+        result.append(buffer, 0, read);
+      }
+      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        return result.toString().trim();
+      } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        return null;
+      }
+      throw new IOException("Meta-data request for '" + path + "' failed with error: "
+          + connection.getResponseMessage());
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          logger.info("Error closing connection for " + path + ": " + e.getMessage());
+        }
+      }
+      if (connection != null) {
+        connection.disconnect();
+      }
+    }
   }
 
 }

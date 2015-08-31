@@ -21,6 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.jsp.JspFactory;
+import org.apache.jasper.runtime.JspFactoryImpl;
+import org.apache.tomcat.InstanceManager;
+import org.apache.tomcat.SimpleInstanceManager;
 
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
@@ -44,7 +48,16 @@ class JettyRunner implements Runnable {
   private final int port;
   private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
-  
+  private static final String[] preconfigurationClasses = {
+    org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
+    org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
+    org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
+    org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
+    org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
+    org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
+    // next one is way too slow for unit testing:
+    //org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
+  }; 
   public JettyRunner(int port) {
     this.port = port;
  }
@@ -68,7 +81,6 @@ class JettyRunner implements Runnable {
     {
       // Set GAE SystemProperties
       setSystemProperties();
-            
       // Create the server, connector and associated instances
       QueuedThreadPool threadpool = new QueuedThreadPool();
       server = new Server(threadpool);
@@ -125,7 +137,12 @@ class JettyRunner implements Runnable {
       // configuration from root.xml
       VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
+      context.setConfigurationClasses(preconfigurationClasses);
       
+      // Needed for JSP!
+      context.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+      JspFactory.setDefaultFactory(new JspFactoryImpl());            
+
       // find the sibling testwebapp target
       File currentDir = new File("").getAbsoluteFile();
       File webAppLocation = new File(currentDir, "target/webapps/testwebapp");
@@ -138,7 +155,6 @@ class JettyRunner implements Runnable {
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
-      
       // start and join
       server.start();
       
@@ -176,6 +192,9 @@ class JettyRunner implements Runnable {
     System.setProperty("GAE_SERVER_PORT", ""+port);
   }
   
+  public void stop() throws Exception {
+    server.stop();
+  }
 
   public static void main(String... args)
   {
