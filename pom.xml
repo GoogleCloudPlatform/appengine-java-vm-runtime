@@ -3,7 +3,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.23-SNAPSHOT</version>
+  <version>1.9.26-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>appengine-java-vm-runtime</name>
   <url>http://maven.apache.org</url>
