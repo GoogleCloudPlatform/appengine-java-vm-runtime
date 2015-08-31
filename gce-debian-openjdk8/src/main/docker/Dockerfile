@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM google/debian:wheezy
+# TODO (ludo) remove qa dependency.
+FROM gcr.io/google_appengine_qa/debian
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN \
-echo  "deb http://ftp.us.debian.org/debian sid main" >> /etc/apt/sources.list && \
+echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list && \
 apt-get -q update && \
 apt-get -y -q --no-install-recommends install \
   ca-certificates \
