@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Test if the argument is executable and if then run it directly
+if type "$1" &>/dev/null; then
+  exec "$@"
+fi
+
 # Script that starts Jetty and sets Jetty specific system properties based on
 # environment variables set for all runtime implementations.
 if [ -z "$RUNTIME_DIR" ]; then

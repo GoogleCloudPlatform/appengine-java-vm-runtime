@@ -38,11 +38,14 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.junit.Ignore;
+
 /**
  * Base test class for the Java VmRuntime.
  *
  * Test methods that are Jetty version independent should be implemented in this class.
  */
+@Ignore
 public  class VmRuntimeTestBase extends TestCase {
 
   protected static final Logger logger = Logger.getLogger(VmRuntimeTestBase.class.getName());
@@ -189,7 +192,7 @@ public  class VmRuntimeTestBase extends TestCase {
     super.tearDown();
     Thread.sleep(50);
   }
-  
+
    protected HttpURLConnection openConnection(String path) throws IOException {
     String server = System.getProperty("metadata_server", DEFAULT_META_DATA_SERVER);
     URL url = new URL(String.format(META_DATA_PATTERN, server, path));
