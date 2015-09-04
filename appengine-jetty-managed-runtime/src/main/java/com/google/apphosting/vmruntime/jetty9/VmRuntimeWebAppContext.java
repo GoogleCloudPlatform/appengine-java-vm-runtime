@@ -232,9 +232,13 @@ public class VmRuntimeWebAppContext
     }
 
     isDevMode = defaultEnvironment.getPartition().equals("dev");
-    AppEngineWebXmlReader appEngineWebXmlReader =
-        new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
-    AppEngineWebXml appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
+    AppEngineWebXml appEngineWebXml = null;
+    File appWebXml = new File(appDir, appengineWebXmlFile);
+    if (appWebXml.exists()) {
+      AppEngineWebXmlReader appEngineWebXmlReader
+              = new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
+      appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
+   }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();
@@ -242,7 +246,10 @@ public class VmRuntimeWebAppContext
     for (String systemClass : SYSTEM_CLASSES) {
       addSystemClass(systemClass);
     }
-
+    if (appEngineWebXml == null) {
+      // No need to configure the session manager.
+      return;
+    }
     AbstractSessionManager sessionManager;
     if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));

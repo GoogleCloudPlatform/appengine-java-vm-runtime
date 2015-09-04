@@ -148,8 +148,10 @@ public class VmRuntimeUtils {
         SystemProperty.applicationId.key(), AppId.parse(environment.getAppId()).getLongAppId());
     System.setProperty(SystemProperty.applicationVersion.key(), environment.getVersionId());
     System.setProperty("appengine.jetty.also_log_to_apiproxy", "true");
-    for (Map.Entry<String, String> entry : appEngineWebXml.getSystemProperties().entrySet()) {
-      System.setProperty(entry.getKey(), entry.getValue());
+    if (appEngineWebXml!=null) {
+      for (Map.Entry<String, String> entry : appEngineWebXml.getSystemProperties().entrySet()) {
+        System.setProperty(entry.getKey(), entry.getValue());
+      }
     }
   }
 
