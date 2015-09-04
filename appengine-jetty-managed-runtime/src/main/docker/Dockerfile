@@ -17,11 +17,11 @@ FROM gce-jetty-9.3
 ADD . $JETTY_BASE
 
 WORKDIR $JETTY_BASE
-RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini && \
-    rm -f start.d/setuid.ini && \
-    java -jar $JETTY_HOME/start.jar --add-to-startd=gae && \
-    java -jar $JETTY_HOME/start.jar --dry-run | \
-    sed 's/^.*java /& ${JAVA_OPTS} ${DBG_AGENT} ${PROF_AGENT} -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} /' > jetty_cmd.sh
+RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini \
+ && rm -f start.d/setuid.ini start.d/deploy.ini \
+ && java -jar $JETTY_HOME/start.jar --add-to-startd=gae,gae-deploy \
+ && java -jar $JETTY_HOME/start.jar --dry-run \
+  | sed 's/^.*java /& ${JAVA_OPTS} ${DBG_AGENT} ${PROF_AGENT} -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} /' > jetty_cmd.sh
     
 WORKDIR /app
 
