@@ -189,7 +189,7 @@ public  class VmRuntimeTestBase extends TestCase {
     super.tearDown();
     Thread.sleep(50);
   }
-  
+
    protected HttpURLConnection openConnection(String path) throws IOException {
     String server = System.getProperty("metadata_server", DEFAULT_META_DATA_SERVER);
     URL url = new URL(String.format(META_DATA_PATTERN, server, path));

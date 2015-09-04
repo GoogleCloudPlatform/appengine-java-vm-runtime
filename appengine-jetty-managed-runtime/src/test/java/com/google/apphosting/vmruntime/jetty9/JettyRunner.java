@@ -48,7 +48,7 @@ class JettyRunner implements Runnable {
   private final int port;
   private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
-   private static final String[] preconfigurationClasses = {
+  private static final String[] preconfigurationClasses = {
     org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
