@@ -27,11 +27,13 @@ RUN mv /usr/local/jetty-distribution-* $JETTY_HOME && chown -R jetty:jetty $JETT
 ENV JETTY_BASE /var/lib/jetty
 RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
-RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,setuid && \
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid && \
     chown -R jetty:jetty $JETTY_BASE && \
-    mkdir /tmp/jetty
+    mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty
+
+RUN ln -s $JETTY_BASE/webapps/root /app
 
 # Start Jetty directly
 EXPOSE 8080
 CMD []
-ENTRYPOINT ["java","-Djava.io.tmpdir=/tmp/jetty","-jar","/usr/local/jetty/start.jar"]
+ENTRYPOINT ["java","-Djava.io.tmpdir=/tmp/jetty","-Djetty.base=/var/lib/jetty","-jar","/usr/local/jetty/start.jar"]
