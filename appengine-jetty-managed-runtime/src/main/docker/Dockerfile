@@ -23,7 +23,6 @@ RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini && \
     java -jar $JETTY_HOME/start.jar --dry-run | \
     sed 's/^.*java /& ${JAVA_OPTS} ${DBG_AGENT} ${PROF_AGENT} -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} /' > jetty_cmd.sh
     
-RUN ln -s var/lib/jetty/webapps/root /app
 WORKDIR /app
 
 # Jetty HTTP port number
