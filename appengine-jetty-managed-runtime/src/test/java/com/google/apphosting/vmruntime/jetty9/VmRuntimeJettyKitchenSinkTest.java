@@ -138,7 +138,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals("sysprop2 value", lines[1]);
     assertEquals("null", lines[2]);
     assertEquals(SystemProperty.Environment.Value.Production.name(), lines[3]);
-    assertEquals("Google App Engine/unknown", lines[4]);
+    assertTrue(lines[4].startsWith("Google App Engine/"));
     assertEquals(PROJECT, lines[5]);
     assertEquals(VERSION + ".0", lines[6]);
   }
