@@ -32,7 +32,6 @@ RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid 
     mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty
 
 RUN ln -s $JETTY_BASE/webapps/root /app
-WORKDIR /app
 
 # Start Jetty directly
 EXPOSE 8080
