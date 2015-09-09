@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.23-SNAPSHOT</version>
+    <version>1.9.26-SNAPSHOT</version>
   </parent>
   <artifactId>appengine-jetty-managed-runtime</artifactId>
   <packaging>jar</packaging>
@@ -28,7 +28,7 @@
   
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.2.12.v20150709</jetty.version>
+    <jetty.version>9.3.3.v20150827</jetty.version>
     <appengine.api.version>1.9.25</appengine.api.version>
   </properties>
   
@@ -45,7 +45,6 @@
       <version>${project.version}</version>
       <type>jar</type>
     </dependency>
-
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
@@ -78,6 +77,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
+      <scope>test</scope>
+    </dependency>   
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>1.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -133,8 +138,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -154,7 +159,8 @@
             </manifestEntries>
           </archive>
         </configuration>
-      </plugin>
+      </plugin>      
+      
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -162,7 +168,7 @@
             <id>test-webapp</id>
             <phase>generate-test-resources</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>unpack</goal>
             </goals>
             <configuration>
               <artifactItems>
@@ -173,14 +179,13 @@
                   <type>war</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/webapps/</outputDirectory>
-                  <destFileName>testwebapp.war</destFileName>
+                  <outputDirectory>${project.build.directory}/webapps/testwebapp</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
           <execution>
-            <id>jetty-distro</id>
+            <id>gae-jars</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>copy</goal>
@@ -188,14 +193,22 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>org.eclipse.jetty</groupId>
-                  <artifactId>jetty-distribution</artifactId>
-                  <version>${jetty.version}</version>
-                  <type>tar.gz</type>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>appengine-api-1.0-sdk</artifactId>
+                  <version>${appengine.api.version}</version>
+                  <type>jar</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                  <destFileName>jetty-distribution.tar.gz</destFileName>
+                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>appengine-managed-runtime</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -203,25 +216,31 @@
         </executions>
       </plugin>
       
-      
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
+        <groupId>com.spotify</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.3.2</version>
         <executions>
           <execution>
-            <phase>generate-test-resources</phase>
-            <configuration>
-              <target>
-                <unzip src="${project.build.directory}/webapps/testwebapp.war" dest="${project.build.directory}/webapps/testwebapp"/>
-              </target>
-            </configuration>
+            <id>build</id>
+            <phase>install</phase>
             <goals>
-              <goal>run</goal>
+              <goal>build</goal>
             </goals>
-          </execution>
+            <configuration>
+              <imageName>appengine-mvn-opensource</imageName>
+	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+              <resources>
+                <resource>
+                  <targetPath>/lib/gae</targetPath>
+                  <directory>${project.build.directory}</directory>
+                  <include>${project.build.finalName}.jar</include>
+                </resource>
+              </resources>
+            </configuration>
+            </execution>
         </executions>
       </plugin>
-      
     </plugins>
   </build>
 </project>

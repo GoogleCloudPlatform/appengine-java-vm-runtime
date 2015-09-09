@@ -30,6 +30,8 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.FilterChain;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.Filter;
 
 /**
@@ -56,9 +58,34 @@ public class TransactionCleanupFilter implements Filter {
     try {
       chain.doFilter(request, response);
     } finally {
-      Collection<Transaction> txns = datastoreService.getActiveTransactions();
-      if (!txns.isEmpty()) {
-        handleAbandonedTxns(txns);
+      
+      if (request.isAsyncStarted())
+      {
+        request.getAsyncContext().addListener(new AsyncListener() {
+          @Override
+          public void onTimeout(AsyncEvent arg0) throws IOException {
+          }
+          @Override
+          public void onStartAsync(AsyncEvent arg0) throws IOException {
+          }
+          @Override
+          public void onError(AsyncEvent arg0) throws IOException {
+          }
+          @Override
+          public void onComplete(AsyncEvent arg0) throws IOException {
+            Collection<Transaction> txns = datastoreService.getActiveTransactions();
+            if (!txns.isEmpty()) {
+              handleAbandonedTxns(txns);
+            }
+          }
+        });
+      }
+      else
+      {
+        Collection<Transaction> txns = datastoreService.getActiveTransactions();
+        if (!txns.isEmpty()) {
+          handleAbandonedTxns(txns);
+        }
       }
     }
   }

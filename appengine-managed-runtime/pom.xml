@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.23-SNAPSHOT</version>
+  <version>1.9.26-SNAPSHOT</version>
   </parent>
   <artifactId>appengine-managed-runtime</artifactId>
   <packaging>jar</packaging>
@@ -139,32 +139,6 @@
                   <result>com.google.apphosting.repackaged.org.apache.commons.logging.@1</result>
                 </rule> 
               </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>com.google.appengine</groupId>
-                  <artifactId>appengine-api-1.0-sdk</artifactId>
-                  <version>${appengine.api.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>target</outputDirectory>
-                </artifactItem>
-              </artifactItems>
             </configuration>
           </execution>
         </executions>

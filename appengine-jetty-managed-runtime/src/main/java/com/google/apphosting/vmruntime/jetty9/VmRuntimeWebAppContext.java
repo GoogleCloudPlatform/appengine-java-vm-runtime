@@ -16,6 +16,32 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.HttpChannelState;
+import org.eclipse.jetty.server.HttpInput;
+import org.eclipse.jetty.server.HttpOutput;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
+
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -29,11 +55,9 @@ import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 import com.google.apphosting.utils.config.AppEngineWebXmlReader;
-import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
-import com.google.apphosting.vmruntime.CommitDelayingResponse;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
@@ -43,29 +67,6 @@ import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
-
-
-import org.eclipse.jetty.http.HttpScheme;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -89,8 +90,6 @@ public class VmRuntimeWebAppContext
   // constant.  If it's much larger than this we may need to
   // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
-
-  private final String serverInfo;
 
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
@@ -134,13 +133,16 @@ public class VmRuntimeWebAppContext
     // unpack and Adjust paths.
     Resource base = getBaseResource();
     if (base == null) {
+      String war=getWar();
+      if (war==null)
+        throw new IllegalStateException("No war");
       base = Resource.newResource(getWar());
     }
     Resource dir;
     if (base.isDirectory()) {
       dir = base;
     } else {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("Bad base:"+base);
     }
     Resource qswebxml = dir.addPath("/WEB-INF/quickstart-web.xml");
     if (qswebxml.exists()) {
@@ -148,6 +150,7 @@ public class VmRuntimeWebAppContext
     }
     super.doStart();
   }
+  
   /**
    * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
    *
@@ -176,11 +179,11 @@ public class VmRuntimeWebAppContext
     if ("on".equals(https)) {
       request.setSecure(true);
       request.setScheme(HttpScheme.HTTPS.toString());
-      request.setServerPort(443);
+      request.setAuthority(request.getServerName(), 443);
     } else {
       request.setSecure(false);
       request.setScheme(HttpScheme.HTTP.toString());
-      request.setServerPort(defaultEnvironment.getServerPort());
+      request.setAuthority(request.getServerName(), defaultEnvironment.getServerPort());
     }
   }
 
@@ -188,7 +191,7 @@ public class VmRuntimeWebAppContext
    * Creates a new VmRuntimeWebAppContext.
    */
   public VmRuntimeWebAppContext() {
-    this.serverInfo = VmRuntimeUtils.getServerInfo();
+    setServerInfo(VmRuntimeUtils.getServerInfo());
     _scontext = new VmRuntimeServletContext();
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
@@ -270,9 +273,6 @@ public class VmRuntimeWebAppContext
       HttpServletResponse httpServletResponse)
       throws IOException, ServletException {
 
-    HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
-    HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
-
     // For JSP Includes do standard processing, everything else has been done
     // in the main request before the include.
     if (DispatcherType.INCLUDE.equals(httpServletRequest.getDispatcherType())
@@ -280,54 +280,58 @@ public class VmRuntimeWebAppContext
       super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
       return;
     }
-    // Install a thread local environment based on request headers of the current request.
-    VmApiProxyEnvironment requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
-        System.getenv(), metadataCache, request, VmRuntimeUtils.getApiServerAddress(),
-        wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
-    CommitDelayingResponse wrappedResponse;
-    if (httpServletResponse instanceof CommitDelayingResponse) {
-      wrappedResponse = (CommitDelayingResponse) httpServletResponse;
-    } else {
-      wrappedResponse = new CommitDelayingResponse(httpServletResponse);
-    }
-
+    
+    // Find or create a Request specific context
+    RequestContext requestContext = getRequestContext(baseRequest);
+    
     try {
-      ApiProxy.setEnvironmentForCurrentThread(requestSpecificEnvironment);
+      // Enter the request environment
+      requestContext.enter();
+      
       // Check for SkipAdminCheck and set attributes accordingly.
-      VmRuntimeUtils.handleSkipAdminCheck(request);
+      VmRuntimeUtils.handleSkipAdminCheck(requestContext);
+      
       // Change scheme to HTTPS based on headers set by the appserver.
       setSchemeAndPort(baseRequest);
       // Forward the request to the rest of the handlers.
-      super.doScope(target, baseRequest, httpServletRequest, wrappedResponse);
+      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
+      
     } finally {
+      // Exit the request environment
+      requestContext.exitDispatch();
+    }
+  }
+
+  @Override
+  public void handle(Request baseRequest, Runnable runnable) {
+    // TODO Use pluggable ContextHandler.ContextScopeListener rather than override for this
+    RequestContext requestContext = baseRequest==null?null:(RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
+    
+    // If we have a requestContext enter/exit it 
+    if (requestContext==null)
+      super.handle(baseRequest,runnable);
+    else
+    {
       try {
-        // Interrupt any remaining request threads and wait for them to complete.
-        VmRuntimeUtils.interruptRequestThreads(
-            requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-        // Wait for any pending async API requests to complete.
-        if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,
-            new HttpServletResponseAdapter(wrappedResponse))) {
-          logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
-        }
-        if (!response.isCommitted()) {
-          // Flush and set the flush count header so the appserver knows when all logs are in.
-          VmRuntimeUtils.flushLogsAndAddHeader(response, requestSpecificEnvironment);
-        } else {
-          throw new ServletException("Response for request to '" + target
-              + "' was already commited (code=" + httpServletResponse.getStatus()
-              + "). This might result in lost log messages.'");
-        }
-      } finally {
-        try {
-          // Complete any pending actions.
-          wrappedResponse.commit();
-        } finally {
-          // Restore the default environment.
-          ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
-        }
+        requestContext.enter();
+        super.handle(baseRequest,runnable);
+      }finally{
+        requestContext.exit();
       }
     }
   }
+
+  public RequestContext getRequestContext(Request baseRequest) {
+    RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
+    if (requestContext==null)
+    {
+      // No instance found, so create a new environment
+      requestContext=new RequestContext(baseRequest);
+      baseRequest.setAttribute(RequestContext.class.getName(), requestContext);
+    }
+    return requestContext;
+  }
+
 
   // N.B.(schwardo): Yuck. Jetty hardcodes all of this logic into an
   // inner class of ContextHandler. We need to subclass WebAppContext
@@ -341,11 +345,6 @@ public class VmRuntimeWebAppContext
     @Override
     public ClassLoader getClassLoader() {
       return VmRuntimeWebAppContext.this.getClassLoader();
-    }
-
-    @Override
-    public String getServerInfo() {
-      return serverInfo;
     }
 
     @Override
@@ -379,5 +378,83 @@ public class VmRuntimeWebAppContext
     public void log(Exception exception, String msg) {
       log(msg, exception);
     }
+  }
+  
+  
+  
+  private class RequestContext extends HttpServletRequestAdapter implements AsyncListener
+  { 
+    private final Request request;
+    private final VmApiProxyEnvironment requestSpecificEnvironment;
+    
+    RequestContext(Request request)
+    {
+      super(request);
+
+      this.request=request;
+
+      this.requestSpecificEnvironment=
+      VmApiProxyEnvironment.createFromHeaders(
+          System.getenv(), metadataCache, this, VmRuntimeUtils.getApiServerAddress(),
+          wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+    }
+    
+    public void enter() {    
+      ApiProxy.setEnvironmentForCurrentThread(getRequestSpecificEnvironment());
+    }
+
+    public void exitDispatch()
+    {
+      try
+      {
+        if (request.isAsyncStarted())
+          request.getAsyncContext().addListener(this);
+        else
+          onComplete(null);
+      }
+      finally
+      {
+        exit();
+      }
+    }
+    
+    public void exit() {
+        ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
+    }
+
+    VmApiProxyEnvironment getRequestSpecificEnvironment()
+    {
+      return requestSpecificEnvironment;
+    }
+    
+    @Override
+    public void onComplete(AsyncEvent event) {
+      // Interrupt any remaining request threads and wait for them to complete.
+      VmRuntimeUtils.interruptRequestThreads(
+          requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+
+      HttpResponse response = new HttpServletResponseAdapter(request.getResponse());
+
+      // Wait for any pending async API requests to complete.
+      if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,response)) {
+        logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
+      }
+
+      if (request.getResponse().isCommitted()) {
+        requestSpecificEnvironment.flushLogs();
+      } else {
+        // Flush and set the flush count header so the appserver knows when all logs are in.
+        VmRuntimeUtils.flushLogsAndAddHeader(response, requestSpecificEnvironment);
+      }
+    }
+
+    @Override
+    public void onTimeout(AsyncEvent event) {}
+
+    @Override
+    public void onError(AsyncEvent event)  {}
+
+    @Override
+    public void onStartAsync(AsyncEvent event) {}
   }
 }

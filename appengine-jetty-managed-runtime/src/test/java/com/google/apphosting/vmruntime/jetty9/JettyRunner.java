@@ -69,9 +69,10 @@ class JettyRunner implements Runnable {
   
   
   public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
-    started.await(timeout, units);
-    if (!server.isStarted())
+    if (!started.await(timeout, units) || !server.isStarted())
       throw new IllegalStateException("server state="+server.getState());
+
+    Log.getLogger(Server.class).info("Waited!");
   }
   
   @Override
@@ -151,7 +152,7 @@ class JettyRunner implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
-      File webDefault = new File(currentDir.getParentFile(), "docker/etc/webdefault.xml");
+      File webDefault = new File(currentDir, "src/main/docker/etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
@@ -163,6 +164,7 @@ class JettyRunner implements Runnable {
     }
     finally
     {
+      Log.getLogger(Server.class).info("Started!");
       started.countDown();
     }
 
@@ -195,7 +197,7 @@ class JettyRunner implements Runnable {
   public void stop() throws Exception {
     server.stop();
   }
-
+  
   public static void main(String... args)
   {
     new JettyRunner(8080).run(); 
