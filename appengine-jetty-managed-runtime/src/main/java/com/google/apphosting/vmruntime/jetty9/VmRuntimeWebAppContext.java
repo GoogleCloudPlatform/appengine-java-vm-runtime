@@ -37,6 +37,7 @@ import org.eclipse.jetty.server.HttpChannelState;
 import org.eclipse.jetty.server.HttpInput;
 import org.eclipse.jetty.server.HttpOutput;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -89,8 +90,6 @@ public class VmRuntimeWebAppContext
   // constant.  If it's much larger than this we may need to
   // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
-
-  private final String serverInfo;
 
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
@@ -192,7 +191,7 @@ public class VmRuntimeWebAppContext
    * Creates a new VmRuntimeWebAppContext.
    */
   public VmRuntimeWebAppContext() {
-    this.serverInfo = VmRuntimeUtils.getServerInfo();
+    setServerInfo(VmRuntimeUtils.getServerInfo());
     _scontext = new VmRuntimeServletContext();
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
@@ -304,36 +303,18 @@ public class VmRuntimeWebAppContext
   }
 
   @Override
-  public void handle(Runnable runnable) {
-    // This method is called to condition async IO callback threads
-    // and other threads created with AsyncContext.start(Runnable)
-    // We need to decorate the thread with the request specific environment,
-    // but to do that we need the request.   Currently this is a bit ugly 
-    // to retrieve, but can be tidied up in a future jetty release
-    // TODO tidy up request recovery by using jetty 9.3.(>3) ContextHandler.ContextScopeListener
-    Request baseRequest=null;
-    if (runnable instanceof HttpOutput)
-      baseRequest=((HttpOutput)runnable).getHttpChannel().getRequest();
-    else if (runnable instanceof HttpInput)
-    {
-      try {
-        Field field = HttpInput.class.getDeclaredField("_channelState");
-        field.setAccessible(true);
-        baseRequest = ((HttpChannelState)field.get(runnable)).getBaseRequest();
-      } catch (Exception e) {
-        logger.warning(e.toString());
-      }
-    }
+  public void handle(Request baseRequest, Runnable runnable) {
+    // TODO Use pluggable ContextHandler.ContextScopeListener rather than override for this
     RequestContext requestContext = baseRequest==null?null:(RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
     
     // If we have a requestContext enter/exit it 
     if (requestContext==null)
-      super.handle(runnable);
+      super.handle(baseRequest,runnable);
     else
     {
       try {
         requestContext.enter();
-        super.handle(runnable);
+        super.handle(baseRequest,runnable);
       }finally{
         requestContext.exit();
       }
@@ -364,11 +345,6 @@ public class VmRuntimeWebAppContext
     @Override
     public ClassLoader getClassLoader() {
       return VmRuntimeWebAppContext.this.getClassLoader();
-    }
-
-    @Override
-    public String getServerInfo() {
-      return serverInfo;
     }
 
     @Override

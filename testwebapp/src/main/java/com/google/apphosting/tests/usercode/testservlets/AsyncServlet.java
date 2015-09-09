@@ -68,7 +68,8 @@ public class AsyncServlet extends HttpServlet {
           environment.put(Env.ON_DATA_AVAILABLE,ApiProxy.getCurrentEnvironment());
           while(in.isReady())
           {
-            in.read();
+            if (in.read()<0)
+              break;
           }
         }
 
