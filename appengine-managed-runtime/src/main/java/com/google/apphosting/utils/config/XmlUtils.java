@@ -44,27 +44,31 @@ import javax.xml.validation.SchemaFactory;
  */
 public class XmlUtils {
 
-   /* Returns the trimmed text from the passed XmlParser.Node in node or an empty
+  /* Returns the trimmed text from the passed XmlParser.Node in node or an empty
    * if the passed in node does not contain any text.
    */
-  static String getText(Element node) throws AppEngineConfigException{
-/*    Object child = node.get(0);
-    String value;
-    if (child == null) {
-      value = "";
-    } else {
-      if (!(child instanceof String)) {
-        String msg = "Invalid XML: String content expected in node '" + node.getTagName() + "'.";
-      //  logger.log(Level.SEVERE, msg);
-        throw new AppEngineConfigException(msg);
-      }
-      value = (String) child;
-    }
+  static String getText(Element node) throws AppEngineConfigException {
+    /*    Object child = node.get(0);
+     String value;
+     if (child == null) {
+     value = "";
+     } else {
+     if (!(child instanceof String)) {
+     String msg = "Invalid XML: String content expected in node '" + node.getTagName() + "'.";
+     //  logger.log(Level.SEVERE, msg);
+     throw new AppEngineConfigException(msg);
+     }
+     value = (String) child;
+     }
 
-    return value.trim();
-  */
-    return node.getTextContent().trim();
-}
+     return value.trim();
+     */
+    String content = node.getTextContent();
+    if (content == null) {
+      return "";
+    }
+    return content.trim();
+  }
 
   public static Document parseXml(InputStream inputStream) {
     try {
@@ -80,8 +84,7 @@ public class XmlUtils {
       String msg = "Received SAXException parsing the input stream.";
       throw new AppEngineConfigException(msg, e);
     } catch (ParserConfigurationException e) {
-      String msg
-              = "Received ParserConfigurationException parsing the input stream.";
+      String msg = "Received ParserConfigurationException parsing the input stream.";
       throw new AppEngineConfigException(msg, e);
     }
 
@@ -140,57 +143,57 @@ public class XmlUtils {
     }
   }
 
-    public static String getChildElementBody(Element element, String tagName) {
-        return getChildElementBody(element, tagName, true);
+  public static String getChildElementBody(Element element, String tagName) {
+    return getChildElementBody(element, tagName, true);
+  }
+
+  public static String getChildElementBody(Element element, String tagName, boolean required) {
+    Element elt = getChildElement(element, tagName, required);
+    return (elt != null) ? getBody(elt) : null;
+  }
+
+  public static Element getChildElement(Element parent, String tagName) {
+    return getChildElement(parent, tagName, false);
+  }
+
+  public static Element getChildElement(Element parent, String tagName, boolean required) {
+    NodeList nodes = parent.getElementsByTagName(tagName);
+    if (nodes == null || nodes.getLength() == 0) {
+      if (required) {
+        throw new IllegalStateException(
+            String.format("Missing tag %s in element %s.", tagName, parent));
+      } else {
+        return null;
+      }
+    }
+    return (Element) nodes.item(0);
+  }
+
+  public static String getAttribute(Element element, String name) {
+    return element.getAttribute(name);
+  }
+
+  public static String getBody(Element element) {
+    NodeList nodes = element.getChildNodes();
+    if (nodes == null || nodes.getLength() == 0) {
+      return null;
     }
 
-    public static String getChildElementBody(Element element, String tagName, boolean required) {
-        Element elt = getChildElement(element, tagName, required);
-        return (elt != null) ? getBody(elt) : null;
+    Node firstNode = nodes.item(0);
+    if (firstNode == null) {
+      return null;
     }
 
-    public static Element getChildElement(Element parent, String tagName) {
-        return getChildElement(parent, tagName, false);
+    return firstNode.getNodeValue();
+  }
+
+  public static List<Element> getChildren(Element element, String tagName) {
+    NodeList nodes = element.getElementsByTagName(tagName);
+
+    List<Element> elements = new ArrayList<>(nodes.getLength());
+    for (int i = 0; i < nodes.getLength(); i++) {
+      elements.add((Element) nodes.item(i));
     }
-
-    public static Element getChildElement(Element parent, String tagName, boolean required) {
-        NodeList nodes = parent.getElementsByTagName(tagName);
-        if (nodes == null || nodes.getLength() == 0) {
-            if (required) {
-                throw new IllegalStateException(
-                    String.format("Missing tag %s in element %s.", tagName, parent));
-            } else {
-                return null;
-            }
-        }
-        return (Element) nodes.item(0);
-    }
-
-    public static String getAttribute(Element element, String name) {
-        return element.getAttribute(name);
-    }
-
-    public static String getBody(Element element) {
-        NodeList nodes = element.getChildNodes();
-        if (nodes == null || nodes.getLength() == 0) {
-            return null;
-        }
-
-        Node firstNode = nodes.item(0);
-        if (firstNode == null) {
-            return null;
-        }
-
-        return firstNode.getNodeValue();
-    }
-
-    public static List<Element> getChildren(Element element, String tagName) {
-        NodeList nodes = element.getElementsByTagName(tagName);
-
-        List<Element> elements = new ArrayList<>(nodes.getLength());
-        for (int i = 0; i < nodes.getLength(); i++) {
-            elements.add((Element) nodes.item(i));
-        }
-        return elements;
-    }
+    return elements;
+  }
 }

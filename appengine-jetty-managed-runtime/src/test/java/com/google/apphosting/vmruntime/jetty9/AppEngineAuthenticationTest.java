@@ -44,6 +44,11 @@ import java.io.PrintWriter;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http.MetaData;
+import org.eclipse.jetty.util.MultiMap;
 
 /**
  * Tests for AppEngineAuthentication.
@@ -130,10 +135,16 @@ public class AppEngineAuthenticationTest extends TestCase {
    */
   private String runRequest(String path, Request request, Response response)
       throws IOException, ServletException {
-    request.setMethod(HttpMethod.GET, "GET");
-    request.setServerName(SERVER_NAME);
-    request.setPathInfo(path);
-    request.setRequestURI(path);
+    //request.setMethod(/*HttpMethod.GET,*/ "GET");
+    HttpURI uri  =new HttpURI("http", SERVER_NAME,9999, path);
+    HttpFields httpf = new HttpFields();
+    MetaData.Request metadata = new MetaData.Request("GET", uri, HttpVersion.HTTP_2, httpf);
+    request.setMetaData(metadata);
+
+    // request.setServerName(SERVER_NAME);
+   // request.setAuthority(SERVER_NAME,9999);
+   //// request.setPathInfo(path);
+   //// request.setURIPathQuery(path);
     request.setDispatcherType(DispatcherType.REQUEST);
     doReturn(response).when(request).getResponse();
 
@@ -144,7 +155,28 @@ public class AppEngineAuthenticationTest extends TestCase {
     }
     return new String(output.toByteArray());
   }
+  private String runRequest2(String path, Request request, Response response)
+      throws IOException, ServletException {
+    //request.setMethod(/*HttpMethod.GET,*/ "GET");
+    HttpURI uri  =new HttpURI("http", SERVER_NAME,9999, path);
+    HttpFields httpf = new HttpFields();
+    MetaData.Request metadata = new MetaData.Request("GET", uri, HttpVersion.HTTP_2, httpf);
+ //   request.setMetaData(metadata);
 
+    // request.setServerName(SERVER_NAME);
+   // request.setAuthority(SERVER_NAME,9999);
+   //// request.setPathInfo(path);
+   //// request.setURIPathQuery(path);
+    request.setDispatcherType(DispatcherType.REQUEST);
+    doReturn(response).when(request).getResponse();
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    try (PrintWriter writer = new PrintWriter(output)) {
+      when(response.getWriter()).thenReturn(writer);
+      securityHandler.handle(path, request, request, response);
+    }
+    return new String(output.toByteArray());
+  }
   public void testUserNotRequired() throws Exception {
     Request request = spy(new Request(null, null));
     Response response = mock(Response.class);
@@ -180,7 +212,12 @@ public class AppEngineAuthenticationTest extends TestCase {
   public void testUserRequired_NoUser() throws Exception {
     String path = "/user/blah";
     Request request = spy(new Request(null, null));
-    request.setServerPort(9999);
+    //request.setServerPort(9999);
+        HttpURI uri  =new HttpURI("http", SERVER_NAME,9999, path);
+    HttpFields httpf = new HttpFields();
+    MetaData.Request metadata = new MetaData.Request("GET", uri, HttpVersion.HTTP_2, httpf);
+    request.setMetaData(metadata);
+   // request.setAuthority(SERVER_NAME,9999);
     Response response = mock(Response.class);
     String output = runRequest(path, request, response);
     // Verify that the servlet never was run (there is no output).
@@ -202,12 +239,22 @@ public class AppEngineAuthenticationTest extends TestCase {
 
   public void testUserRequired_PreserveQueryParams() throws Exception {
     String path = "/user/blah";
-    Request request = spy(new Request(null, null));
-    request.setServerPort(9999);
+    
+    Request request = new Request(null, null);
+    // request.setServerPort(9999);
+        HttpURI uri  =new HttpURI("http", SERVER_NAME,9999, path,"foo=baqr","foo=bar","foo=barff");
+    HttpFields httpf = new HttpFields();
+    MetaData.Request metadata = new MetaData.Request("GET", uri, HttpVersion.HTTP_2, httpf);
+    request.setMetaData(metadata);
+    MultiMap<String> queryParameters = new MultiMap<> ();
+    queryParameters.add("ffo", "bar");
+    request.setQueryParameters(queryParameters);
+        request = spy(request);
 
+   /// request.setAuthority(SERVER_NAME,9999);
     request.setQueryString("foo=bar");
     Response response = mock(Response.class);
-    String output = runRequest(path, request, response);
+    String output = runRequest2(path, request, response);
     // Verify that the servlet never was run (there is no output).
     assertEquals("", output);
     // Verify that the request was redirected to the login url.
@@ -242,8 +289,12 @@ public class AppEngineAuthenticationTest extends TestCase {
   public void testAdminRequired_NoUser() throws Exception {
     String path = "/admin/blah";
     Request request = spy(new Request(null, null));
-    request.setServerPort(9999);
-
+    //request.setServerPort(9999);
+    HttpURI uri  =new HttpURI("http", SERVER_NAME,9999, path);
+    HttpFields httpf = new HttpFields();
+    MetaData.Request metadata = new MetaData.Request("GET", uri, HttpVersion.HTTP_2, httpf);
+    request.setMetaData(metadata);
+  //  request.setAuthority(SERVER_NAME,9999);
     Response response = mock(Response.class);
     String output = runRequest(path, request, response);
     // Verify that the servlet never was run (there is no output).

@@ -180,11 +180,11 @@ public class VmRuntimeWebAppContext
     if ("on".equals(https)) {
       request.setSecure(true);
       request.setScheme(HttpScheme.HTTPS.toString());
-      request.setServerPort(443);
+      request.setAuthority(request.getServerName(), 443);
     } else {
       request.setSecure(false);
       request.setScheme(HttpScheme.HTTP.toString());
-      request.setServerPort(defaultEnvironment.getServerPort());
+      request.setAuthority(request.getServerName(), defaultEnvironment.getServerPort());
     }
   }
 

@@ -34,6 +34,7 @@ import org.eclipse.jetty.security.authentication.DeferredAuthentication;
 import org.eclipse.jetty.security.authentication.LoginAuthenticator;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.HttpChannel;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.util.URIUtil;
 
@@ -169,7 +170,7 @@ class AppEngineAuthentication {
       }
       String remoteAddr = request.getHeader(VmApiProxyEnvironment.REAL_IP_HEADER);
       if (remoteAddr == null) {
-        HttpChannel<?> channel = HttpChannel.getCurrentHttpChannel();
+        HttpChannel channel = ((Request) request).getHttpChannel();
         if (channel != null) {
           remoteAddr = channel.getEndPoint().getRemoteAddress().getAddress().getHostAddress();
         }
@@ -215,7 +216,7 @@ class AppEngineAuthentication {
         // If the user is authenticated already, just create a
         // AppEnginePrincipal or AppEngineFederatedPrincipal for them.
         if (userService.isUserLoggedIn()) {
-          UserIdentity user = _loginService.login(null, null);
+          UserIdentity user = _loginService.login(null, null, null);
           log.fine("authenticate() returning new principal for " + user);
           if (user != null) {
             return new UserAuthentication(getAuthMethod(), user);
@@ -314,7 +315,8 @@ class AppEngineAuthentication {
      * @return A UserIdentity if the user is logged in, otherwise null
      */
     @Override
-    public UserIdentity login(String unusedUsername, Object unusedCredentials) {
+    public UserIdentity login(String unusedUsername, Object unusedCredentials,
+            ServletRequest request) {
       AppEngineUserIdentity appEngineUserIdentity = loadUser();
       return appEngineUserIdentity;
     }

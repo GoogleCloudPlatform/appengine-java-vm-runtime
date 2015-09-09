@@ -74,8 +74,11 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
 
   // Attribute is only for testing.
-  static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
+  public static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
   static final String USE_MVM_AGENT_KEY = "USE_MVM_AGENT";
+
+  public static final String AFFINITY_ATTRIBUTE = "attributes/gae_affinity";
+  static final String AFFINITY_ENV_KEY = "GAE_AFFINITY";
 
   public static final String TICKET_HEADER = "X-AppEngine-Api-Ticket";
   public static final String EMAIL_HEADER = "X-AppEngine-User-Email";
@@ -90,6 +93,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   
 
   static final String INSTANCE_ID_KEY = "com.google.appengine.instance.id";
+
+  static final String AFFINITY_KEY = "com.google.appengine.affinity";
 
   static final String REQUEST_THREAD_FACTORY_ATTR =
       "com.google.appengine.api.ThreadManager.REQUEST_THREAD_FACTORY";
@@ -163,6 +168,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     DAPPER_ID("X-Google-DapperTraceInfo",
               "com.google.appengine.runtime.dapper_id",
               null, false),
+    CLOUD_TRACE_CONTEXT("X-Cloud-Trace-Context",
+        "com.google.appengine.runtime.cloud_trace_context",
+        null, false),
     DEFAULT_VERSION_HOSTNAME(
         "X-AppEngine-Default-Version-Hostname",
         "com.google.appengine.runtime.default_version_hostname",
@@ -266,6 +274,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       minorVersion = VmRuntimeUtils.getMinorVersionFromPath(majorVersion, appDir);
     }
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
+    final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
     final String appengineHostname = getEnvOrMetadata(
         envMap, cache, APPENGINE_HOSTNAME_KEY, APPENGINE_HOSTNAME_ATTRIBUTE);
     final String ticket = null;
@@ -289,6 +298,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(IS_FEDERATED_USER_KEY, Boolean.FALSE);
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
+    attributes.put(AFFINITY_KEY, affinity);
     VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
         authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
@@ -326,6 +336,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String appengineHostname = defaultEnvironment.getAppengineHostname();
     final boolean useMvmAgent = defaultEnvironment.getUseMvmAgent();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
+    final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
     final String ticket = request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
     boolean admin = false;
@@ -361,6 +372,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
+    attributes.put(AFFINITY_KEY, affinity);
 
     if (trustedApp) {
       // The trusted IP attribute is a boolean.
@@ -442,8 +454,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
           (majorVersion == null || majorVersion.isEmpty()) ||
           (instance == null || instance.isEmpty())) {
         throw new IllegalArgumentException(
-            "When ticket == null the following must be specified: appId=" + appId +
-            ", module=" + module + ", version=" + majorVersion + "instance=" + instance);
+            "When ticket == null, the following must be specified: appId=" + appId
+            + ", module=" + module + ", version=" + majorVersion + ", instance=" + instance);
       }
       String escapedAppId = appId.replace(':', '_').replace('.', '_');
       this.ticket = escapedAppId + '/' + module + '.' + majorVersion + "." + instance;

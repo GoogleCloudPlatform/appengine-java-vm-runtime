@@ -47,8 +47,7 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {
-    System.setProperty("appengine_web_xml", "WEB-INF/sessions-appengine-web.xml");
-    externalPort = 80;
+  	appengineWebXml = "WEB-INF/sessions-enabled-appengine-web.xml";
     super.setUp();
   }
 
@@ -58,54 +57,23 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     return connection.getResponseCode();
   }
 
-  /**
-   * Test that non compiled jsp files can be served.
-   *
-   * @throws Exception
-   */
-  public void testJspNotCompiled() throws Exception {
-    int iter = 0;
-    int end = 6;
-    String[] lines
-            = fetchUrl(createUrl(String.format("/hello_not_compiled.jsp?start=%d&end=%d", iter, end)));
-    String iterationFormat = "<h2>Iteration %d</h2>";
-    for (String line : lines) {
-      System.out.println(line);
-      if (!line.contains("Iteration")) {
-        continue;
-      }
-      assertEquals(line.trim(), String.format(iterationFormat, iter++));
-    }
-    assertEquals(end + 1, iter);
-  }
+ 
 
-  /**
-   * Test that sessions are disabled. Tests that enable sessions should override
-   * this method.
-   *
-   * @throws Exception
-   */
-  public void LUDOTODOtestSessionsDisabled() throws Exception {
-    for (int i = 1; i <= 5; i++) {
-      String[] lines = fetchUrl(createUrl("/count?type=session"));
-      assertEquals(1, lines.length);
-      assertEquals("-1", lines[0]); // When sessions are disabled we should get -1 every time.
-    }
-  }
-
-  public void LUDOTODOtestSsl_NoSSL() throws Exception {
+  public void testSsl_NoSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
-    assertEquals("false:http:http://localhost/test-ssl", get.getResponseBodyAsString());
+    String expected = "false:http:http://localhost:"+port+"/test-ssl";
+    assertEquals(expected, get.getResponseBodyAsString());
   }
 
   public void testSsl_WithSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
+    URL url = createUrl("/test-ssl");
+    GetMethod get = new GetMethod(url.toString());
     get.addRequestHeader(VmApiProxyEnvironment.HTTPS_HEADER, "on");
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
@@ -223,7 +191,7 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     GetMethod secondGet = new GetMethod(url.toString());
     returnCode = httpClient.executeMethod(secondGet);
     assertEquals(HttpServletResponse.SC_OK, returnCode);
-    // Check the count, should be "2" for the first request.
+    // Check the count, should be "2" for the second request.
     assertEquals("2", secondGet.getResponseBodyAsString().trim());
   }
 
