@@ -180,7 +180,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>jetty-distro</id>
+            <id>gae-jars</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>copy</goal>
