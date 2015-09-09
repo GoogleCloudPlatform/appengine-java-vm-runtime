@@ -314,7 +314,7 @@ public class VmRuntimeWebAppContext
     Request baseRequest=null;
     if (runnable instanceof HttpOutput)
       baseRequest=((HttpOutput)runnable).getHttpChannel().getRequest();
-    else if (runnable instanceof HttpInput<?>)
+    else if (runnable instanceof HttpInput)
     {
       try {
         Field field = HttpInput.class.getDeclaredField("_channelState");
