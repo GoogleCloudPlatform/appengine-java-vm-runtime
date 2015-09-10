@@ -46,6 +46,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionIdListener;
 
 
 /**
@@ -182,6 +184,9 @@ public class SessionManager extends AbstractSessionManager {
     
     @Override
     public void renewId(HttpServletRequest request) {
+      
+      String oldId = getClusterId();
+      
       //remove session with the old from storage
       deleteSession();
       
@@ -197,7 +202,9 @@ public class SessionManager extends AbstractSessionManager {
       //save the session with the new id
       save(true);
       
-      setIdChanged(true);   
+      setIdChanged(true);  
+      
+      ((SessionManager)getSessionManager()).callSessionIdListeners(this, oldId);
     }
     
    
@@ -532,5 +539,19 @@ public class SessionManager extends AbstractSessionManager {
     
   }
 
+  
+  /**
+   * Call any session id listeners registered.
+   * Usually done by renewSessionId() method, but that is not used in appengine.
+   * @param session
+   * @param oldId
+   */
+  public void callSessionIdListeners (AbstractSession session, String oldId) {
+    HttpSessionEvent event = new HttpSessionEvent(session);
+    for (HttpSessionIdListener l:_sessionIdListeners)
+    {
+        l.sessionIdChanged(event, oldId);
+    }
+  }
   
 }
