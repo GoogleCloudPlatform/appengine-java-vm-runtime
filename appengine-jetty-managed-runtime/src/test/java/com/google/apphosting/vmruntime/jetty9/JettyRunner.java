@@ -19,13 +19,14 @@ import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOM
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.jsp.JspFactory;
 import org.apache.jasper.runtime.JspFactoryImpl;
 import org.apache.tomcat.InstanceManager;
 import org.apache.tomcat.SimpleInstanceManager;
-
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -37,6 +38,7 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
@@ -135,14 +137,26 @@ class JettyRunner implements Runnable {
       new File("target/log.0.1.lck").delete();
     
       // configuration from root.xml
-      VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
+      final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
       context.setConfigurationClasses(preconfigurationClasses);
       
-      // Needed for JSP!
-      context.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
-      JspFactory.setDefaultFactory(new JspFactoryImpl());            
-
+      
+      // Needed to initialize JSP!
+      context.addBean(new AbstractLifeCycle() {
+			
+			@Override
+			public void doStop() throws Exception {
+			
+			}
+			
+			@Override
+			public void doStart() throws Exception {
+				 JettyJasperInitializer jspInit = new JettyJasperInitializer();
+		      jspInit.onStartup(Collections.EMPTY_SET, context.getServletContext());
+			}
+		}, true);
+     
       // find the sibling testwebapp target
       File currentDir = new File("").getAbsoluteFile();
       File webAppLocation = new File(currentDir, "target/webapps/testwebapp");
