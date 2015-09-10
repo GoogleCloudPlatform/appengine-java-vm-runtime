@@ -79,7 +79,7 @@
               <goal>build</goal>
             </goals>
             <configuration>
-	      <imageName>gce-jetty-9.3</imageName>
+	      <imageName>gce-jetty:${jetty.version}</imageName>
 	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
 	    </configuration>
 	  </execution>

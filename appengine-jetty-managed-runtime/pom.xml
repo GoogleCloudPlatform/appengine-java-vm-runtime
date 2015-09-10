@@ -217,13 +217,24 @@
         <version>0.3.2</version>
         <executions>
           <execution>
-            <id>build</id>
+            <id>jetty-build</id>
             <phase>install</phase>
             <goals>
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>appengine-mvn-opensource</imageName>
+              <imageName>gce-jetty:build</imageName>
+	      <baseImage>gce-jetty:${jetty.version}</baseImage>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-gae</id>
+            <phase>install</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <imageName>appengine-mvn-opensource:${project.version}</imageName>
 	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
               <resources>
                 <resource>
@@ -233,7 +244,18 @@
                 </resource>
               </resources>
             </configuration>
-            </execution>
+          </execution>
+          <execution>
+            <id>gae-latest</id>
+            <phase>install</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <imageName>appengine-mvn-opensource:latest</imageName>
+              <baseImage>appengine-mvn-opensource:${project.version}</baseImage>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
         <plugin>
@@ -253,7 +275,6 @@
           </execution>
         </executions>
       </plugin>
-      
     </plugins>
   </build>
 </project>
