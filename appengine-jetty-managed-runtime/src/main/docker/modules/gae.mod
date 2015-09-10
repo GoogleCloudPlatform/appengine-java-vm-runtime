@@ -1,10 +1,9 @@
 #
-# Jetty HTTP Connector
+# GAE Module
 #
 
 [depend]
 http
-deploy
 annotations
 plus
 quickstart

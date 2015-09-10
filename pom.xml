@@ -51,7 +51,7 @@
   </distributionManagement>
   
   <modules>
-    <module>gce-debian-openjdk8</module>
+    <module>gce-debian-openjdk</module>
     <module>gce-jetty</module>
     <module>testwebapp</module>
     <module>appengine-managed-runtime</module>
