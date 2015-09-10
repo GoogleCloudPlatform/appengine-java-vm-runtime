@@ -83,12 +83,6 @@ public class SessionManager extends AbstractSessionManager {
   public static class SessionIdManager extends HashSessionIdManager {
 
     
-    /**
-     * NOTE this breaks the standard jetty contract that there is only 1
-     * SessionIdManager per server instance, and 1 SessionManager instance
-     * per context.
-     * @param manager
-     */
     public SessionIdManager() {
       super(new SecureRandom());
     }
