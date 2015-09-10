@@ -82,8 +82,6 @@ public class SessionManager extends AbstractSessionManager {
   // SecureRandom class.
   public static class SessionIdManager extends HashSessionIdManager {
 
-    private SessionManager manager;
-    
     
     /**
      * NOTE this breaks the standard jetty contract that there is only 1
@@ -91,9 +89,8 @@ public class SessionManager extends AbstractSessionManager {
      * per context.
      * @param manager
      */
-    public SessionIdManager(SessionManager manager) {
+    public SessionIdManager() {
       super(new SecureRandom());
-      this.manager = manager;
     }
 
     /**
@@ -122,18 +119,7 @@ public class SessionManager extends AbstractSessionManager {
       logger.fine("Created a random session identifier: " + id);
       return id;
     }
-    
-    
-    @Override
-    public void renewSessionId(String oldClusterId, String oldNodeId, HttpServletRequest request) {
-      // generate a new id
-      String newClusterId = newSessionId(request.hashCode());
-
-      // tell session manager to update the id
-      manager.renewSessionId(oldClusterId, oldNodeId, newClusterId, getNodeId(newClusterId, request));
-    }
-
-
+   
   }
 
   /**
@@ -406,7 +392,7 @@ public class SessionManager extends AbstractSessionManager {
     
     //NOTE: this breaks the standard jetty contract that a single server has a single SessionIdManager
     //but there is 1 SessionManager per context.
-    _sessionIdManager = new SessionIdManager(this);
+    _sessionIdManager = new SessionIdManager();
   }
 
   @Override

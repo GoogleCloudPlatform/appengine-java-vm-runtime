@@ -206,7 +206,7 @@ public class SessionManagerTest extends TestCase {
   public void testIdGeneration() {
     long timestamp = System.currentTimeMillis();
 
-    SessionManager.SessionIdManager idManager = new SessionManager.SessionIdManager(manager);
+    SessionManager.SessionIdManager idManager = new SessionManager.SessionIdManager();
     HttpServletRequest mockRequest = makeMockRequest(false);
     replay(mockRequest);
     String sessionid = idManager.newSessionId(mockRequest, timestamp);
