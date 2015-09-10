@@ -16,32 +16,6 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.http.HttpScheme;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.HttpChannelState;
-import org.eclipse.jetty.server.HttpInput;
-import org.eclipse.jetty.server.HttpOutput;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
-
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -67,6 +41,27 @@ import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
+
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -308,10 +303,9 @@ public class VmRuntimeWebAppContext
     RequestContext requestContext = baseRequest==null?null:(RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
     
     // If we have a requestContext enter/exit it 
-    if (requestContext==null)
+    if (requestContext==null) {
       super.handle(baseRequest,runnable);
-    else
-    {
+    } else {
       try {
         requestContext.enter();
         super.handle(baseRequest,runnable);
@@ -323,8 +317,7 @@ public class VmRuntimeWebAppContext
 
   public RequestContext getRequestContext(Request baseRequest) {
     RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
-    if (requestContext==null)
-    {
+    if (requestContext==null) {
       // No instance found, so create a new environment
       requestContext=new RequestContext(baseRequest);
       baseRequest.setAttribute(RequestContext.class.getName(), requestContext);
@@ -337,6 +330,7 @@ public class VmRuntimeWebAppContext
   // inner class of ContextHandler. We need to subclass WebAppContext
   // (which extends ContextHandler) and then subclass the SContext
   // inner class to modify its behavior.
+  // TODO, most if not all of this behavior can be injected. 
   /**
    * ServletContext for VmRuntime applications.
    */
@@ -380,15 +374,11 @@ public class VmRuntimeWebAppContext
     }
   }
   
-  
-  
-  private class RequestContext extends HttpServletRequestAdapter implements AsyncListener
-  { 
+  private class RequestContext extends HttpServletRequestAdapter implements AsyncListener { 
     private final Request request;
     private final VmApiProxyEnvironment requestSpecificEnvironment;
     
-    RequestContext(Request request)
-    {
+    RequestContext(Request request) {
       super(request);
 
       this.request=request;
@@ -403,17 +393,13 @@ public class VmRuntimeWebAppContext
       ApiProxy.setEnvironmentForCurrentThread(getRequestSpecificEnvironment());
     }
 
-    public void exitDispatch()
-    {
-      try
-      {
+    public void exitDispatch() {
+      try {
         if (request.isAsyncStarted())
           request.getAsyncContext().addListener(this);
         else
           onComplete(null);
-      }
-      finally
-      {
+      } finally {
         exit();
       }
     }
@@ -422,8 +408,7 @@ public class VmRuntimeWebAppContext
         ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
     }
 
-    VmApiProxyEnvironment getRequestSpecificEnvironment()
-    {
+    VmApiProxyEnvironment getRequestSpecificEnvironment() {
       return requestSpecificEnvironment;
     }
     
