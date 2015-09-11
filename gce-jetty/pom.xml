@@ -26,8 +26,6 @@
   <name>gce-jetty</name>
   
   <properties>
-    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.3.2.v20150730</jetty.version>
   </properties>
   
   <build>

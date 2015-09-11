@@ -12,6 +12,12 @@
     <tag>HEAD</tag>
   </scm>
   
+  <properties>
+    <jetty.version>9.3.3.v20150827</jetty.version>
+    <appengine.api.version>1.9.25</appengine.api.version>
+    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+  </properties>
+
   <developers>
     <developer>
       <id>ludo</id>

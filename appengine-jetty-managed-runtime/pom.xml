@@ -27,9 +27,6 @@
   <url>http://maven.apache.org</url>
   
   <properties>
-    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.3.3.v20150827</jetty.version>
-    <appengine.api.version>1.9.25</appengine.api.version>
   </properties>
   
   <dependencies>
