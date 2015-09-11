@@ -42,12 +42,12 @@
             <goals>
               <goal>build</goal>
             </goals>
-	    <configuration>
-	      <imageName>gce-debian-openjdk:8-jre</imageName>
-	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
-	    </configuration>
-	  </execution>
-	</executions>
+            <configuration>
+              <imageName>gce-debian-openjdk:8-jre</imageName>
+              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
