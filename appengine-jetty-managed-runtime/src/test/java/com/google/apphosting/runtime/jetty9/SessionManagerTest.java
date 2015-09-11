@@ -45,6 +45,8 @@ import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
+import com.google.apphosting.runtime.SessionData;
+import com.google.apphosting.runtime.SessionManagerUtil;
 import com.google.apphosting.runtime.SessionStore;
 import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 
@@ -267,6 +269,50 @@ public class SessionManagerTest extends TestCase {
     assertEquals(session.getId(), session2.getId());
     assertEquals("bar", session2.getAttribute("foo"));
   }
+  
+  
+  public void testRenewSessionId() throws Exception {
+    HttpServletRequest request = makeMockRequest(true);
+    replay(request);
+    AppEngineSession session = manager.newSession(request);
+    session.setAttribute("foo", "bar");
+    session.save();
+    String oldId = session.getId();   
+    byte[] bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + oldId);
+    assertNotNull(bytes);
+    SessionData data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    assertEquals("bar", data.getValueMap().get("foo"));
+    
+    //renew session id 
+    session.renewId(request);
+
+    //Ensure we deleted the session with the old id
+    AppEngineSession sessionx = manager.getSession(oldId);
+    assertNull(sessionx);
+    assertNull(memcache.get(SessionManager.SESSION_PREFIX + oldId));
+    
+    //Ensure we changed the id
+    String newId = session.getId(); 
+    assertNotSame(oldId, newId);
+    
+    //Ensure we stored the session with the new id
+    AppEngineSession session2 = manager.getSession(newId);
+    assertNotSame(session, session2);
+    assertEquals("bar", session2.getAttribute("foo"));   
+    bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + newId);
+    assertNotNull(bytes);
+    data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    assertEquals("bar", data.getValueMap().get("foo"));
+    
+    //Test we can store attributes
+    session2.setAttribute("one", "two");
+    session2.save();
+    bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + newId);
+    assertNotNull(bytes);
+    data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    assertEquals("two", data.getValueMap().get("one"));
+  }
+  
 
   private AppEngineSession createSession() {
     NamespaceManager.set(startNamespace());

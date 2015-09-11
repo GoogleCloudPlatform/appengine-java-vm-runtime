@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gce-debian-openjdk8 
+FROM gce-debian-openjdk:8-jre 
 
 # create jetty group and user
 RUN groupadd -r jetty \
