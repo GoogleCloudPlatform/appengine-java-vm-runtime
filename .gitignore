@@ -5,3 +5,4 @@ docker/jetty/
 .project
 .settings
 .classpath
+*.iml
