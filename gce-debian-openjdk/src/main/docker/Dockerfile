@@ -30,5 +30,4 @@ rm /var/lib/apt/lists/*_*
 # workaround for https://bugs.debian.org/775775
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
-CMD ["bash"]
-ENTRYPOINT []
+ENTRYPOINT [ "/usr/bin/java" ]
