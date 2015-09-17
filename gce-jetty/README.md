@@ -2,8 +2,8 @@ gce-jetty
 =========
 
 This project builds a Docker Image for 
-Google Compueter Engine [Java Managed VM](https://cloud.google.com/appengine/docs/managed-vms/)
-that provides the Jetty 9.3 Servet container on top of the gce-debian-openjdk8 image.
+Google App Engine [Java Managed VM](https://cloud.google.com/appengine/docs/managed-vms/)
+that provides the Jetty 9.3 Servlet container on top of the gce-debian-openjdk8 image.
 
 The layout of this image is intended to mostly mimic the official 
 [docker-jetty](https://github.com/appropriate/docker-jetty) image and unless otherwise noted,
@@ -12,6 +12,7 @@ should apply.
 
 ## Building the Jetty image
 To use the image, you need to build it:
+
 ```console
 git clone https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime.git
 cd appengine-java-vm-runtime/gce-jetty
@@ -45,5 +46,26 @@ RUN java -jar "$JETTY_HOME/start.jar" --add-to-startd=jmx,stats
 ```
 Modules may be configured in a `Dockerfile` by editing the properties in the corresponding `/var/lib/jetty/start.d/*.mod` file or the module can be deactivated by removing that file.
 
+This image works with App Engine Managed VMs as a custom runtime.
+In order to use it, you need to build the image (let's call it `YOUR_BUILT_IMAGE`), (and optionally push it to a Docker registery like gcr.io). Then, you can add to any pure Java EE 7 Web Application projects these 2 configuration files next to the exploded WAR directory:
+
+`Dockerfile` file would be:
+      
+      FROM YOUR_BUILT_IMAGE
+      add . /app
+      
+That will add the Web App Archive directory in the correct location for the Docker container.
+
+Then, an `app.yaml` file to configure the GAE Managed VM product:
+
+      runtime: custom
+      vm: true
+      api_version: 1
+      
+Once you have this configuration, you can use the Google Cloud SDK to deploy this directory containing the 2 configuration files and the Web App directory using:
+
+     gcloud preview app deploy app.yaml
+     
+     
 
 Enjoy...
