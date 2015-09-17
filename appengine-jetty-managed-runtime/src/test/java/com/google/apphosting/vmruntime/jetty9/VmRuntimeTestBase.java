@@ -199,7 +199,7 @@ public  class VmRuntimeTestBase extends TestCase {
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty("Metadata-Flavor", "Google");
     return conn;
-}
+  }
     /** Timeout in milliseconds to retrieve data from the server. */
   private static final int TIMEOUT_MILLIS = 120 * 1000;
   

@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Test if the argument is executable and if then run it directly
+if type "$1" &>/dev/null; then
+  exec "$@"
+fi
+
 # Script that starts Jetty and sets Jetty specific system properties based on
 # environment variables set for all runtime implementations.
 if [ -z "$RUNTIME_DIR" ]; then
@@ -10,10 +16,6 @@ RAM_RESERVED_MB=400  # Ram used by containers outside of the app.
 HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
   print int($2/1024*frac-res) "M" } ' /proc/meminfo)
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"
-
-# Increase initial permsize.
-PERM_SIZE=64M  # Default = 21757952 (20.75M)
-MAX_PERM_SIZE=166M  # Default = 174063616 (166M)
 
 DBG_AGENT=
 

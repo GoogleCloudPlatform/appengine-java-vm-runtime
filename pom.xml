@@ -3,7 +3,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.23-SNAPSHOT</version>
+  <version>1.9.26-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>appengine-java-vm-runtime</name>
   <url>http://maven.apache.org</url>
@@ -51,9 +51,11 @@
   </distributionManagement>
   
   <modules>
-      <module>testwebapp</module>
-      <module>appengine-managed-runtime</module>
-      <module>appengine-jetty-managed-runtime</module>
+    <module>gce-debian-openjdk</module>
+    <module>gce-jetty</module>
+    <module>testwebapp</module>
+    <module>appengine-managed-runtime</module>
+    <module>appengine-jetty-managed-runtime</module>
   </modules>
   <build>
     <plugins>

@@ -56,7 +56,7 @@ public class TestMetadataServer implements Runnable {
   public void addMetadata(String path, String value) {
     responses.put(PATH_PREFIX + path, value);
   }
-
+  
   /**
    * Starts a single threaded metadata server.
    */

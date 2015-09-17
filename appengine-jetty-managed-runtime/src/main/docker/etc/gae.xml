@@ -17,7 +17,7 @@
     <!-- Ammend HttpConfig                                           -->
     <!-- =========================================================== -->
     <Ref refid="httpConfig">
-      <Set name="headerCacheSize"><Property name="header.cache.size" default="512"/></Set>
+      <Set name="headerCacheSize"><Property name="jetty.httpConfig.headerCacheSize" default="512"/></Set>
     </Ref>
 
     <!-- =========================================================== -->

@@ -165,7 +165,7 @@ class JettyRunner implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
-      File webDefault = new File(currentDir.getParentFile(), "docker/etc/webdefault.xml");
+      File webDefault = new File(currentDir, "src/main/docker/etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
@@ -209,7 +209,7 @@ class JettyRunner implements Runnable {
   public void stop() throws Exception {
     server.stop();
   }
-
+  
   public static void main(String... args)
   {
     new JettyRunner(8080).run(); 
