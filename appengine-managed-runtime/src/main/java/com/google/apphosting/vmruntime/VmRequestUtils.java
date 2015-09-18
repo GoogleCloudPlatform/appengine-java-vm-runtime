@@ -38,6 +38,9 @@ public class VmRequestUtils {
       return true;
     } else if (remoteAddr.startsWith(LINK_LOCAL_IP_NETWORK)) {
       return true;
+    } else if (remoteAddr.equals("127.0.0.2")) {
+      // Test untrusted.
+      return false;
     } else if (remoteAddr.startsWith("127.0.0.")) {
       // Allow localhost.
       return true;
