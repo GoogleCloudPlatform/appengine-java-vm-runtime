@@ -37,12 +37,14 @@
   </properties>
 
   <dependencies>
-    <!-- Compile/runtime dependencies -->
+    <!-- Application dependencies -->
     <dependency>
       <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <artifactId>appengine-remote-api</artifactId>
       <version>${appengine.target.version}</version>
     </dependency>
+
+    <!-- Dependencies provided by runtime -->
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
@@ -54,22 +56,19 @@
       <groupId>javax.servlet.jsp</groupId>
       <artifactId>javax.servlet.jsp-api</artifactId>
       <version>2.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>jstl</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-remote-api</artifactId>
-      <version>1.9.25</version>
-      <type>jar</type>
+      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <version>${appengine.target.version}</version>
+      <scope>provided</scope>
     </dependency>
+
   </dependencies>
 
   <build>
-    <!-- needed for enabling compile/reload on save in mordern IDEs...-->
+    <!-- needed for enabling compile/reload on save in modern IDEs...-->
     <outputDirectory>target/${project.artifactId}-${project.version}/WEB-INF/classes</outputDirectory>
     <plugins>
       <plugin>
