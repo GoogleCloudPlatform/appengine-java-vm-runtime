@@ -37,6 +37,7 @@ import javax.servlet.http.HttpSession;
  * persistent storage after each request completes.
  *
  */
+// TODO this filter should not be needed
 public class SaveSessionFilter implements Filter {
 
   @Override
