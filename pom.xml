@@ -11,6 +11,11 @@
     <connection>scm:git:https://github.com/ludoch/appengine-runtime-java-docker-image.git</connection>
     <tag>HEAD</tag>
   </scm>
+
+  <properties>
+    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    <jetty.version>9.3.2.v20150730</jetty.version>
+  </properties>
   
   <properties>
     <jetty.version>9.3.3.v20150827</jetty.version>
@@ -66,11 +71,12 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
     </plugins>
@@ -97,16 +103,6 @@
               </goals>
             </execution>
           </executions>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.5.1</version>
-          <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
-          </configuration>
         </plugin>
 
         <plugin>
