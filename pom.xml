@@ -14,15 +14,10 @@
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.3.2.v20150730</jetty.version>
-  </properties>
-  
-  <properties>
     <jetty.version>9.3.3.v20150827</jetty.version>
     <appengine.api.version>1.9.25</appengine.api.version>
-    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
   </properties>
-
+  
   <developers>
     <developer>
       <id>ludo</id>
