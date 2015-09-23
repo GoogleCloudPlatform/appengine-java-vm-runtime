@@ -15,8 +15,6 @@
  */
 package com.google.apphosting.tests.usercode.testservlets;
 
-import org.apache.taglibs.standard.tag.rt.core.OutTag;
-
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -28,7 +26,12 @@ public class TagLibClassLoaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    resp.setContentType("text/plain");
-    resp.getWriter().print(OutTag.class.getClassLoader().getClass().getName());
+    try {
+      Class<?> outTag = Class.forName("org.apache.taglibs.standard.tag.rt.core.OutTag");
+      resp.setContentType("text/plain");
+      resp.getWriter().print(outTag.getClassLoader().getClass().getName());
+    } catch (ClassNotFoundException e) {
+      throw new ServletException(e);
+    }
   }
 }
