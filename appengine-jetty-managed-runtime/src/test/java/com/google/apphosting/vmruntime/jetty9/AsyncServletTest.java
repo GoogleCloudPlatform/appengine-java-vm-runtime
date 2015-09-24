@@ -23,13 +23,17 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
 
-public class AsyncTest extends VmRuntimeTestBase{
+public class AsyncServletTest extends VmRuntimeTestBase{
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
@@ -43,11 +47,32 @@ public class AsyncTest extends VmRuntimeTestBase{
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     PostMethod post = new PostMethod(createUrl("/test-async").toString());
     post.addRequestHeader("Content-Type", "text/plain");
-    post.setRequestBody(postData);
+    post.setRequestEntity(new RequestEntity() {
+      @Override
+      public void writeRequest(OutputStream out) throws IOException {
+          out.write(postData.getBytes(StandardCharsets.ISO_8859_1));
+      }
+      
+      @Override
+      public boolean isRepeatable() {
+        return true;
+      }
+      
+      @Override
+      public String getContentType() {
+        return "text/plain";
+      }
+      
+      @Override
+      public long getContentLength() {
+        return postData.length();
+      }
+    });
+    
     int httpCode = httpClient.executeMethod(post);
+    assertThat(httpCode, equalTo(200));
     
     String body=post.getResponseBodyAsString();
-    System.err.println(body);
     
     List<String> order = Arrays.asList(body.split(","));
     
@@ -75,15 +100,6 @@ public class AsyncTest extends VmRuntimeTestBase{
 
     assertThat(order.get(7),startsWith("ON_WRITE_POSSIBLE:"));
     assertThat(order.get(7), endsWith(env2));
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
   }
 }

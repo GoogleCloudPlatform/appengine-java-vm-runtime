@@ -411,7 +411,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private ThreadLocal<Map<String, Object>> threadLocalAttributes;
   private final Timer wallTimer;  // may be null if millisUntilSoftDeadline is null.
   private final Long millisUntilSoftDeadline;  // may be null (no deadline).
-  private final VmAppLogsWriter appLogsWriter;
   
   final Semaphore pendingApiCallSemaphore;
   
@@ -492,19 +491,17 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     // TODO(user): forward app_log_line_size, app_log_group_size, max_log_flush_seconds
     // from clone_settings so these can be overridden per app.
-    this.appLogsWriter = new VmAppLogsWriter(
-        new LinkedList<UserAppLogLine>(), DEFAULT_FLUSH_APP_LOGS_EVERY_BYTE_COUNT,
-        DEFAULT_MAX_LOG_LINE_SIZE, MAX_LOG_FLUSH_SECONDS);
     this.pendingApiCallSemaphore = new Semaphore(MAX_PENDING_API_CALLS);
     this.runningApiCallSemaphore = new Semaphore(MAX_CONCURRENT_API_CALLS);
   }
 
+  @Deprecated
   public void addLogRecord(LogRecord record) {
-    appLogsWriter.addLogRecordAndMaybeFlush(record);
   }
 
+  @Deprecated
   public int flushLogs() {
-    return appLogsWriter.flushAndWait();
+    return -1;
   }
 
   public String getMajorVersion() {

@@ -42,6 +42,9 @@ public class LogTest extends HttpServlet {
   protected void service(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
+    getServletContext().log("LogTest Hello");
+    getServletContext().log("LogTest Exception ",new Throwable());
+    
     String configFile = System.getProperty("java.util.logging.config.file");
 
     if (configFile == null) {

@@ -19,7 +19,6 @@ package com.google.apphosting.vmruntime.jetty9;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
@@ -29,9 +28,7 @@ import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
 import com.google.apphosting.utils.config.AppEngineWebXmlReader;
-import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
-import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
@@ -47,16 +44,15 @@ import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.log.AbstractLogger;
+import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
@@ -71,7 +67,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class VmRuntimeWebAppContext
   extends WebAppContext implements VmRuntimeTrustedAddressChecker {
-  private static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
   // It's undesirable to have the user app override classes provided by us.
   // So we mark them as Jetty system classes, which cannot be overridden.
@@ -124,7 +119,7 @@ public class VmRuntimeWebAppContext
     org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
   };
-
+  
   @Override
   protected void doStart() throws Exception {
     // unpack and Adjust paths.
@@ -188,6 +183,7 @@ public class VmRuntimeWebAppContext
    */
   public VmRuntimeWebAppContext() {
     setServerInfo(VmRuntimeUtils.getServerInfo());
+    setLogger(new ContextLogger());
     _scontext = new VmRuntimeServletContext();
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
@@ -218,9 +214,8 @@ public class VmRuntimeWebAppContext
    * @throws IOException If the runtime was unable to find/read appDir.
    */
   public void init(String appengineWebXmlFile)
-      throws AppEngineConfigException, IOException {
-	  
-	String appDir=getBaseResource().getFile().getCanonicalPath();  
+      throws AppEngineConfigException, IOException {  
+    String appDir=getBaseResource().getFile().getCanonicalPath();  
     defaultEnvironment = VmApiProxyEnvironment.createDefaultContext(
         System.getenv(), metadataCache, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
         VmRuntimeUtils.ONE_DAY_IN_MILLIS, appDir);
@@ -333,52 +328,15 @@ public class VmRuntimeWebAppContext
     return requestContext;
   }
 
-
-  // N.B.(schwardo): Yuck. Jetty hardcodes all of this logic into an
-  // inner class of ContextHandler. We need to subclass WebAppContext
-  // (which extends ContextHandler) and then subclass the SContext
-  // inner class to modify its behavior.
-  // TODO, most if not all of this behavior can be injected. 
   /**
    * ServletContext for VmRuntime applications.
+   * TODO is this still needed? If no securityManager super.getClassLoader() is equivalent
    */
   public class VmRuntimeServletContext extends Context {
-
     @Override
     public ClassLoader getClassLoader() {
+      super.getClassLoader();
       return VmRuntimeWebAppContext.this.getClassLoader();
-    }
-
-    @Override
-    public void log(String message) {
-      log(message, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param throwable an exception associated with this log message,
-     * or {@code null}.
-     */
-    @Override
-    public void log(String message, Throwable throwable) {
-      StringWriter writer = new StringWriter();
-      writer.append("javax.servlet.ServletContext log: ");
-      writer.append(message);
-
-      if (throwable != null) {
-        writer.append("\n");
-        throwable.printStackTrace(new PrintWriter(writer));
-      }
-
-      LogRecord.Level logLevel = throwable == null ? LogRecord.Level.info : LogRecord.Level.error;
-      ApiProxy.log(new ApiProxy.LogRecord(logLevel, System.currentTimeMillis() * 1000L,
-          writer.toString()));
-    }
-
-    @Override
-    public void log(Exception exception, String msg) {
-      log(msg, exception);
     }
   }
   
@@ -422,23 +380,11 @@ public class VmRuntimeWebAppContext
     
     @Override
     public void onComplete(AsyncEvent event) {
-      // Interrupt any remaining request threads and wait for them to complete.
+      // TODO is the interrupting and waiting still needed?
+      // Interrupt any remaining request threads
       VmRuntimeUtils.interruptRequestThreads(
           requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-
-      HttpResponse response = new HttpServletResponseAdapter(request.getResponse());
-
-      // Wait for any pending async API requests to complete.
-      if (!VmRuntimeUtils.waitForAsyncApiCalls(requestSpecificEnvironment,response)) {
-        logger.warning("Timed out or interrupted while waiting for async API calls to complete.");
-      }
-
-      if (request.getResponse().isCommitted()) {
-        requestSpecificEnvironment.flushLogs();
-      } else {
-        // Flush and set the flush count header so the appserver knows when all logs are in.
-        VmRuntimeUtils.flushLogsAndAddHeader(response, requestSpecificEnvironment);
-      }
+      requestSpecificEnvironment.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
     }
 
     @Override
@@ -449,5 +395,73 @@ public class VmRuntimeWebAppContext
 
     @Override
     public void onStartAsync(AsyncEvent event) {}
+  }
+  
+  
+  private final static String SCL = "javax.servlet.ServletContext log: ";
+  private class ContextLogger extends AbstractLogger  {
+    org.eclipse.jetty.util.log.Logger context = Log.getLogger(VmRuntimeWebAppContext.class);
+
+    public String getName() {
+      return context.getName();
+    }
+
+    public void warn(String msg, Object... args) {
+      context.warn(SCL+msg, args);
+    }
+
+    public void warn(Throwable thrown) {
+      context.warn(thrown);
+    }
+
+    public void warn(String msg, Throwable thrown) {
+      context.warn(SCL+msg, thrown);
+    }
+
+    public void info(String msg, Object... args) {
+      context.info(SCL+msg, args);
+    }
+
+    public void info(Throwable thrown) {
+      context.info(thrown);
+    }
+
+    public void info(String msg, Throwable thrown) {
+      context.info(SCL+msg, thrown);
+    }
+
+    public boolean isDebugEnabled() {
+      return context.isDebugEnabled();
+    }
+
+    public void setDebugEnabled(boolean enabled) {
+      context.setDebugEnabled(enabled);
+    }
+
+    public void debug(String msg, Object... args) {
+      context.debug(SCL+msg, args);
+    }
+
+    public void debug(String msg, long value) {
+      context.debug(SCL+msg, value);
+    }
+
+    public void debug(Throwable thrown) {
+      context.debug(thrown);
+    }
+
+    public void debug(String msg, Throwable thrown) {
+      context.debug(SCL+msg, thrown);
+    }
+
+    public void ignore(Throwable ignored) {
+      context.ignore(ignored);
+    }
+
+    @Override
+    protected org.eclipse.jetty.util.log.Logger newLogger(String fullname) {
+      return Log.getLogger(fullname);
+    }
+    
   }
 }

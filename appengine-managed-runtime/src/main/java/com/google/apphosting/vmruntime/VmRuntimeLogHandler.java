@@ -60,6 +60,7 @@ public class VmRuntimeLogHandler extends Handler {
     try {
       logManager.readConfiguration();
     } catch (SecurityException | IOException e) {
+      e.printStackTrace();
       System.err.println("Warning: caught exception when reading logging properties.");
       System.err.println(e.getClass().getName() + ": " + e.getMessage());
     }
@@ -108,26 +109,10 @@ public class VmRuntimeLogHandler extends Handler {
         return;
       }
     }
-
-    VmApiProxyEnvironment environment = getThreadLocalEnvironment();
-    if (environment != null) {
-      environment.addLogRecord(convertLogRecord(record, message));
-    }
-  }
-
-  private ApiProxy.LogRecord convertLogRecord(LogRecord record, String message) {
-    ApiProxy.LogRecord.Level level = convertLogLevel(record.getLevel());
-    long timestamp = record.getMillis() * 1000;
-
-    return new ApiProxy.LogRecord(level, timestamp, message);
   }
 
   @Override
   public void flush() {
-    VmApiProxyEnvironment environment = getThreadLocalEnvironment();
-    if (environment != null) {
-      environment.flushLogs();
-    }
   }
 
   @Override

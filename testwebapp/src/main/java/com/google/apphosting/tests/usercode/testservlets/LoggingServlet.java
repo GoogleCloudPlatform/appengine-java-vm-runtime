@@ -39,6 +39,9 @@ public class LoggingServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+
+    getServletContext().log("LogTest Hello "+req.getQueryString());
+    
     resp.setContentType("text/plain");
     if (req.getParameter("printLogs") != null) {
       LogService ls = LogServiceFactory.getLogService();

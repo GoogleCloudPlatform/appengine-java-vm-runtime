@@ -69,6 +69,7 @@ import java.util.logging.Logger;
  * child RequestThreads created by the request through the threading API.
  *
  */
+@Deprecated
 class VmAppLogsWriter {
   private static final Logger logger =
       Logger.getLogger(VmAppLogsWriter.class.getName());

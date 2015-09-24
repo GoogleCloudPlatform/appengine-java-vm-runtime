@@ -182,6 +182,7 @@ public class VmRuntimeUtils {
    * @return True if all calls completed before the timeout fired or the thread was interrupted.
    *         False otherwise.
    */
+  @Deprecated
   public static boolean waitForAsyncApiCalls(
       VmApiProxyEnvironment requestEnvironment, HttpResponse response) {
     long startTime = System.currentTimeMillis();
