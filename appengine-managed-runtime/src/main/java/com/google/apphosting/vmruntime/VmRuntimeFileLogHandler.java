@@ -16,18 +16,12 @@
 
 package com.google.apphosting.vmruntime;
 
-import com.google.apphosting.api.ApiProxy;
-
-import com.google.gson.Gson;
+import com.google.apphosting.logging.JsonFormatter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
@@ -50,7 +44,7 @@ public class VmRuntimeFileLogHandler extends FileHandler {
   private VmRuntimeFileLogHandler() throws IOException {
     super(fileLogPattern(), LOG_MAX_SIZE, LOG_MAX_FILES, true);
     setLevel(Level.FINEST);
-    setFormatter(new CustomFormatter());
+    setFormatter(new JsonFormatter());
   }
 
   private static String fileLogPattern() {
@@ -77,163 +71,5 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       }
     }
     rootLogger.addHandler(new VmRuntimeFileLogHandler());
-  }
-
-  /**
-   * Convert from a Java Logging level to a cloud logs logging level.
-   * SEVERE maps to error, WARNING to warn, INFO to info, and all
-   * lower levels to debug.  We reserve the fatal level for exceptions
-   * that propagated outside of user code and forced us to kill the
-   * request.
-   */
-  private static String convertLogLevel(Level level) {
-    long intLevel = level.intValue();
-
-    if (intLevel >= Level.SEVERE.intValue()) {
-      return "ERROR";
-    } else if (intLevel >= Level.WARNING.intValue()) {
-      return "WARNING";
-    } else if (intLevel >= Level.INFO.intValue()) {
-      return "INFO";
-    } else {
-      // There's no trace, so we'll map everything below this to
-      // debug.
-      return "DEBUG";
-    }
-  }
-
-  /**
-   * Used by LogData to format timestamps.
-   */
-  
-  public static final class LogTimestamp {
-    private long seconds;
-    private long nanos;
-
-    LogTimestamp(long seconds, long nanos) {
-      this.seconds = seconds;
-      this.nanos = nanos;
-    }
-
-    public long getSeconds() {
-      return seconds;
-    }
-
-    public long getNanos() {
-      return nanos;
-    }
-  }
-
-  /**
-   * Class for logging user data via GSON.
-   */
-  
-  public static final class LogData {
-    private String message;
-    private LogTimestamp timestamp;
-    private String thread;
-    private String severity;
-    private String traceId;
-
-    LogData(String message, long seconds, long nanos, String thread, String severity,
-        String traceId) {
-      this.message = message;
-      this.timestamp = new LogTimestamp(seconds, nanos);
-      this.thread = thread;
-      this.severity = severity;
-      this.traceId = traceId;
-    }
-
-    public String getMessage() {
-      return message;
-    }
-
-    public LogTimestamp getTimestamp() {
-      return timestamp;
-    }
-
-    public String getThread() {
-      return thread;
-    }
-
-    public String getSeverity() {
-      return severity;
-    }
-
-    public String getTraceId() {
-      return traceId;
-    }
-  }
-
-  private static final class CustomFormatter extends Formatter {
-
-    /**
-     * Format the given LogRecord.
-     * @param record the log record to be formatted.
-     * @return a formatted log record
-     */
-    @Override
-    public synchronized String format(LogRecord record) {
-      StringBuffer sb = new StringBuffer();
-      if (record.getSourceClassName() != null) {
-        sb.append(record.getSourceClassName());
-      } else {
-        sb.append(record.getLoggerName());
-      }
-      if (record.getSourceMethodName() != null) {
-        sb.append(" ");
-        sb.append(record.getSourceMethodName());
-      }
-      sb.append(": ");
-      String message = formatMessage(record);
-      sb.append(message);
-      if (record.getThrown() != null) {
-        try {
-          sb.append("\n");
-          StringWriter sw = new StringWriter();
-          PrintWriter pw = new PrintWriter(sw);
-          record.getThrown().printStackTrace(pw);
-          pw.close();
-          sb.append(sw.toString());
-        } catch (Exception ex) {
-          // Ignored.  (Shouldn't happen and if it does we can't do much about it.)
-        }
-      }
-      Gson gson = new Gson();
-      message = sb.toString();
-      long seconds = record.getMillis() / 1000;
-      long nanos = (record.getMillis() % 1000) * 1000000;
-      String thread = Integer.toString(record.getThreadID());
-      String severity = convertLogLevel(record.getLevel());
-      String traceId = getCurrentTraceId();
-      return gson.toJson(new LogData(message, seconds, nanos, thread, severity, traceId)) + "\n";
-    }
-
-    private static String getCurrentTraceId() {
-      // TODO(user, qike): Get the trace context directly.
-      ApiProxy.Environment environment = ApiProxy.getCurrentEnvironment();
-      if (environment == null) {
-        return null;
-      }
-      Object value = environment.getAttributes()
-          .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
-      if (!(value instanceof String)) {
-        return null;
-      }
-      String fullTraceId = (String) value;
-
-      // Extract the trace id from the header.
-      // TODO(user, qike): Use the code from the Trace SDK when it's available in /third_party.
-      if (fullTraceId.isEmpty() || Character.digit(fullTraceId.charAt(0), 16) < 0) {
-        return null;
-      }
-      for (int index = 1; index < fullTraceId.length(); index++) {
-        char ch = fullTraceId.charAt(index);
-        if (Character.digit(ch, 16) < 0) {
-          return fullTraceId.substring(0, index);
-        }
-      }
-      return null;
-    }
   }
 }
