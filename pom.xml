@@ -56,6 +56,7 @@
   </distributionManagement>
   
   <modules>
+    <module>appengine-java-logging</module>
     <module>gce-debian-openjdk</module>
     <module>gce-jetty</module>
     <module>testwebapp</module>
