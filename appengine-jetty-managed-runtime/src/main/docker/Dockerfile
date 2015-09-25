@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gce-jetty:build
+FROM gce-jetty:9.3.2.v20150730
 
 ADD . $JETTY_BASE
 
