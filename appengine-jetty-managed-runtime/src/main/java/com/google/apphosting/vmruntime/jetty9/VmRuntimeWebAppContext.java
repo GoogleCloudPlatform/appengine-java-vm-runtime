@@ -183,8 +183,7 @@ public class VmRuntimeWebAppContext
    */
   public VmRuntimeWebAppContext() {
     setServerInfo(VmRuntimeUtils.getServerInfo());
-    setLogger(new ContextLogger());
-    _scontext = new VmRuntimeServletContext();
+    setLogger(Log.getLogger(VmRuntimeWebAppContext.class.toString()+"#"+Integer.toHexString(hashCode())));
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
     // (via the UserService). Only the default ConstraintSecurityHandler is supported.
@@ -395,73 +394,5 @@ public class VmRuntimeWebAppContext
 
     @Override
     public void onStartAsync(AsyncEvent event) {}
-  }
-  
-  
-  private final static String SCL = "javax.servlet.ServletContext log: ";
-  private class ContextLogger extends AbstractLogger  {
-    org.eclipse.jetty.util.log.Logger context = Log.getLogger(VmRuntimeWebAppContext.class);
-
-    public String getName() {
-      return context.getName();
-    }
-
-    public void warn(String msg, Object... args) {
-      context.warn(SCL+msg, args);
-    }
-
-    public void warn(Throwable thrown) {
-      context.warn(thrown);
-    }
-
-    public void warn(String msg, Throwable thrown) {
-      context.warn(SCL+msg, thrown);
-    }
-
-    public void info(String msg, Object... args) {
-      context.info(SCL+msg, args);
-    }
-
-    public void info(Throwable thrown) {
-      context.info(thrown);
-    }
-
-    public void info(String msg, Throwable thrown) {
-      context.info(SCL+msg, thrown);
-    }
-
-    public boolean isDebugEnabled() {
-      return context.isDebugEnabled();
-    }
-
-    public void setDebugEnabled(boolean enabled) {
-      context.setDebugEnabled(enabled);
-    }
-
-    public void debug(String msg, Object... args) {
-      context.debug(SCL+msg, args);
-    }
-
-    public void debug(String msg, long value) {
-      context.debug(SCL+msg, value);
-    }
-
-    public void debug(Throwable thrown) {
-      context.debug(thrown);
-    }
-
-    public void debug(String msg, Throwable thrown) {
-      context.debug(SCL+msg, thrown);
-    }
-
-    public void ignore(Throwable ignored) {
-      context.ignore(ignored);
-    }
-
-    @Override
-    protected org.eclipse.jetty.util.log.Logger newLogger(String fullname) {
-      return Log.getLogger(fullname);
-    }
-    
   }
 }

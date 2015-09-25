@@ -60,9 +60,9 @@ public class LoggingTest extends VmRuntimeTestBase{
         if (line.contains(query))
           break;
       }
+
       JsonData data = new Gson().fromJson(line, JsonData.class);
       assertThat(data.severity,equalTo("INFO"));
-      assertThat(data.message,org.hamcrest.Matchers.containsString("javax.servlet.ServletContext log: "));
       assertThat(data.message,org.hamcrest.Matchers.containsString("LogTest Hello nano="+query));
             
       line=in.readLine();
