@@ -77,8 +77,20 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>gce-jetty:${jetty.version}</imageName>
+              <imageName>gce-jetty</imageName>
               <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>clean</phase>
+            <goals>
+              <goal>removeImage</goal>
+            </goals>
+            <configuration>
+              <imageName>gce-jetty</imageName>
+              <imageTags>
+                <imageTag>latest</imageTag>
+              </imageTags>
             </configuration>
           </execution>
         </executions>
