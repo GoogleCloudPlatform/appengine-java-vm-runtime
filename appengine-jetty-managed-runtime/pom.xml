@@ -13,7 +13,9 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -23,13 +25,12 @@
   </parent>
   <artifactId>appengine-jetty-managed-runtime</artifactId>
   <packaging>jar</packaging>
-  <name>appengine-jetty-managed-runtime</name>
-  <url>http://maven.apache.org</url>
-  
+  <name>Google App Engine Image for GAEv1 Java Compatibility</name>
+
   <properties>
     <appengine.api.version>1.9.25</appengine.api.version>
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
@@ -61,7 +62,7 @@
       <version>${jetty.version}</version>
       <type>jar</type>
     </dependency>
-    
+
     <!-- tests-->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -110,12 +111,12 @@
       <scope>test</scope>
       <type>jar</type>
     </dependency>
-     <dependency>
-       <groupId>org.mockito</groupId>
-       <artifactId>mockito-core</artifactId>
-       <version>2.0.31-beta</version>
-       <scope>test</scope>
-     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.0.31-beta</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.geronimo.bundles</groupId>
       <artifactId>commons-httpclient</artifactId>
@@ -143,8 +144,8 @@
             </manifestEntries>
           </archive>
         </configuration>
-      </plugin>      
-      
+      </plugin>
+
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -186,7 +187,7 @@
                   <includes>**</includes>
                   <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
                 </artifactItem>
-                 <artifactItem>
+                <artifactItem>
                   <groupId>com.google.appengine</groupId>
                   <artifactId>appengine-java-logging</artifactId>
                   <version>${project.version}</version>
@@ -218,32 +219,25 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <version>0.3.2</version>
         <executions>
           <execution>
-            <id>jetty-build</id>
-            <phase>install</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-            <configuration>
-              <imageName>gce-jetty:build</imageName>
-	      <baseImage>gce-jetty:${jetty.version}</baseImage>
-            </configuration>
-          </execution>
-          <execution>
             <id>build-gae</id>
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>build</goal>
             </goals>
             <configuration>
+              <forceTags>true</forceTags>
               <imageName>appengine-mvn-opensource:${project.version}</imageName>
-	      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+              <imageTags>
+                <imageTag>latest</imageTag>
+              </imageTags>
+              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
               <resources>
                 <resource>
                   <targetPath>/lib/gae</targetPath>
@@ -253,20 +247,9 @@
               </resources>
             </configuration>
           </execution>
-          <execution>
-            <id>gae-latest</id>
-            <phase>install</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-            <configuration>
-              <imageName>appengine-mvn-opensource:latest</imageName>
-              <baseImage>appengine-mvn-opensource:${project.version}</baseImage>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
-        <plugin>
+      <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.8</version>
         <executions>
@@ -274,7 +257,8 @@
             <phase>generate-test-resources</phase>
             <configuration>
               <target>
-                <unzip src="${project.build.directory}/webapps/testwebapp.war" dest="${project.build.directory}/webapps/testwebapp"/>
+                <unzip src="${project.build.directory}/webapps/testwebapp.war"
+                       dest="${project.build.directory}/webapps/testwebapp"/>
               </target>
             </configuration>
             <goals>

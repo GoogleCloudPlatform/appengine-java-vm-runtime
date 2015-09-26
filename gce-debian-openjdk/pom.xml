@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  Copyright 2014 Google Inc. All rights reserved.
 
@@ -23,22 +24,17 @@
   </parent>
   <artifactId>gce-debian-openjdk</artifactId>
   <packaging>pom</packaging>
-  <name>gce-debian-openjdk</name>
-  
-  <properties>
-    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-  </properties>
+  <name>Google App Engine Image for OpenJDK</name>
   
   <build>
     <plugins>
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.3.2</version>
         <executions>
           <execution>
             <id>build</id>
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>build</goal>
             </goals>
