@@ -232,6 +232,7 @@
               <goal>build</goal>
             </goals>
             <configuration>
+              <forceTags>true</forceTags>
               <imageName>appengine-mvn-opensource:${project.version}</imageName>
               <imageTags>
                 <imageTag>latest</imageTag>
