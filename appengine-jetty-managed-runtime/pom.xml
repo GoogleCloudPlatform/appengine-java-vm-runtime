@@ -62,7 +62,13 @@
       <version>${jetty.version}</version>
       <type>jar</type>
     </dependency>
-
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-java-logging</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+    
     <!-- tests-->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -174,47 +180,15 @@
             <id>gae-jars</id>
             <phase>generate-resources</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>com.google.appengine</groupId>
-                  <artifactId>appengine-api-1.0-sdk</artifactId>
-                  <version>${appengine.api.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.google.appengine</groupId>
-                  <artifactId>appengine-java-logging</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.google.appengine</groupId>
-                  <artifactId>appengine-managed-runtime</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.google.code.gson</groupId>
-                  <artifactId>gson</artifactId>
-                  <version>2.3.1</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
-                </artifactItem>
-              </artifactItems>
+              <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <excludeTransitive>false</excludeTransitive>
+	      <excludeGroupIds>org.eclipse.jetty,org.ow2.asm,javax.annotation,javax.servlet,javax.transaction</excludeGroupIds>
+	      <includeScope>runtime</includeScope>
             </configuration>
           </execution>
         </executions>
