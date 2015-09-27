@@ -23,6 +23,7 @@ apt-get -y -q --no-install-recommends install \
   ca-certificates \
   openjdk-8-jre \
   netbase \
+  wget \
 && \
 apt-get clean && \
 rm /var/lib/apt/lists/*_*
