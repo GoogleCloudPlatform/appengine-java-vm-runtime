@@ -26,22 +26,10 @@ if [[ "$GAE_PARTITION" = "dev" ]]; then
     DBG_AGENT="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT}"
   fi
 else
-  # Get OAuth token from metadata service.
-  TOKEN_URL="http://metadata/computeMetadata/v1/instance/service-accounts/default/token"
-  METADATA_HEADER="Metadata-Flavor: Google"
-  OAUTH_TOKEN="$( wget -q -O - "$@" --no-cookies --header "${METADATA_HEADER}" "${TOKEN_URL}" | \
-                  sed -e 's/.*"access_token"\ *:\ *"\([^"]*\)".*$/\1/g' )"
-
   # Download the agent
-  CDBG_REF_URL="http://metadata/computeMetadata/v1/instance/attributes/gae_debugger_filename"
-  if [[ -z "${CDBG_AGENT_URL}" ]]; then
-    CDBG_AGENT_URL="https://storage.googleapis.com/vm-config.$(echo ${GAE_LONG_APP_ID} | sed -e 's/^\(.*\)\:\(.*\)$/\2.\1.a/g').appspot.com/"
-    CDBG_AGENT_URL+="$( wget -q -O - "$@" --no-cookies --header "${METADATA_HEADER}" "${CDBG_REF_URL}" )"
-  fi
-
+  CDBG_AGENT_URL="https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz"
   echo "Downloading Cloud Debugger agent from ${CDBG_AGENT_URL}"
-  AUTH_HEADER="Authorization: Bearer ${OAUTH_TOKEN}"
-  wget -O cdbg_java_agent.tar.gz -nv --no-cookies -t 3 --header "${AUTH_HEADER}" "${CDBG_AGENT_URL}"
+  wget -O cdbg_java_agent.tar.gz -nv --no-cookies -t 3 "${CDBG_AGENT_URL}"
 
   # Extract the agent and format the command line arguments.
   mkdir -p cdbg ; tar xzf cdbg_java_agent.tar.gz -C cdbg
