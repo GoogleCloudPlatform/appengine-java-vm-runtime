@@ -232,11 +232,7 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <forceTags>true</forceTags>
-              <imageName>appengine-mvn-opensource:${project.version}</imageName>
-              <imageTags>
-                <imageTag>latest</imageTag>
-              </imageTags>
+              <imageName>appengine-mvn-opensource</imageName>
               <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
               <resources>
                 <resource>
@@ -245,6 +241,18 @@
                   <include>${project.build.finalName}.jar</include>
                 </resource>
               </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>clean</phase>
+            <goals>
+              <goal>removeImage</goal>
+            </goals>
+            <configuration>
+              <imageName>appengine-mvn-opensource</imageName>
+              <imageTags>
+                <imageTag>latest</imageTag>
+              </imageTags>
             </configuration>
           </execution>
         </executions>
