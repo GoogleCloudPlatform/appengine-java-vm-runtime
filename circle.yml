@@ -1,3 +1,7 @@
+## Customize the test machine
+machine:
+ java:
+  version: oraclejdk8
 
 ## Prevent mvn dependency:resolve failing for intra-dependencies
 dependencies:
