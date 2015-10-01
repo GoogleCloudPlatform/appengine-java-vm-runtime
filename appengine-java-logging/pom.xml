@@ -13,13 +13,11 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-
-  -->
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
@@ -28,6 +26,7 @@
   </parent>
   <name>Google App Engine Logging Support</name>
   <artifactId>appengine-java-logging</artifactId>
+  <packaging>jar</packaging>
   <description>Support code for writing log files compatible with Google App Engine</description>
 
   <dependencies>
