@@ -22,10 +22,11 @@
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.26-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
+  <name>Google App Engine Runtime Support</name>
   <artifactId>appengine-managed-runtime</artifactId>
   <packaging>jar</packaging>
-  <name>Google App Engine Runtime Support</name>
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
