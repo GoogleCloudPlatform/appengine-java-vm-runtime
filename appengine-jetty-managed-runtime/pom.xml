@@ -237,7 +237,7 @@
               <imageTags>
                 <imageTag>latest</imageTag>
               </imageTags>
-              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+              <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
               <resources>
                 <resource>
                   <targetPath>/lib/gae</targetPath>
@@ -247,6 +247,20 @@
               </resources>
             </configuration>
           </execution>
+	  <execution>
+	    <id>clean-docker</id>
+	    <phase>clean</phase>
+	    <goals>
+	      <goal>removeImage</goal>
+	    </goals>
+	    <configuration>
+	      <imageName>appengine-mvn-opensource</imageName>
+	      <imageTags>
+	        <imageTag>${project.version}</imageTag>
+	        <imageTag>latest</imageTag>
+	      </imageTags> 
+	    </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -254,6 +268,22 @@
         <version>1.8</version>
         <executions>
           <execution>
+            <id>generate-docker</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+	        <copy todir="${project.build.directory}/generated-sources/docker">
+		  <fileset dir="${project.basedir}/src/main/docker"/>
+		</copy>
+		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@jetty.version@@" value="${jetty.version}"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>generate-test-war</id>
             <phase>generate-test-resources</phase>
             <configuration>
               <target>

@@ -25,7 +25,7 @@
   <artifactId>gce-debian-openjdk</artifactId>
   <packaging>pom</packaging>
   <name>Google App Engine Image for OpenJDK</name>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -43,6 +43,19 @@
               <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
             </configuration>
           </execution>
+	  <execution>
+	    <id>clean-docker</id>
+	    <phase>clean</phase>
+	    <goals>
+	      <goal>removeImage</goal>
+	    </goals>
+	    <configuration>
+	      <imageName>gce-debian-openjdk</imageName>
+	      <imageTags>
+	        <imageTag>8-jre</imageTag>
+	      </imageTags> 
+	    </configuration>
+	  </execution> 
         </executions>
       </plugin>
     </plugins>
