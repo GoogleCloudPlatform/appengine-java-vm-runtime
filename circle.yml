@@ -6,4 +6,4 @@ machine:
 ## Prevent mvn dependency:resolve failing for intra-dependencies
 dependencies:
  override: 
-  - mvn install -DskipTests     
+  - mvn dependency:tree     
