@@ -18,7 +18,6 @@ HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"
 
 DBG_AGENT=
-
 if [[ "$GAE_PARTITION" = "dev" ]]; then
   if [[ -n "$DBG_ENABLE" ]]; then
     echo "Running locally and DBG_ENABLE is set, enabling standard Java debugger agent"
@@ -26,30 +25,12 @@ if [[ "$GAE_PARTITION" = "dev" ]]; then
     DBG_AGENT="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT}"
   fi
 else
-  # Download the agent
-  CDBG_AGENT_URL="https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz"
-  echo "Downloading Cloud Debugger agent from ${CDBG_AGENT_URL}"
-  wget -O cdbg_java_agent.tar.gz -nv --no-cookies -t 3 "${CDBG_AGENT_URL}"
-
-  # Extract the agent and format the command line arguments.
-  mkdir -p cdbg ; tar xzf cdbg_java_agent.tar.gz -C cdbg
-  DBG_AGENT="$( cdbg/format-env-appengine-vm.sh )"
+  DBG_AGENT="$( /home/vmagent/cdbg/format-env-appengine-vm.sh )"
 fi
 
 PROF_AGENT=
-# Download and install the cloud profiler agent if $CPROF_ENABLE is set
-# CPROF_AGENT_URL can be set to download alternate versions of the agent
 if [[ -n "${CPROF_ENABLE}" ]]; then
-  if [[ -z "${CPROF_AGENT_URL}" ]] ; then
-    CPROF_AGENT_URL="https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz"
-  fi
-
-  echo "Downloading Cloud Profiler agent from ${CPROF_AGENT_URL}"
-  wget -O cloud_profiler_java_agent.tar.gz -nv --no-cookies -t 3 "${CPROF_AGENT_URL}"
-
-  # Extract the agent and format the command line arguments.
-  mkdir -p cp ; tar xzf cloud_profiler_java_agent.tar.gz -C cp
-  PROF_AGENT="$( cp/format-env-appengine-vm.sh )"
+  PROF_AGENT="$( /home/vmagent/cprof/format-env-appengine-vm.sh )"
 fi
 
 # use generated fast cli:
