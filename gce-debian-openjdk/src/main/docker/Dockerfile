@@ -23,9 +23,17 @@ apt-get -y -q --no-install-recommends install \
   ca-certificates \
   openjdk-8-jre \
   netbase \
+  wget \
 && \
 apt-get clean && \
 rm /var/lib/apt/lists/*_*
 
 # workaround for https://bugs.debian.org/775775
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
+# Add the cloud debugger and profiler libraries
+ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /home/vmagent/cdbg/
+ADD https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz /home/vmagent/cprof/
+RUN tar Cxfvz /home/vmagent/cdbg /home/vmagent/cdbg/cdbg_java_agent.tar.gz \
+ && tar Cxfvz /home/vmagent/cprof /home/vmagent/cprof/cloud_profiler_java_agent.tar.gz \
+ && rm /home/vmagent/cdbg/cdbg_java_agent.tar.gz /home/vmagent/cprof/cloud_profiler_java_agent.tar.gz
