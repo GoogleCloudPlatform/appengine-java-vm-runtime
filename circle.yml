@@ -10,3 +10,4 @@ machine:
 dependencies:
  override: 
   - mvn -fn dependency:resolve     
+
