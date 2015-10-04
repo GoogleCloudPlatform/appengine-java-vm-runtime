@@ -26,6 +26,7 @@
   </parent>
   <name>Google App Engine Logging Support</name>
   <artifactId>appengine-java-logging</artifactId>
+  <packaging>jar</packaging>
   <description>Support code for writing log files compatible with Google App Engine</description>
 
   <dependencies>
