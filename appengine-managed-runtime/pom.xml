@@ -113,47 +113,6 @@
           </archive>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>jarjar-maven-plugin</artifactId>
-        <version>1.9</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>jarjar</goal>
-            </goals>
-            <configuration>
-              <includes>
-                <include>org.apache.httpcomponents:httpcore</include>
-                <include>org.apache.httpcomponents:httpclient</include>
-                <include>com.google.code.gson:gson</include>
-                <include>commons-codec:commons-codec</include>
-                <include>commons-logging:commons-logging</include>
-                
-              </includes>
-              <rules>
-                <rule>
-                  <pattern>org.apache.http.**</pattern>
-                  <result>com.google.apphosting.repackaged.org.apache.http.@1</result>
-                </rule>
-                 <rule>
-                  <pattern>com.google.gson.**</pattern>
-                  <result>com.google.apphosting.repackaged.com.google.gson.@1</result>
-                </rule> 
-                 <rule>
-                  <pattern>org.apache.commons.codec.**</pattern>
-                  <result>com.google.apphosting.repackaged.org.apache.commons.codec.@1</result>
-                </rule> 
-                 <rule>
-                  <pattern>org.apache.commons.logging.**</pattern>
-                  <result>com.google.apphosting.repackaged.org.apache.commons.logging.@1</result>
-                </rule> 
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 </project>
