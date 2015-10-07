@@ -40,6 +40,7 @@
     <filter-class>
       com.google.apphosting.utils.servlet.TransactionCleanupFilter
     </filter-class>
+    <async-supported>true</async-supported>
   </filter>
 
   <filter-mapping>
@@ -56,6 +57,7 @@
     <filter-class>
       com.google.apphosting.runtime.jetty9.SaveSessionFilter
     </filter-class>
+    <async-supported>true</async-supported>
   </filter>
 
   <filter-mapping>
@@ -68,6 +70,7 @@
     <filter-class>
       com.google.apphosting.utils.servlet.ParseBlobUploadFilter
     </filter-class>
+    <async-supported>true</async-supported>
   </filter>
 
   <filter-mapping>
@@ -78,6 +81,7 @@
   <filter>
     <filter-name>_ah_VmStopFilter</filter-name>
     <filter-class>com.google.apphosting.utils.servlet.VmStopFilter</filter-class>
+    <async-supported>true</async-supported>
   </filter>
 
   <filter-mapping>

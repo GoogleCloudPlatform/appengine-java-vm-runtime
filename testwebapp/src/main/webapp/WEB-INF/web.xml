@@ -151,6 +151,12 @@
     <servlet-class>com.google.apphosting.tests.usercode.testservlets.ErrorGenerationServlet</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>test-async</servlet-name>
+    <servlet-class>com.google.apphosting.tests.usercode.testservlets.AsyncServlet</servlet-class>
+    <async-supported>true</async-supported>
+    <load-on-startup>0</load-on-startup>
+  </servlet>
+  <servlet>
     <servlet-name>test-auth</servlet-name>
     <servlet-class>com.google.apphosting.tests.usercode.testservlets.AuthServlet</servlet-class>
   </servlet>
@@ -530,6 +536,10 @@
   <servlet-mapping>
     <servlet-name>error-generation</servlet-name>
     <url-pattern>/error-generation</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>test-async</servlet-name>
+    <url-pattern>/test-async</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>test-auth</servlet-name>

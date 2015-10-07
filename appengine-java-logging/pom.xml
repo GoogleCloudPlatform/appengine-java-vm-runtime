@@ -24,43 +24,22 @@
     <version>1.9.26-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Image for OpenJDK</name>
-  <artifactId>gce-debian-openjdk</artifactId>
-  <packaging>pom</packaging>
+  <name>Google App Engine Logging Support</name>
+  <artifactId>appengine-java-logging</artifactId>
+  <packaging>jar</packaging>
+  <description>Support code for writing log files compatible with Google App Engine</description>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>build</id>
-            <phase>package</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-            <configuration>
-              <imageName>gce-debian-openjdk:8-jre</imageName>
-              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
-            </configuration>
-          </execution>
-	  <execution>
-	    <id>clean-docker</id>
-	    <phase>clean</phase>
-	    <goals>
-	      <goal>removeImage</goal>
-	    </goals>
-	    <configuration>
-	      <imageName>gce-debian-openjdk</imageName>
-	      <imageTags>
-	        <imageTag>8-jre</imageTag>
-	      </imageTags> 
-	    </configuration>
-	  </execution> 
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
 </project>
-

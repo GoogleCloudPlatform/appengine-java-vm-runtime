@@ -113,26 +113,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals(1, lines.length);
     assertEquals("ok", lines[0].trim());
   }
-
-    public void testAsyncRequests_WaitUntilDone() throws Exception {
-    long sleepTime = 2000;
-    FakeableVmApiProxyDelegate fakeApiProxy = new FakeableVmApiProxyDelegate();
-    ApiProxy.setDelegate(fakeApiProxy);
-    HttpClient httpClient = new HttpClient();
-    httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
-    GetMethod get = new GetMethod(createUrl("/sleep").toString());
-    get.addRequestHeader("Use-Async-Sleep-Api", "true");
-    get.addRequestHeader("Sleep-Time", Long.toString(sleepTime));
-    long startTime = System.currentTimeMillis();
-    int httpCode = httpClient.executeMethod(get);
-    assertEquals(200, httpCode);
-    Header vmApiWaitTime = get.getResponseHeader(VmRuntimeUtils.ASYNC_API_WAIT_HEADER);
-    assertNotNull(vmApiWaitTime);
-    assertTrue(Integer.parseInt(vmApiWaitTime.getValue()) > 0);
-    long elapsed = System.currentTimeMillis() - startTime;
-    assertTrue(elapsed >= sleepTime);
-  }
-
+  
   /**
    * Test that all AppEngine specific system properties are set up when the
    * VmRuntimeFilter is initialized.

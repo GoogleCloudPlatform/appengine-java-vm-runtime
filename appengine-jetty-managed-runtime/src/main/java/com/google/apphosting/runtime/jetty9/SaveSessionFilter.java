@@ -21,6 +21,8 @@ import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 
 import java.io.IOException;
 
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -35,6 +37,7 @@ import javax.servlet.http.HttpSession;
  * persistent storage after each request completes.
  *
  */
+// TODO this filter should not be needed
 public class SaveSessionFilter implements Filter {
 
   @Override
@@ -52,9 +55,35 @@ public class SaveSessionFilter implements Filter {
     } finally {
       HttpSession session = httpReq.getSession(false);
       if (session instanceof AppEngineSession) {
-        AppEngineSession aeSession = (AppEngineSession) session;
-        if (aeSession.isDirty()) {
-          aeSession.save();
+        final AppEngineSession aeSession = (AppEngineSession) session;
+        
+        if (req.isAsyncStarted())
+        {
+          req.getAsyncContext().addListener(new AsyncListener() {
+            
+            @Override
+            public void onTimeout(AsyncEvent event) throws IOException {              
+            }
+            
+            @Override
+            public void onStartAsync(AsyncEvent event) throws IOException {              
+            }
+            
+            @Override
+            public void onError(AsyncEvent event) throws IOException {  
+            }
+            
+            @Override
+            public void onComplete(AsyncEvent event) throws IOException {  
+              if (aeSession.isDirty()) {
+                aeSession.save();
+              }            
+            }
+          });
+        } else {
+          if (aeSession.isDirty()) {
+            aeSession.save();
+          }
         }
       }
     }

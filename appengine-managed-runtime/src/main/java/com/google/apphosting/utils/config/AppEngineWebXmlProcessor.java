@@ -29,6 +29,7 @@ import com.google.apphosting.utils.config.AppEngineWebXml.Network;
 import com.google.apphosting.utils.config.AppEngineWebXml.Pagespeed;
 import com.google.apphosting.utils.config.AppEngineWebXml.PrioritySpecifierEntry;
 import com.google.apphosting.utils.config.AppEngineWebXml.Resources;
+import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -428,6 +429,10 @@ class AppEngineWebXmlProcessor {
       Element subNode = nodeIter.next();
       String propertyName = trim(subNode.getAttribute("name"));
       String propertyValue = trim(subNode.getAttribute("value"));
+      
+      if (VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY.equals(propertyName) && System.getProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY)!=null)
+        propertyValue = System.getProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+      
       appEngineWebXml.addSystemProperty(propertyName, propertyValue);
     }
   }
