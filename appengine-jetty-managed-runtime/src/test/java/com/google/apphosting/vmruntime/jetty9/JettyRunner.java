@@ -43,6 +43,8 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
+import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
+
 class JettyRunner implements Runnable {
 
   private File logs;
@@ -83,8 +85,14 @@ class JettyRunner implements Runnable {
     try
     {
       // find projectDir
-      File project = new File("../../..").getAbsoluteFile();
+      File project = new File(".").getAbsoluteFile().getCanonicalFile();
       File target = new File(project,"target");
+      while(!target.exists())
+      {
+        project=project.getParentFile();
+        target = new File(project,"target");
+      }
+      
       Assert.assertTrue(target.toString(),target.isDirectory());
       logs=new File(target,"logs");
       logs.delete();
@@ -163,6 +171,9 @@ class JettyRunner implements Runnable {
 
       // find the sibling testwebapp target
       File webAppLocation = new File(target, "webapps/testwebapp");
+      
+      File logging = new File(webAppLocation,"WEB-INF/logging.properties").getCanonicalFile().getAbsoluteFile();
+      System.setProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY,logging.toPath().toString());
 
       Assert.assertTrue(webAppLocation.toString(),webAppLocation.isDirectory());
       
@@ -178,7 +189,7 @@ class JettyRunner implements Runnable {
       // start and join
       server.start();
       
-    } catch (Exception e) {
+    } catch (Throwable e) {
       e.printStackTrace();
     }
     finally

@@ -231,7 +231,7 @@ public class VmRuntimeWebAppContext
       AppEngineWebXmlReader appEngineWebXmlReader
               = new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
-   }
+    }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();

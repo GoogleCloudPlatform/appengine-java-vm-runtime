@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 // See //j/c/g/apphosting/runtime/security/shared/intercept/java/util/logging/DefaultHandler.java
 public class VmRuntimeLogHandler extends Handler {
   
-  static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
+  public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
 
   private static final Logger ROOT_LOGGER = Logger.getLogger("");
 
@@ -54,7 +54,8 @@ public class VmRuntimeLogHandler extends Handler {
    * Reloads logging to pick up changes to the java.util.logging.config.file system property.
    */
   private static void reloadLoggingProperties(LogManager logManager) {
-    if (System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY) == null) {
+    String logging=System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+    if (logging == null) {
       return;
     }
     try {
