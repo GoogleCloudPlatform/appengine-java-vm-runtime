@@ -28,8 +28,33 @@
   <artifactId>gce-debian-openjdk</artifactId>
   <packaging>pom</packaging>
 
+  <properties>
+    <alpn.version>8.1.5.v20150921</alpn.version>
+  </properties>
+
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>generate-docker</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+	        <copy todir="${project.build.directory}/generated-sources/docker">
+		  <fileset dir="${project.basedir}/src/main/docker"/>
+		</copy>
+		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@alpn.version@@" value="${alpn.version}"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
@@ -42,7 +67,7 @@
             </goals>
             <configuration>
               <imageName>gce-debian-openjdk:8-jre</imageName>
-              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+              <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>
@@ -63,4 +88,3 @@
     </plugins>
   </build>
 </project>
-
