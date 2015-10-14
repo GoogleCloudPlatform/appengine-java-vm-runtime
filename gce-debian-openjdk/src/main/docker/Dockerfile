@@ -32,8 +32,12 @@ rm /var/lib/apt/lists/*_*
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
 # Add the cloud debugger and profiler libraries
-ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /home/vmagent/cdbg/
-ADD https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz /home/vmagent/cprof/
-RUN tar Cxfvz /home/vmagent/cdbg /home/vmagent/cdbg/cdbg_java_agent.tar.gz \
- && tar Cxfvz /home/vmagent/cprof /home/vmagent/cprof/cloud_profiler_java_agent.tar.gz \
- && rm /home/vmagent/cdbg/cdbg_java_agent.tar.gz /home/vmagent/cprof/cloud_profiler_java_agent.tar.gz
+ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/
+ADD https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz /opt/cprof/
+ADD ./alpn /opt/alpn
+ADD http://central.maven.org/maven2/org/mortbay/jetty/alpn/alpn-boot/@@alpn.version@@/alpn-boot-@@alpn.version@@.jar /opt/alpn/
+RUN tar Cxfvz /opt/cdbg /opt/cdbg/cdbg_java_agent.tar.gz --no-same-owner \
+ && tar Cxfvz /opt/cprof /opt/cprof/cloud_profiler_java_agent.tar.gz --no-same-owner \
+ && rm /opt/cdbg/cdbg_java_agent.tar.gz /opt/cprof/cloud_profiler_java_agent.tar.gz \
+ && ln -s /opt/alpn/alpn-boot-8.1.5.v20150921.jar /opt/alpn/alpn-boot.jar \
+ && chmod +x /opt/alpn/format-env-appengine-vm.sh

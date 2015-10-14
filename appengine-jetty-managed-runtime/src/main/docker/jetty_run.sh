@@ -17,6 +17,11 @@ HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
   print int($2/1024*frac-res) "M" } ' /proc/meminfo)
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"
 
+ALPN_BOOT=
+if [[ -n "$ALPN_ENABLE" ]]; then
+  ALPN_BOOT="$( /opt/alpn/format-env-appengine-vm.sh )"
+fi
+
 DBG_AGENT=
 if [[ "$GAE_PARTITION" = "dev" ]]; then
   if [[ -n "$DBG_ENABLE" ]]; then
@@ -25,12 +30,12 @@ if [[ "$GAE_PARTITION" = "dev" ]]; then
     DBG_AGENT="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT}"
   fi
 else
-  DBG_AGENT="$( /home/vmagent/cdbg/format-env-appengine-vm.sh )"
+  DBG_AGENT="$( /opt/cdbg/format-env-appengine-vm.sh )"
 fi
 
 PROF_AGENT=
 if [[ -n "${CPROF_ENABLE}" ]]; then
-  PROF_AGENT="$( /home/vmagent/cprof/format-env-appengine-vm.sh )"
+  PROF_AGENT="$( /opt/cprof/format-env-appengine-vm.sh )"
 fi
 
 # use generated fast cli:
