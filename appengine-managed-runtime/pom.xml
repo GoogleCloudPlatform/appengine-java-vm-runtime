@@ -68,7 +68,7 @@
 
     <dependency>
       <groupId>com.google.appengine</groupId>
-      <artifactId>gce-jetty</artifactId>
+      <artifactId>gke-jetty</artifactId>
       <version>1.9.26-SNAPSHOT</version>
       <type>pom</type>
     </dependency>
