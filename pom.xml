@@ -32,7 +32,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <jetty.version>9.3.2.v20150730</jetty.version>
+    <jetty.version>9.3.5.v20151012</jetty.version>
     <appengine.api.version>1.9.25</appengine.api.version>
   </properties>
 
