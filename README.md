@@ -11,8 +11,8 @@ instance:
       mvn clean install
 
 This will create the following docker images:
- * gce-debian-openjdk:8-jre
- * gce-jetty:9.3.x
+ * gke-debian-openjdk:8-jre
+ * gke-jetty:9.3.x
  * appengine-mvn-opensource:1.9.x
 
 The last of these images may be used as the basis for a Java Web Application Archive: put a Dockerfile at the top directory (for example, with a Maven build, create the Dockerfile in ./src/main/webapp directory) and from this Docker image, just add your Web Application content into the /app of the container.

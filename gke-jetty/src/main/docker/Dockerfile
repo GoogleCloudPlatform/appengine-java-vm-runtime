@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gce-debian-openjdk:8-jre 
+FROM gke-debian-openjdk:8-jre 
 
 # create jetty group and user
 RUN groupadd -r jetty \
@@ -29,7 +29,7 @@ RUN mv /usr/local/jetty-distribution-* $JETTY_HOME \
 ENV JETTY_BASE /var/lib/jetty
 RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
-ADD gce-alpn.mod modules/
+ADD gke-alpn.mod modules/
 RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
