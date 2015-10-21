@@ -24,37 +24,48 @@
     <version>1.9.26-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Image for OpenJDK</name>
-  <artifactId>gce-debian-openjdk</artifactId>
+  <name>Google App Engine Image Jetty</name>
+  <artifactId>gke-jetty</artifactId>
   <packaging>pom</packaging>
 
-  <properties>
-    <alpn.version>8.1.5.v20150921</alpn.version>
-  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>gke-debian-openjdk</artifactId>
+      <version>1.9.26-SNAPSHOT</version>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
+        <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>generate-docker</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-	        <copy todir="${project.build.directory}/generated-sources/docker">
-		  <fileset dir="${project.basedir}/src/main/docker"/>
-		</copy>
-		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@alpn.version@@" value="${alpn.version}"/>
-              </target>
-            </configuration>
+            <id>copy</id>
+            <phase>package</phase>
             <goals>
-              <goal>run</goal>
+              <goal>copy</goal>
             </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.eclipse.jetty</groupId>
+                  <artifactId>jetty-distribution</artifactId>
+                  <version>${jetty.version}</version>
+                  <type>tar.gz</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                  <destFileName>jetty-distribution.tar.gz</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
@@ -66,8 +77,8 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>gce-debian-openjdk:8-jre</imageName>
-              <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
+              <imageName>gke-jetty:${jetty.version}</imageName>
+              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>
@@ -77,14 +88,15 @@
 	      <goal>removeImage</goal>
 	    </goals>
 	    <configuration>
-	      <imageName>gce-debian-openjdk</imageName>
+	      <imageName>gke-jetty</imageName>
 	      <imageTags>
-	        <imageTag>8-jre</imageTag>
+	        <imageTag>${jetty.version}</imageTag>
 	      </imageTags> 
 	    </configuration>
-	  </execution> 
+          </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
 </project>
+
