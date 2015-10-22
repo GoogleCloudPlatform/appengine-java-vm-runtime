@@ -29,7 +29,7 @@ if ! type "$1" &>/dev/null; then
     SET_TMP="-Djava.io.tmpdir=$TMPDIR"
   fi
 
-  set -- java $ALPN_BOOT $DBG_AGENT $PROF_AGENT $SET_TMP "-Djetty.base=$JETTY_BASE" -jar "$JETTY_HOME/start.jar" "$@"
+  set -- java $ALPN_BOOT $DBG_AGENT $PROF_AGENT $SET_TMP "$@"
 fi
 
 exec "$@"
