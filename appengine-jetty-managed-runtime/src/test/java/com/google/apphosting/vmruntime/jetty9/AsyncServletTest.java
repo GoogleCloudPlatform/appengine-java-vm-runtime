@@ -44,7 +44,7 @@ public class AsyncServletTest extends VmRuntimeTestBase{
     String postData = "Now is the winter of our discontent\n";
 
     HttpClient httpClient = new HttpClient();
-    httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
+    httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(300000);
     PostMethod post = new PostMethod(createUrl("/test-async").toString());
     post.addRequestHeader("Content-Type", "text/plain");
     post.setRequestEntity(new RequestEntity() {

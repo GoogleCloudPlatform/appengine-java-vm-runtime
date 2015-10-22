@@ -42,8 +42,7 @@ public class AsyncServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    if (req.getDispatcherType()==DispatcherType.REQUEST)
-    {
+    if (req.getDispatcherType()==DispatcherType.REQUEST) {
       // #1A POST request dispatched
       order.clear();
       order.add(Env.CONSTRUCT);
@@ -66,8 +65,7 @@ public class AsyncServlet extends HttpServlet {
           if (!order.contains(Env.ON_DATA_AVAILABLE))
             order.add(Env.ON_DATA_AVAILABLE);
           environment.put(Env.ON_DATA_AVAILABLE,ApiProxy.getCurrentEnvironment());
-          while(in.isReady())
-          {
+          while(in.isReady()) {
             if (in.read()<0)
               break;
           }
@@ -91,8 +89,7 @@ public class AsyncServlet extends HttpServlet {
 
     final AsyncContext async = req.startAsync();
     
-    if (req.getDispatcherType()==DispatcherType.REQUEST)
-    {
+    if (req.getDispatcherType()==DispatcherType.REQUEST) {
       // #1A GET Request Dispatch
       order.clear();
       order.add(Env.CONSTRUCT);
@@ -180,7 +177,6 @@ public class AsyncServlet extends HttpServlet {
         }
       });
     }  
-
   }
 
 

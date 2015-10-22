@@ -43,9 +43,10 @@ import com.google.apphosting.vmruntime.VmTimer;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.util.log.AbstractLogger;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -56,10 +57,9 @@ import java.util.List;
 
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -67,6 +67,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class VmRuntimeWebAppContext
   extends WebAppContext implements VmRuntimeTrustedAddressChecker {
+
+  private static final Logger LOG = Log.getLogger(VmRuntimeWebAppContext.class);
 
   // It's undesirable to have the user app override classes provided by us.
   // So we mark them as Jetty system classes, which cannot be overridden.
@@ -140,6 +142,9 @@ public class VmRuntimeWebAppContext
     if (qswebxml.exists()) {
       setConfigurationClasses(quickstartConfigurationClasses);
     }
+    
+    addEventListener(new ContextListener());
+    
     super.doStart();
   }
   /**
@@ -255,68 +260,6 @@ public class VmRuntimeWebAppContext
     return VmRequestUtils.isTrustedRemoteAddr(isDevMode, remoteAddr);
   }
 
-  /**
-
-   * Overrides doScope from ScopedHandler.
-   *
-   *  Configures a thread local environment before the request is forwarded on to be handled by the
-   * SessionHandler, SecurityHandler, and ServletHandler in turn. The environment is required for
-   * AppEngine APIs to function. A request specific environment is required since some information
-   * is encoded in request headers on the request (for example current user).
-   */
-  @Override
-  public final void doScope(
-      String target, Request baseRequest, HttpServletRequest httpServletRequest ,
-      HttpServletResponse httpServletResponse)
-      throws IOException, ServletException {
-
-    // For JSP Includes do standard processing, everything else has been done
-    // in the main request before the include.
-    if (DispatcherType.INCLUDE.equals(httpServletRequest.getDispatcherType())
-        || DispatcherType.FORWARD.equals(httpServletRequest.getDispatcherType())) {
-      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
-      return;
-    }
-    
-    // Find or create a Request specific context
-    RequestContext requestContext = getRequestContext(baseRequest);
-    
-    try {
-      // Enter the request environment
-      requestContext.enter();
-      
-      // Check for SkipAdminCheck and set attributes accordingly.
-      VmRuntimeUtils.handleSkipAdminCheck(requestContext);
-      
-      // Change scheme to HTTPS based on headers set by the appserver.
-      setSchemeAndPort(baseRequest);
-      // Forward the request to the rest of the handlers.
-      super.doScope(target, baseRequest, httpServletRequest, httpServletResponse);
-      
-    } finally {
-      // Exit the request environment
-      requestContext.exitDispatch();
-    }
-  }
-
-  @Override
-  public void handle(Request baseRequest, Runnable runnable) {
-    // TODO Use pluggable ContextHandler.ContextScopeListener rather than override for this
-    RequestContext requestContext = baseRequest==null?null:(RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
-    
-    // If we have a requestContext enter/exit it 
-    if (requestContext==null) {
-      super.handle(baseRequest,runnable);
-    } else {
-      try {
-        requestContext.enter();
-        super.handle(baseRequest,runnable);
-      }finally{
-        requestContext.exit();
-      }
-    }
-  }
-
   public RequestContext getRequestContext(Request baseRequest) {
     RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
     if (requestContext==null) {
@@ -339,60 +282,75 @@ public class VmRuntimeWebAppContext
     }
   }
   
-  private class RequestContext extends HttpServletRequestAdapter implements AsyncListener { 
-    private final Request request;
+  private class RequestContext extends HttpServletRequestAdapter { 
     private final VmApiProxyEnvironment requestSpecificEnvironment;
     
     RequestContext(Request request) {
       super(request);
-
-      this.request=request;
-
       this.requestSpecificEnvironment=
       VmApiProxyEnvironment.createFromHeaders(
           System.getenv(), metadataCache, this, VmRuntimeUtils.getApiServerAddress(),
           wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
     }
-    
-    public void enter() {    
-      ApiProxy.setEnvironmentForCurrentThread(getRequestSpecificEnvironment());
-    }
-
-    public void exitDispatch() {
-      try {
-        if (request.isAsyncStarted())
-          request.getAsyncContext().addListener(this);
-        else
-          onComplete(null);
-      } finally {
-        exit();
-      }
-    }
-    
-    public void exit() {
-        ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
-    }
 
     VmApiProxyEnvironment getRequestSpecificEnvironment() {
       return requestSpecificEnvironment;
     }
-    
+  }
+  
+  private class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
-    public void onComplete(AsyncEvent event) {
-      // TODO is the interrupting and waiting still needed?
-      // Interrupt any remaining request threads
-      VmRuntimeUtils.interruptRequestThreads(
-          requestSpecificEnvironment, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-      requestSpecificEnvironment.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+    public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
+      RequestContext requestContext = getRequestContext(baseRequest);
+      if (LOG.isDebugEnabled())
+        LOG.debug("Enter {} -> {}",ApiProxy.getCurrentEnvironment(),requestContext.getRequestSpecificEnvironment());
+      ApiProxy.setEnvironmentForCurrentThread(requestContext.getRequestSpecificEnvironment());      
     }
 
     @Override
-    public void onTimeout(AsyncEvent event) {}
+    public void requestInitialized(ServletRequestEvent sre) {
+      ServletRequest request = sre.getServletRequest();
+      Request baseRequest = Request.getBaseRequest(request);
+      RequestContext requestContext = getRequestContext(baseRequest);
+      
+      // Check for SkipAdminCheck and set attributes accordingly.
+      VmRuntimeUtils.handleSkipAdminCheck(requestContext);
 
+      // Change scheme to HTTPS based on headers set by the appserver.
+      setSchemeAndPort(baseRequest);
+    }
+    
     @Override
-    public void onError(AsyncEvent event)  {}
-
+    public void requestDestroyed(ServletRequestEvent sre) {      
+      ServletRequest request = sre.getServletRequest();
+      Request baseRequest = Request.getBaseRequest(request);
+      RequestContext requestContext = getRequestContext(baseRequest);
+      VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
+      
+      // TODO is this interrupting and waiting still needed?
+      if (request.isAsyncStarted()) {
+        request.getAsyncContext().addListener(new AsyncListener() {
+          @Override public void onTimeout(AsyncEvent event) throws IOException {}
+          @Override public void onStartAsync(AsyncEvent event) throws IOException {}
+          @Override public void onError(AsyncEvent event) throws IOException {}
+          
+          @Override
+          public void onComplete(AsyncEvent event) throws IOException {
+            VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+            env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+          }
+        });
+      } else {            
+        VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+        env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+      }
+    }
+    
     @Override
-    public void onStartAsync(AsyncEvent event) {}
+    public void exitScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest) {
+      if (LOG.isDebugEnabled())
+        LOG.debug("Exit {} -> {}",ApiProxy.getCurrentEnvironment(),defaultEnvironment);
+      ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
+    }
   }
 }
