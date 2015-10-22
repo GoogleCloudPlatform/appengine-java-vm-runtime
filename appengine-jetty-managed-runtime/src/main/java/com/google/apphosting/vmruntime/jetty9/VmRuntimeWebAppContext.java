@@ -277,7 +277,6 @@ public class VmRuntimeWebAppContext
   public class VmRuntimeServletContext extends Context {
     @Override
     public ClassLoader getClassLoader() {
-      super.getClassLoader();
       return VmRuntimeWebAppContext.this.getClassLoader();
     }
   }
