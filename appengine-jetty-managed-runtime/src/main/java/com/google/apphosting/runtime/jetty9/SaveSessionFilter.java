@@ -60,19 +60,9 @@ public class SaveSessionFilter implements Filter {
         if (req.isAsyncStarted())
         {
           req.getAsyncContext().addListener(new AsyncListener() {
-            
-            @Override
-            public void onTimeout(AsyncEvent event) throws IOException {              
-            }
-            
-            @Override
-            public void onStartAsync(AsyncEvent event) throws IOException {              
-            }
-            
-            @Override
-            public void onError(AsyncEvent event) throws IOException {  
-            }
-            
+            @Override public void onTimeout(AsyncEvent event) throws IOException {}
+            @Override public void onStartAsync(AsyncEvent event) throws IOException {}
+            @Override public void onError(AsyncEvent event) throws IOException {}
             @Override
             public void onComplete(AsyncEvent event) throws IOException {  
               if (aeSession.isDirty()) {

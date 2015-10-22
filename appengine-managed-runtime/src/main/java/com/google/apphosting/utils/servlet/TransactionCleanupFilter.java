@@ -62,15 +62,9 @@ public class TransactionCleanupFilter implements Filter {
       if (request.isAsyncStarted())
       {
         request.getAsyncContext().addListener(new AsyncListener() {
-          @Override
-          public void onTimeout(AsyncEvent arg0) throws IOException {
-          }
-          @Override
-          public void onStartAsync(AsyncEvent arg0) throws IOException {
-          }
-          @Override
-          public void onError(AsyncEvent arg0) throws IOException {
-          }
+          @Override public void onTimeout(AsyncEvent event) throws IOException {}
+          @Override public void onStartAsync(AsyncEvent event) throws IOException {}
+          @Override public void onError(AsyncEvent event) throws IOException {}
           @Override
           public void onComplete(AsyncEvent arg0) throws IOException {
             Collection<Transaction> txns = datastoreService.getActiveTransactions();
