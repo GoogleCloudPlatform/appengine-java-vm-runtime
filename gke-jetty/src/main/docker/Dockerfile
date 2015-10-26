@@ -21,6 +21,7 @@ RUN groupadd -r jetty \
 # Create Jetty Home
 ENV JETTY_HOME /usr/local/jetty
 ENV PATH $JETTY_HOME/bin:$PATH
+ENV TMPDIR /tmp/jetty
 ADD jetty-distribution.tar.gz /usr/local/
 RUN mv /usr/local/jetty-distribution-* $JETTY_HOME \
  && chown -R jetty:jetty $JETTY_HOME
@@ -40,5 +41,4 @@ COPY docker-entrypoint.bash /
 RUN chmod +x /docker-entrypoint.bash
 
 EXPOSE 8080
-ENTRYPOINT ["/docker-entrypoint.bash"]
-CMD ["java","-Djava.io.tmpdir=/tmp/jetty","-Djetty.base=/var/lib/jetty","-jar","/usr/local/jetty/start.jar"]
+CMD ["java","-Djetty.base=/var/lib/jetty","-jar","/usr/local/jetty/start.jar"]
