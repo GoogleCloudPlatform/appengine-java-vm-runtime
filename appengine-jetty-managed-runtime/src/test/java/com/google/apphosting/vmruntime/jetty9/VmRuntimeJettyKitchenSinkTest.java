@@ -22,9 +22,13 @@ import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.PROJECT;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.VERSION;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
@@ -201,4 +205,24 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
   }
+  
+  protected int fetchResponseCode(URL url) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.connect();
+    return connection.getResponseCode();
+  }
+  
+  public void testShutDown() throws Exception {
+
+    int code = fetchResponseCode(createUrl("/_ah/health"));
+    assertEquals(HttpServletResponse.SC_OK, code);
+
+    // Send a request to /_ah/stop to trigger lameduck.
+    String[] lines = fetchUrl(createUrl("/_ah/stop"));
+    assertEquals(1, lines.length);
+    assertEquals("ok", lines[0].trim());
+
+    code = fetchResponseCode(createUrl("/_ah/health"));
+    assertEquals(HttpServletResponse.SC_BAD_GATEWAY, code);
+  } 
 }
