@@ -17,6 +17,18 @@
 
 package com.google.apphosting.vmruntime;
 
+import com.google.appengine.api.appidentity.AppIdentityServiceFailureException;
+import com.google.appengine.api.blobstore.BlobstoreFailureException;
+import com.google.appengine.api.channel.ChannelFailureException;
+import com.google.appengine.api.datastore.DatastoreFailureException;
+import com.google.appengine.api.images.ImagesServiceFailureException;
+import com.google.appengine.api.log.LogServiceException;
+import com.google.appengine.api.memcache.MemcacheServiceException;
+import com.google.appengine.api.modules.ModulesException;
+import com.google.appengine.api.search.SearchException;
+import com.google.appengine.api.taskqueue.TransientFailureException;
+import com.google.appengine.api.users.UserServiceFailureException;
+import com.google.appengine.api.xmpp.XMPPFailureException;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
@@ -44,6 +56,7 @@ import org.apache.http.protocol.BasicHttpContext;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -179,12 +192,63 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     } catch (IOException e) {
       logger.info(
           "HTTP ApiProxy I/O error for " + packageName + "." + methodName + ": " + e.getMessage());
-      throw new RPCFailedException(packageName, methodName);
+      throw constructApiException(packageName, methodName);
     } finally {
       request.releaseConnection();
     }
   }
 
+  // TODO(ludo) remove when the correct exceptions have public constructor.
+  private RuntimeException constructException(
+      String exceptionClassName, String message, String packageName, String methodName) {
+    try {
+      Class<?> c = Class.forName(exceptionClassName);
+      Constructor<?> constructor = c.getDeclaredConstructor(String.class);
+      constructor.setAccessible(true);
+      return (RuntimeException) constructor.newInstance(message);
+    } catch (Exception e) {
+      return new RPCFailedException(packageName, methodName);
+    }
+  }
+
+  RuntimeException constructApiException(String packageName, String methodName) {
+    String message = "RCP Failure for API call: " + packageName + " " + methodName;
+
+    switch (packageName) {
+      case "taskqueue":
+        return new TransientFailureException(message);
+      case "app_identity_service":
+        return new AppIdentityServiceFailureException(message);
+      case "blobstore":
+        return new BlobstoreFailureException(message);
+      case "channel":
+        return new ChannelFailureException(message);
+      case "images":
+        return new ImagesServiceFailureException(message);
+      case "logservice":
+        return constructException(
+            LogServiceException.class.getName(), message, packageName, methodName);
+      case "memcache":
+        return new MemcacheServiceException(message);
+      case "modules":
+        return constructException(
+            ModulesException.class.getName(), message, packageName, methodName);
+      case "search":
+        return new SearchException(message);
+      case "user":
+        return new UserServiceFailureException(message);
+      case "xmpp":
+        return new XMPPFailureException(message);
+      default:
+
+        // Cover all datastore versions:
+        if (packageName.startsWith("datastore")) {
+          return new DatastoreFailureException(message);
+        } else {
+          return new RPCFailedException(packageName, methodName);
+        }
+    }
+  }
   /**
    * Create an HTTP post request suitable for sending to the API server.
    *
