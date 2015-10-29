@@ -3,6 +3,7 @@
 #
 
 [depend]
+resources
 http
 annotations
 plus

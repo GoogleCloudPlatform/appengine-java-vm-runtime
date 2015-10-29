@@ -16,6 +16,9 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
@@ -24,6 +27,7 @@ import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
 import com.google.apphosting.runtime.jetty9.SessionManager;
+import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.config.AppEngineConfigException;
 import com.google.apphosting.utils.config.AppEngineWebXml;
@@ -39,7 +43,6 @@ import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
-
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
@@ -53,6 +56,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.AsyncEvent;
@@ -60,6 +64,7 @@ import javax.servlet.AsyncListener;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
+import javax.servlet.http.HttpSession;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -87,7 +92,9 @@ public class VmRuntimeWebAppContext
 
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
-  private VmApiProxyEnvironment defaultEnvironment;
+  private VmApiProxyEnvironment defaultEnvironment;  
+  private DatastoreService datastoreService;
+
   // Indicates if the context is running via the Cloud SDK, or the real runtime.
   
   boolean isDevMode;
@@ -143,10 +150,21 @@ public class VmRuntimeWebAppContext
       setConfigurationClasses(quickstartConfigurationClasses);
     }
     
+    datastoreService = getDatastoreService();
+    
     addEventListener(new ContextListener());
     
     super.doStart();
   }
+  
+
+  /**
+   * Broken out to facilitate testing.
+   */
+  DatastoreService getDatastoreService() {
+    return DatastoreServiceFactory.getDatastoreService();
+  }
+  
   /**
    * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
    *
@@ -188,7 +206,7 @@ public class VmRuntimeWebAppContext
    */
   public VmRuntimeWebAppContext() {
     setServerInfo(VmRuntimeUtils.getServerInfo());
-    setLogger(Log.getLogger(VmRuntimeWebAppContext.class.toString()+"#"+Integer.toHexString(hashCode())));
+    setLogger(LOG.getLogger("webapp"));
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
     // (via the UserService). Only the default ConstraintSecurityHandler is supported.
@@ -270,18 +288,7 @@ public class VmRuntimeWebAppContext
     return requestContext;
   }
 
-  /**
-   * ServletContext for VmRuntime applications.
-   * TODO is this still needed? If no securityManager super.getClassLoader() is equivalent
-   */
-  public class VmRuntimeServletContext extends Context {
-    @Override
-    public ClassLoader getClassLoader() {
-      return VmRuntimeWebAppContext.this.getClassLoader();
-    }
-  }
-  
-  private class RequestContext extends HttpServletRequestAdapter { 
+  class RequestContext extends HttpServletRequestAdapter { 
     private final VmApiProxyEnvironment requestSpecificEnvironment;
     
     RequestContext(Request request) {
@@ -297,7 +304,7 @@ public class VmRuntimeWebAppContext
     }
   }
   
-  private class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
+  class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
@@ -323,10 +330,7 @@ public class VmRuntimeWebAppContext
     public void requestDestroyed(ServletRequestEvent sre) {      
       ServletRequest request = sre.getServletRequest();
       Request baseRequest = Request.getBaseRequest(request);
-      RequestContext requestContext = getRequestContext(baseRequest);
-      VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
       
-      // TODO is this interrupting and waiting still needed?
       if (request.isAsyncStarted()) {
         request.getAsyncContext().addListener(new AsyncListener() {
           @Override public void onTimeout(AsyncEvent event) throws IOException {}
@@ -335,13 +339,11 @@ public class VmRuntimeWebAppContext
           
           @Override
           public void onComplete(AsyncEvent event) throws IOException {
-            VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-            env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+            complete(baseRequest);
           }
         });
-      } else {            
-        VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
-        env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+      } else {         
+        complete(baseRequest);  
       }
     }
     
@@ -350,6 +352,48 @@ public class VmRuntimeWebAppContext
       if (LOG.isDebugEnabled())
         LOG.debug("Exit {} -> {}",ApiProxy.getCurrentEnvironment(),defaultEnvironment);
       ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
+    }
+    
+    private void complete(Request baseRequest)
+    {
+      RequestContext requestContext = getRequestContext(baseRequest);
+      VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
+
+      // Transaction Cleanup 
+      Collection<Transaction> txns = datastoreService.getActiveTransactions();
+      if (!txns.isEmpty()) {
+        handleAbandonedTxns(txns);
+      }
+     
+      // Save dirty sessions
+      HttpSession session = baseRequest.getSession(false);
+      if (session instanceof AppEngineSession) {
+        final AppEngineSession aeSession = (AppEngineSession) session;
+              if (aeSession.isDirty())
+                aeSession.save();
+      }
+
+      // Interrupt all API calls
+      VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+      env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
+      
+    }
+
+    void handleAbandonedTxns(Collection<Transaction> txns) {
+      // TODO(user): In the dev appserver, capture a stack trace whenever a
+      // transaction is started so we can print it here.
+      for (Transaction txn : txns) {
+        try {
+          LOG.warn("Request completed without committing or rolling back transaction with id "
+              + txn.getId() + ".  Transaction will be rolled back.");
+          txn.rollback();
+        } catch (Exception e) {
+          // We swallow exceptions so that there is no risk of our cleanup
+          // impacting the actual result of the request.
+          LOG.warn("Swallowing an exception we received while trying to rollback "
+              + "abandoned transaction with id " + txn.getId(), e);
+        }
+      }
     }
   }
 }

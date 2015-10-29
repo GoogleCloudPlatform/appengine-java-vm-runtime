@@ -17,27 +17,19 @@
 
 package com.google.apphosting.runtime.jetty9;
 
-import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
-
 import java.io.IOException;
 
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 /**
- * {@code SaveSessionFilter} flushes a {@link AppEngineSession} to
- * persistent storage after each request completes.
+ * @deprecated Functionality moved to {@link VmRuntimeWebAppContext}
  *
  */
-// TODO this filter should not be needed
 public class SaveSessionFilter implements Filter {
 
   @Override
@@ -48,35 +40,7 @@ public class SaveSessionFilter implements Filter {
   @Override
   public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
       throws IOException, ServletException {
-    HttpServletRequest httpReq = (HttpServletRequest) req;
-
-    try {
-      chain.doFilter(req, resp);
-    } finally {
-      HttpSession session = httpReq.getSession(false);
-      if (session instanceof AppEngineSession) {
-        final AppEngineSession aeSession = (AppEngineSession) session;
-        
-        if (req.isAsyncStarted())
-        {
-          req.getAsyncContext().addListener(new AsyncListener() {
-            @Override public void onTimeout(AsyncEvent event) throws IOException {}
-            @Override public void onStartAsync(AsyncEvent event) throws IOException {}
-            @Override public void onError(AsyncEvent event) throws IOException {}
-            @Override
-            public void onComplete(AsyncEvent event) throws IOException {  
-              if (aeSession.isDirty()) {
-                aeSession.save();
-              }            
-            }
-          });
-        } else {
-          if (aeSession.isDirty()) {
-            aeSession.save();
-          }
-        }
-      }
-    }
+    chain.doFilter(req, resp);
   }
 
   @Override

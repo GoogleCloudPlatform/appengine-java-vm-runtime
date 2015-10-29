@@ -16,17 +16,20 @@
 FROM gcr.io/google_appengine_qa/debian
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN \
-echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list && \
-apt-get -q update && \
-apt-get -y -q --no-install-recommends install \
-  ca-certificates \
-  openjdk-8-jre \
-  netbase \
-  wget \
-&& \
-apt-get clean && \
-rm /var/lib/apt/lists/*_*
+# Update debian 
+RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
+ && apt-get -q update \
+ && apt-get -y -q --no-install-recommends install \
+    ca-certificates \
+    openjdk-8-jre \
+    netbase \
+    wget \
+ && wget http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.0.0_1.0.2d-1_amd64.deb \
+         http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2d-1_amd64.deb \
+ && dpkg -i openssl_1.0.2d-1_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
+ && rm openssl_1.0.2d-1_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
+ && apt-get clean \
+ && rm /var/lib/apt/lists/*_*
 
 # workaround for https://bugs.debian.org/775775
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
