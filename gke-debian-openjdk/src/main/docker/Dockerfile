@@ -25,9 +25,9 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
     netbase \
     wget \
  && wget http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.0.0_1.0.2d-1_amd64.deb \
-         http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2d-1_amd64.deb \
- && dpkg -i openssl_1.0.2d-1_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
- && rm openssl_1.0.2d-1_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
+         http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2d-3_amd64.deb \
+ && dpkg -i openssl_1.0.2d-3_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
+ && rm openssl_1.0.2d-3_amd64.deb libssl1.0.0_1.0.2d-1_amd64.deb \
  && apt-get clean \
  && rm /var/lib/apt/lists/*_*
 
