@@ -55,7 +55,7 @@ public  class VmRuntimeTestBase extends TestCase {
 
 
   // Wait at the most 30 seconds for Jetty to come up.
-  private static final int JETTY_START_DELAY = 30;
+  private static final int JETTY_START_DELAY = 45;
 
   public static final String PROJECT = "google.com:test-project";
   public static final String PARTITION = "testpartition";
