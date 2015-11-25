@@ -17,6 +17,7 @@
 
 package com.google.apphosting.utils.servlet;
 
+import com.google.appengine.api.LifecycleManager;
 import com.google.apphosting.api.ApiProxy;
 
 import java.io.IOException;
@@ -39,9 +40,9 @@ public class VmHealthServlet extends HttpServlet {
   private String fullVersionId() {
     ApiProxy.Environment environment = ApiProxy.getCurrentEnvironment();
     String actualVersionId = environment.getVersionId();
-    if (!(environment.getModuleId() == null ||
-          environment.getModuleId().isEmpty() ||
-          environment.getModuleId().equals("default"))) {
+    if (!(environment.getModuleId() == null
+          || environment.getModuleId().isEmpty()
+          || environment.getModuleId().equals("default"))) {
       actualVersionId = environment.getModuleId() + ":" + actualVersionId;
     }
     return actualVersionId;
@@ -49,6 +50,14 @@ public class VmHealthServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    // Check if the instance is shutting down, in that case return unhealthy (lameduck).
+    LifecycleManager lifeCycleManager = LifecycleManager.getInstance();
+    if (LifecycleManager.getInstance().isShuttingDown()) {
+       long remainingShutdownTime = lifeCycleManager.getRemainingShutdownTime();
+       response.sendError(HttpServletResponse.SC_BAD_GATEWAY,
+                          "App is shutting down, time remaining: " + remainingShutdownTime + " ms");
+       return;
+    }
     String expectedVersion = request.getParameter("VersionID");
     String actualVersion = fullVersionId();
     if ((expectedVersion == null) || expectedVersion.equals(actualVersion)){

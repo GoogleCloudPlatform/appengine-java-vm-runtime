@@ -34,6 +34,12 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
 # workaround for https://bugs.debian.org/775775
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
+# Upgrade to OpenSSL 1.0.2
+ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.0.2_1.0.2d-3_amd64.deb /tmp/
+ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2d-3_amd64.deb /tmp/
+RUN dpkg -i /tmp/libssl1.0.2_1.0.2d-3_amd64.deb /tmp/openssl_1.0.2d-3_amd64.deb \
+ && rm /tmp/libssl1.0.2_1.0.2d-3_amd64.deb /tmp/openssl_1.0.2d-3_amd64.deb
+
 # Add the cloud debugger and profiler libraries
 ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/
 ADD https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz /opt/cprof/
