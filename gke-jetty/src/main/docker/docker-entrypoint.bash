@@ -9,7 +9,7 @@ fi
 
 if ! type "$1" &>/dev/null; then
   source /gke-env.bash
-  set -- java $JAVA_OPTS $ALPN_BOOT $DBG_AGENT $PROF_AGENT $SET_TMP $START_JETTY "$@"
+  set -- java $ALPN_BOOT $DBG_AGENT $PROF_AGENT $SET_TMP $JAVA_OPTS $START_JETTY "$@"
 fi
 
 exec "$@"
