@@ -77,7 +77,7 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>gke-jetty:${jetty.version}</imageName>
+              <imageName>gke-jetty:${docker.label.prefix}${jetty.version}</imageName>
               <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
             </configuration>
           </execution>
@@ -90,7 +90,7 @@
 	    <configuration>
 	      <imageName>gke-jetty</imageName>
 	      <imageTags>
-	        <imageTag>${jetty.version}</imageTag>
+	        <imageTag>${docker.label.prefix}${jetty.version}</imageTag>
 	      </imageTags> 
 	    </configuration>
           </execution>

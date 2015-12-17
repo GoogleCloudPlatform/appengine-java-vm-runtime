@@ -210,7 +210,7 @@
             </goals>
             <configuration>
               <forceTags>true</forceTags>
-              <imageName>appengine-mvn-opensource:${project.version}</imageName>
+              <imageName>appengine-mvn-opensource:${docker.label.prefix}${project.version}</imageName>
               <imageTags>
                 <imageTag>latest</imageTag>
               </imageTags>
@@ -233,7 +233,7 @@
 	    <configuration>
 	      <imageName>appengine-mvn-opensource</imageName>
 	      <imageTags>
-	        <imageTag>${project.version}</imageTag>
+	        <imageTag>${docker.label.prefix}${project.version}</imageTag>
 	        <imageTag>latest</imageTag>
 	      </imageTags> 
 	    </configuration>
@@ -252,7 +252,7 @@
 	        <copy todir="${project.build.directory}/generated-sources/docker">
 		  <fileset dir="${project.basedir}/src/main/docker"/>
 		</copy>
-		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@jetty.version@@" value="${jetty.version}"/>
+		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}${jetty.version}"/>
               </target>
             </configuration>
             <goals>

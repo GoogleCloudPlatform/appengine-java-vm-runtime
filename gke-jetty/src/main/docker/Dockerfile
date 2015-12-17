@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gke-debian-openjdk:8-jre 
+# TODO remove or generate the async label prefix before merge with master
+FROM gke-debian-openjdk:async-8-jre 
 
 # create jetty group and user
 RUN groupadd -r jetty \
