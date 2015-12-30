@@ -7,9 +7,11 @@ fi
 DBG_AGENT=
 if [[ -n "$DBG_ENABLE" ]]; then
   if [[ "$GAE_PARTITION" = "dev" ]]; then
-    DBG_AGENT="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT:-5005}"
+    echo "Running locally and DBG_ENABLE is set, enabling standard Java debugger agent"
+    DBG_PORT=${DBG_PORT:-5005}
+    DBG_AGENT="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT}"
   else
-    DBG_AGENT="$( /home/vmagent/cdbg/format-env-appengine-vm.sh )"
+    DBG_AGENT="$( /opt/cdbg/format-env-appengine-vm.sh )"
   fi
 fi
 
@@ -18,7 +20,7 @@ if [[ -n "${CPROF_ENABLE}" ]]; then
   if [[ "$GAE_PARTITION" = "dev" ]]; then
     PROF_AGENT=
   else
-    PROF_AGENT="$( /home/vmagent/cprof/format-env-appengine-vm.sh )"
+    PROF_AGENT="$( /opt/cprof/format-env-appengine-vm.sh )"
   fi
 fi
 
