@@ -21,7 +21,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.27-SNAPSHOT</version>
+    <version>1.9.30-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Runtime Support</name>
@@ -30,14 +30,14 @@
 
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-    <appengine.api.version>1.9.27</appengine.api.version>
+    <appengine.api.version>1.9.30</appengine.api.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-java-logging</artifactId>
-      <version>1.9.27-SNAPSHOT</version>
+      <version>1.9.30-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>gke-jetty</artifactId>
-      <version>1.9.27-SNAPSHOT</version>
+      <version>1.9.30-SNAPSHOT</version>
       <type>pom</type>
     </dependency>
 
