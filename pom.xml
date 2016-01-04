@@ -21,7 +21,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.27-SNAPSHOT</version>
+  <version>1.9.30-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Google App Engine Runtime Parent</name>
   <scm>
@@ -33,7 +33,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.5.v20151012</jetty.version>
-    <appengine.api.version>1.9.27</appengine.api.version>
+    <appengine.api.version>1.9.30</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
   </properties>
 
