@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 // See //j/c/g/apphosting/runtime/security/shared/intercept/java/util/logging/DefaultHandler.java
 public class VmRuntimeLogHandler extends Handler {
   
-  static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
+  public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
 
   private static final Logger ROOT_LOGGER = Logger.getLogger("");
 

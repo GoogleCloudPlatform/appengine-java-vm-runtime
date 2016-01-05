@@ -220,8 +220,8 @@ public class VmRuntimeWebAppContext
    */
   public void init(String appengineWebXmlFile)
       throws AppEngineConfigException, IOException {
-	  
-	String appDir=getBaseResource().getFile().getCanonicalPath();  
+
+    String appDir=getBaseResource().getFile().getCanonicalPath();  
     defaultEnvironment = VmApiProxyEnvironment.createDefaultContext(
         System.getenv(), metadataCache, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
         VmRuntimeUtils.ONE_DAY_IN_MILLIS, appDir);
@@ -238,7 +238,7 @@ public class VmRuntimeWebAppContext
       AppEngineWebXmlReader appEngineWebXmlReader
               = new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
-   }
+    }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();

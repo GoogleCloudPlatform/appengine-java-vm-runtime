@@ -41,11 +41,13 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.junit.Assert;
+
+import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 class JettyRunner implements Runnable {
 
-  static final String LOG_FILE_PATTERN = "target/log.%g";
-  
+  private File logs;
   private Server server;
   private final int port;
   private String appengineWebXml;
@@ -71,9 +73,10 @@ class JettyRunner implements Runnable {
   
   
   public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
-    started.await(timeout, units);
-    if (!server.isStarted())
+    if (!started.await(timeout, units) || !server.isStarted())
       throw new IllegalStateException("server state="+server.getState());
+
+    Log.getLogger(Server.class).info("Waited!");
   }
   
   @Override
@@ -81,8 +84,25 @@ class JettyRunner implements Runnable {
 
     try
     {
+      // find projectDir
+      File project = new File(".").getAbsoluteFile().getCanonicalFile();
+      File target = new File(project,"target");
+      while(!target.exists())
+      {
+        project=project.getParentFile();
+        target = new File(project,"target");
+      }
+      
+      Assert.assertTrue(target.toString(),target.isDirectory());
+      logs=new File(target,"logs");
+      logs.delete();
+      logs.mkdirs();
+      logs.deleteOnExit();
+      
+      
       // Set GAE SystemProperties
-      setSystemProperties();
+      setSystemProperties(logs);
+      
       // Create the server, connector and associated instances
       QueuedThreadPool threadpool = new QueuedThreadPool();
       server = new Server(threadpool);
@@ -120,9 +140,7 @@ class JettyRunner implements Runnable {
 
       RequestLogHandler requestLogHandler = new RequestLogHandler();
       handlers.addHandler(requestLogHandler);
-      File logs=File.createTempFile("logs", "logs");
-      logs.delete();
-      logs.mkdirs();
+      
       NCSARequestLog requestLog=new NCSARequestLog(logs.getCanonicalPath()+"/request.yyyy_mm_dd.log");
       requestLogHandler.setRequestLog(requestLog);
       requestLog.setRetainDays(2);
@@ -131,10 +149,6 @@ class JettyRunner implements Runnable {
       requestLog.setLogTimeZone("GMT");
       requestLog.setLogLatency(true);
       requestLog.setPreferProxiedForAddress(true);
-   
-      // Ugly hack to delete possible previous run lock file
-      new File("target/log.0.lck").delete();
-      new File("target/log.0.1.lck").delete();
     
       // configuration from root.xml
       final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
@@ -144,39 +158,43 @@ class JettyRunner implements Runnable {
       
       // Needed to initialize JSP!
       context.addBean(new AbstractLifeCycle() {
-			
-			@Override
-			public void doStop() throws Exception {
-			
-			}
-			
-			@Override
-			public void doStart() throws Exception {
-				 JettyJasperInitializer jspInit = new JettyJasperInitializer();
-		      jspInit.onStartup(Collections.EMPTY_SET, context.getServletContext());
-			}
-		}, true);
-     
+        @Override
+        public void doStop() throws Exception {
+        }
+
+        @Override
+        public void doStart() throws Exception {
+          JettyJasperInitializer jspInit = new JettyJasperInitializer();
+          jspInit.onStartup(Collections.emptySet(), context.getServletContext());
+        }
+      }, true);
+
       // find the sibling testwebapp target
-      File currentDir = new File("").getAbsoluteFile();
-      File webAppLocation = new File(currentDir, "target/webapps/testwebapp");
+      File webAppLocation = new File(target, "webapps/testwebapp");
+      
+      File logging = new File(webAppLocation,"WEB-INF/logging.properties").getCanonicalFile().getAbsoluteFile();
+      System.setProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY,logging.toPath().toString());
+
+      Assert.assertTrue(webAppLocation.toString(),webAppLocation.isDirectory());
+      
       context.setResourceBase(webAppLocation.getAbsolutePath());
       context.init((appengineWebXml==null?"WEB-INF/appengine-web.xml":appengineWebXml));
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
-      File webDefault = new File(currentDir, "src/main/docker/etc/webdefault.xml");
+      File webDefault = new File(project, "src/main/docker/etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
       // start and join
       server.start();
       
-    } catch (Exception e) {
+    } catch (Throwable e) {
       e.printStackTrace();
     }
     finally
     {
+      Log.getLogger(Server.class).info("Started!");
       started.countDown();
     }
 
@@ -195,10 +213,12 @@ class JettyRunner implements Runnable {
    *
    * @throws IOException
    */
-  protected void setSystemProperties() throws IOException {
+  protected void setSystemProperties(File logs) throws IOException {
 
+    String log_file_pattern = logs.getAbsolutePath()+"/log.%g";
+    
     System.setProperty(
-            "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", LOG_FILE_PATTERN);
+            "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", log_file_pattern);
     System.setProperty("jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
@@ -213,5 +233,13 @@ class JettyRunner implements Runnable {
   public static void main(String... args)
   {
     new JettyRunner(8080).run(); 
+  }
+
+  public File getLogDir() {
+    return logs;
+  }
+
+  public void dump() {
+    server.dumpStdErr();
   }
 }
