@@ -36,15 +36,9 @@
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>1.9.27-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
       <version>${appengine.api.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
@@ -65,21 +59,22 @@
       <artifactId>commons-codec</artifactId>
       <version>1.10</version>
     </dependency>
-
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>gke-jetty</artifactId>
       <version>1.9.27-SNAPSHOT</version>
       <type>pom</type>
     </dependency>
-
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
       <version>7.0</version>
       <scope>provided</scope>
     </dependency>
-
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

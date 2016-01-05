@@ -75,12 +75,12 @@
   </distributionManagement>
 
   <modules>
-    <module>appengine-java-logging</module>
-    <module>appengine-managed-runtime</module>
     <module>gke-debian-openjdk</module>
     <module>gke-jetty</module>
     <module>testwebapp</module>
-    <module>appengine-jetty-managed-runtime</module>
+    <module>appengine-managed-runtime</module>
+    <module>managed-runtime-jetty9</module>
+    <module>gae-managed-runtime-jetty9</module>
   </modules>
 
   <dependencyManagement>
