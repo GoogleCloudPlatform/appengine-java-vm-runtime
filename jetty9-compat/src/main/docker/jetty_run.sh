@@ -18,7 +18,7 @@ HEAP_SIZE=$(awk -v frac=$HEAP_SIZE_FRAC -v res=$RAM_RESERVED_MB /MemTotal/'{
 echo "Info: Limiting Java heap size to: $HEAP_SIZE"
 
 # source the supported feature JVM arguments
-source /gke-env.bash
+source /setup-env.bash
   
 # use generated fast cli:
 cd /var/lib/jetty

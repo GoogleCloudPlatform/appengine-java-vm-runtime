@@ -24,8 +24,8 @@
     <version>1.9.30-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Image for GAEv1 Java Compatibility</name>
-  <artifactId>appengine-jetty-managed-runtime</artifactId>
+  <name>Google App Engine Image with GAE Compatibility (jetty9-compat)</name>
+  <artifactId>jetty9-compat</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
@@ -210,7 +210,7 @@
             </goals>
             <configuration>
               <forceTags>true</forceTags>
-              <imageName>appengine-mvn-opensource:${docker.label.prefix}${project.version}</imageName>
+              <imageName>jetty9-compat:${docker.label.prefix}${project.version}</imageName>
               <imageTags>
                 <imageTag>latest</imageTag>
               </imageTags>
@@ -231,7 +231,7 @@
 	      <goal>removeImage</goal>
 	    </goals>
 	    <configuration>
-	      <imageName>appengine-mvn-opensource</imageName>
+	      <imageName>jetty9-compat</imageName>
 	      <imageTags>
 	        <imageTag>${docker.label.prefix}${project.version}</imageTag>
 	        <imageTag>latest</imageTag>

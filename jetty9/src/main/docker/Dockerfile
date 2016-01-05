@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # TODO remove or generate the async label prefix before merge with master
-FROM gke-debian-openjdk:async-8-jre 
+FROM openjdk8:async-8-jre 
 
 # create jetty group and user
 RUN groupadd -r jetty \
@@ -31,7 +31,7 @@ RUN mv /usr/local/jetty-distribution-* $JETTY_HOME \
 ENV JETTY_BASE /var/lib/jetty
 RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
-ADD gke-alpn.mod modules/
+ADD gae-alpn.mod modules/
 RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \

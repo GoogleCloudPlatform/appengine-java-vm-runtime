@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gke-jetty:@@image.label@@
+FROM jetty9:@@image.label@@
 
 ADD . $JETTY_BASE
 

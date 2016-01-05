@@ -1,9 +1,9 @@
-gke-jetty
+jetty9
 =========
 
 This project builds a Docker Image for 
 Google App Engine [Java Managed VM](https://cloud.google.com/appengine/docs/managed-vms/)
-that provides the Jetty 9.3 Servlet container on top of the gke-debian-openjdk8 image.
+that provides the Jetty 9.3 Servlet container on top of the openjdk8 image.
 
 The layout of this image is intended to mostly mimic the official 
 [docker-jetty](https://github.com/appropriate/docker-jetty) image and unless otherwise noted,
@@ -11,32 +11,32 @@ the official [docker-jetty documentation](https://github.com/docker-library/docs
 should apply.
 
 ## Building the Jetty image
-To build the image you need git, docker and maven installed and to have the gke-debian-openjdk:8-jre
+To build the image you need git, docker and maven installed and to have the openjdk8:8-jre
 image available in your docker repository:
 ```console
 git clone https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime.git
-cd appengine-java-vm-runtime/gke-jetty
+cd appengine-java-vm-runtime/jetty9
 mvn clean install
 ```
 
 ## Running the Jetty image
-The resulting image is called gke-jetty:9.3.5.v20151012 (or the current jetty version as the label) 
+The resulting image is called jetty9:9.3.5.v20151012 (or the current jetty version as the label) 
 and can be run with:
 ```console
-docker run gke-jetty:9.3.5.v20151012
+docker run jetty9:9.3.5.v20151012
 ```
 
 ## Configuring the Jetty image
 Arguments passed to the docker run command are passed to Jetty, so the 
 configuration of the jetty server can be seen with a command like:
 ```console
-docker run gke-jetty:9.3.5.v20151012 --list-config
+docker run jetty9:9.3.5.v20151012 --list-config
 ```
 
 Alternate commands can also be passed to the docker run command, so the
 image can be explored with 
 ```console
-docker run t --rm gke-jetty:9.3.5.v20151012 bash
+docker run t --rm jetty9:9.3.5.v20151012 bash
 ```
 
 To update the server configuration in a derived Docker image, the `Dockerfile` may
@@ -70,9 +70,9 @@ Once you have this configuration, you can use the Google Cloud SDK to deploy thi
      
 
 ## Entry Point Features
-The entry point for the image is [docker-entrypoint.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/gke-jetty/src/main/docker/docker-entrypoint.bash), which does the processing of the passed command line arguments to look for an executable alternative or arguments to the default command (java).
+The entry point for the image is [docker-entrypoint.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/jetty9/src/main/docker/docker-entrypoint.bash), which does the processing of the passed command line arguments to look for an executable alternative or arguments to the default command (java).
 
-If the default command (java) is used, then the entry point sources the [gke-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/gke-debian-openjdk/src/main/docker/gke-env.bash), which looks for supported features: ALPN, Cloud Debugger & Cloud Profiler.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
+If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features: ALPN, Cloud Debugger & Cloud Profiler.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
 
 | Feature        | directory    | Enable        | Disable        | JVM args      |
 |----------------|--------------|---------------|----------------|---------------|

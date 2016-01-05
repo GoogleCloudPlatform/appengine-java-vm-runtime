@@ -1,4 +1,4 @@
-# ALPN can be proved by the gke-debian-openjdk image if the ALPN_ENABLE 
+# ALPN can be proved by the openjdk8 image if the ALPN_ENABLE 
 # environment variable is set.   
 #
 # This module is an alternate to the standard jetty alpn.mod that uses

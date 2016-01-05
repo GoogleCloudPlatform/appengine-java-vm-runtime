@@ -78,10 +78,10 @@
   <modules>
     <module>appengine-java-logging</module>
     <module>appengine-managed-runtime</module>
-    <module>gke-debian-openjdk</module>
-    <module>gke-jetty</module>
+    <module>openjdk8</module>
+    <module>jetty9</module>
     <module>testwebapp</module>
-    <module>appengine-jetty-managed-runtime</module>
+    <module>jetty9-compat</module>
   </modules>
 
   <dependencyManagement>
