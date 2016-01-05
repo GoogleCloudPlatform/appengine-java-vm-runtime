@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2015 Google Inc. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS-IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.google.appengine</groupId>
+    <artifactId>appengine-java-vm-runtime</artifactId>
+    <version>1.9.27-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <name>Google App Engine Image for GAEv1 Java Compatibility</name>
+  <artifactId>gae-managed-runtime-jetty9</artifactId>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>jetty-base</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>managed-runtime-jetty9</artifactId>
+                  <version>${project.version}</version>
+                  <type>zip</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/docker/</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <execution>
+            <id>gae-jars</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <excludeTransitive>false</excludeTransitive>
+	      <excludeGroupIds>org.eclipse.jetty,org.ow2.asm,javax.annotation,javax.servlet,javax.transaction</excludeGroupIds>
+	      <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.spotify</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.3.2</version>
+        <executions>
+          <execution>
+            <id>build-gae</id>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <forceTags>true</forceTags>
+              <imageName>appengine-mvn-opensource:${project.version}</imageName>
+              <imageTags>
+                <imageTag>latest</imageTag>
+              </imageTags>
+              <dockerDirectory>${project.basedir}/target/docker</dockerDirectory>
+              <resources>
+                <resource>
+                  <targetPath>/lib/gae</targetPath>
+                  <directory>${project.build.directory}</directory>
+                  <include>${project.build.finalName}.jar</include>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+	  <execution>
+	    <id>clean-docker</id>
+	    <phase>clean</phase>
+	    <goals>
+	      <goal>removeImage</goal>
+	    </goals>
+	    <configuration>
+	      <imageName>appengine-mvn-opensource</imageName>
+	      <imageTags>
+	        <imageTag>${project.version}</imageTag>
+	        <imageTag>latest</imageTag>
+	      </imageTags> 
+	    </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>generate-docker</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+	        <copy todir="${project.build.directory}/docker">
+		  <fileset dir="${project.basedir}/src/main/docker"/>
+		</copy>
+		<replace file="${project.build.directory}/docker/Dockerfile" token="@@jetty.version@@" value="${jetty.version}"/>
+		<replace file="${project.build.directory}/docker/Dockerfile" token="@@project.version@@" value="${project.version}"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
