@@ -19,9 +19,6 @@ import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
-import com.google.apphosting.vmruntime.VmRuntimeUtils;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.PROJECT;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.VERSION;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,10 +26,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 
@@ -132,8 +125,8 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals("null", lines[2]);
     assertEquals(SystemProperty.Environment.Value.Production.name(), lines[3]);
     assertTrue(lines[4].startsWith("Google App Engine/"));
-    assertEquals(PROJECT, lines[5]);
-    assertEquals(VERSION + ".0", lines[6]);
+    assertEquals(TestMetadataServer.PROJECT, lines[5]);
+    assertEquals(TestMetadataServer.VERSION + ".0", lines[6]);
   }
 
   /**

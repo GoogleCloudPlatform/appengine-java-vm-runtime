@@ -48,6 +48,7 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.resource.Resource;
@@ -256,6 +257,9 @@ public class VmRuntimeWebAppContext
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
+    String logConfig = System.getProperty("java.util.logging.config.file");
+    if (logConfig!=null && logConfig.startsWith("WEB-INF/"))
+      System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();
 

@@ -43,6 +43,7 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
+import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 class JettyRunner implements Runnable {
@@ -217,8 +218,7 @@ class JettyRunner implements Runnable {
 
     String log_file_pattern = logs.getAbsolutePath()+"/log.%g";
     
-    System.setProperty(
-            "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", log_file_pattern);
+    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, log_file_pattern);
     System.setProperty("jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");

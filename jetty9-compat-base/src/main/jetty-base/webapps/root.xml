@@ -7,7 +7,7 @@
 
 <Configure class="com.google.apphosting.vmruntime.jetty9.VmRuntimeWebAppContext" >
   <Set name="contextPath">/</Set>
-  <Set name="resourceBase"><Property name="jetty.base" default="."/>/webapps/root</Set>
+  <Set name="resourceBase"><SystemProperty name="root.webapp" default="./webapps/root"/></Set>
   <Call name="init">
     <Arg><SystemProperty name="appengine_web_xml" default="WEB-INF/appengine-web.xml"/></Arg>
   </Call>

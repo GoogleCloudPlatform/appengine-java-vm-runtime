@@ -16,17 +16,14 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import static com.google.apphosting.vmruntime.VmMetadataCache.DEFAULT_META_DATA_SERVER;
 import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
 
 import junit.framework.TestCase;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -56,14 +53,6 @@ public  class VmRuntimeTestBase extends TestCase {
 
   // Wait at the most 30 seconds for Jetty to come up.
   private static final int JETTY_START_DELAY = 45;
-
-  public static final String PROJECT = "google.com:test-project";
-  public static final String PARTITION = "testpartition";
-  public static final String VERSION = "testversion";
-  public static final String BACKEND = "testbackend";
-  public static final String INSTANCE = "frontend1";
-  public static final String AFFINITY = "true";
-  public static final String APPENGINE_HOSTNAME = "testhostname";
 
   public int port;
   public int externalPort;
@@ -138,45 +127,22 @@ public  class VmRuntimeTestBase extends TestCase {
     return lines.toArray(new String[lines.size()]);
   }
 
-  protected String getUseMvmAgent() {
+  protected final String getUseMvmAgent() {
     return "false";
   }
-
-
-  /**
-   * Stub out the metadata cache so that any requests for metadata will be mocked locally and not
-   * served from the metadata server (which only is available when running in an actual VM).
-   */
-  private void stubMetadataRequests() {
-    int metadataPort = me.alexpanov.net.FreePortFinder.findFreeLocalPort();
-    System.setProperty("metadata_server", "127.0.0.1:" + metadataPort);
-    metadataServer = new TestMetadataServer(metadataPort);
-    metadataServer.addMetadata("STOP", "STOP");
-    metadataServer.addMetadata(VmApiProxyEnvironment.PROJECT_ATTRIBUTE, PROJECT);
-    metadataServer.addMetadata(VmApiProxyEnvironment.PARTITION_ATTRIBUTE, PARTITION);
-    metadataServer.addMetadata(VmApiProxyEnvironment.BACKEND_ATTRIBUTE, BACKEND);
-    metadataServer.addMetadata(VmApiProxyEnvironment.VERSION_ATTRIBUTE, VERSION);
-    metadataServer.addMetadata(VmApiProxyEnvironment.INSTANCE_ATTRIBUTE, INSTANCE);
-    metadataServer.addMetadata(VmApiProxyEnvironment.AFFINITY_ATTRIBUTE, AFFINITY);
-    metadataServer.addMetadata(
-        VmApiProxyEnvironment.APPENGINE_HOSTNAME_ATTRIBUTE, APPENGINE_HOSTNAME);
-    metadataServer.addMetadata(
-        VmApiProxyEnvironment.USE_MVM_AGENT_ATTRIBUTE, getUseMvmAgent());
-    Thread metadataThread = new Thread(metadataServer);
-    metadataThread.setName("Metadata server");
-    metadataThread.setDaemon(true);
-    metadataThread.start();
-  }
-
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     port = me.alexpanov.net.FreePortFinder.findFreeLocalPort();
     externalPort = port;
-    stubMetadataRequests();
+    metadataServer = new TestMetadataServer();
+    metadataServer.setUseMVM(Boolean.valueOf(getUseMvmAgent()));
+    metadataServer.start();
+    
     // Start jetty using the Runnable configured by the sub class.
     runner = new JettyRunner(port);
+    
     runner.setAppEngineWebXml(appengineWebXml);
     Thread jettyRunnerThread = new Thread(runner);
     jettyRunnerThread.setName("JettyRunnerThread");
@@ -188,7 +154,7 @@ public  class VmRuntimeTestBase extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     runner.stop();
-    getMetadataFromServer("STOP");
+    metadataServer.stop();
     super.tearDown();
     Thread.sleep(50);
   }
