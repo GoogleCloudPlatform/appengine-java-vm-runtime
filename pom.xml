@@ -81,6 +81,7 @@
     <module>openjdk8</module>
     <module>jetty9</module>
     <module>testwebapp</module>
+    <module>jetty9-compat-base</module>
     <module>jetty9-compat</module>
   </modules>
 

@@ -26,174 +26,33 @@
   </parent>
   <name>Google App Engine Image with GAE Compatibility (jetty9-compat)</name>
   <artifactId>jetty9-compat</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>${appengine.api.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-managed-runtime</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-security</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-quickstart</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-    </dependency>
-    
-    <!-- tests-->
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>apache-jsp</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>   
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <version>1.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <version>1.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-testing</artifactId>
-      <version>${appengine.api.version}</version>
-      <scope>test</scope>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
-      <version>3.1</version>
-      <scope>test</scope>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>me.alexpanov</groupId>
-      <artifactId>free-port-finder</artifactId>
-      <version>1.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-api-stubs</artifactId>
-      <version>${appengine.api.version}</version>
-      <scope>test</scope>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>2.0.31-beta</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.bundles</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1_2</version>
-      <scope>test</scope>
-      <type>jar</type>
-    </dependency>
-  </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <url>https://github.com/GoogleCloudPlatform/appengine-runtime-java-docker-image</url>
-              <Name>com/google/apphosting/vmruntime/</Name>
-              <Implementation-Vendor>Google</Implementation-Vendor>
-              <Implementation-Version>${maven.build.timestamp}</Implementation-Version>
-              <Specification-Version>${project.version}</Specification-Version>
-              <Implementation-Vendor-Id>com.google</Implementation-Vendor-Id>
-              <Specification-Vendor>Google</Specification-Vendor>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>test-webapp</id>
-            <phase>generate-test-resources</phase>
+            <id>jetty-base</id>
+            <phase>generate-resources</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>unpack</goal>
             </goals>
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.google.appengine.demos</groupId>
-                  <artifactId>testwebapp</artifactId>
-                  <version>1.0-SNAPSHOT</version>
-                  <type>war</type>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>jetty9-compat-base</artifactId>
+                  <version>${project.version}</version>
+                  <type>zip</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/webapps/</outputDirectory>
-                  <destFileName>testwebapp.war</destFileName>
+                  <outputDirectory>${project.build.directory}/docker/</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
-          </execution>
-          <execution>
-            <id>gae-jars</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/docker/lib/gae</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <excludeTransitive>false</excludeTransitive>
-	      <excludeGroupIds>org.eclipse.jetty,org.ow2.asm,javax.annotation,javax.servlet,javax.transaction</excludeGroupIds>
-	      <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
+          </execution> 
         </executions>
       </plugin>
 
@@ -214,14 +73,7 @@
               <imageTags>
                 <imageTag>latest</imageTag>
               </imageTags>
-              <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
-              <resources>
-                <resource>
-                  <targetPath>/lib/gae</targetPath>
-                  <directory>${project.build.directory}</directory>
-                  <include>${project.build.finalName}.jar</include>
-                </resource>
-              </resources>
+              <dockerDirectory>${project.basedir}/target/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>
@@ -249,23 +101,11 @@
             <phase>generate-sources</phase>
             <configuration>
               <target>
-	        <copy todir="${project.build.directory}/generated-sources/docker">
+	        <copy todir="${project.build.directory}/docker">
 		  <fileset dir="${project.basedir}/src/main/docker"/>
 		</copy>
-		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}${jetty.version}"/>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>generate-test-war</id>
-            <phase>generate-test-resources</phase>
-            <configuration>
-              <target>
-                <unzip src="${project.build.directory}/webapps/testwebapp.war"
-                       dest="${project.build.directory}/webapps/testwebapp"/>
+		<replace file="${project.build.directory}/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}${jetty.version}"/>
+		<replace file="${project.build.directory}/docker/Dockerfile" token="@@project.version@@" value="${project.version}"/>
               </target>
             </configuration>
             <goals>

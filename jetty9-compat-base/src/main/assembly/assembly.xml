@@ -1,0 +1,20 @@
+<assembly>
+  <id>assembly</id>
+  <formats>
+    <format>tar.gz</format>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.directory}/jetty-base</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+      <excludes>
+        <exclude>**/META-INF/**</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+</assembly>
