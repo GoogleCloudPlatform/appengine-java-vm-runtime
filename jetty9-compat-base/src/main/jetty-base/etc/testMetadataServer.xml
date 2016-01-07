@@ -1,16 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
 
-<Configure id="Server" class="org.eclipse.jetty.server.Server">
-    <!-- =========================================================== -->
-    <!-- Add an already started TestMetaDataServer                   -->
-    <!-- =========================================================== -->
-    <Call name="addBean">
-      <Arg>
-        <New class="com.google.apphosting.vmruntime.jetty9.TestMetadataServer">
-          <Call name="start"/>
-        </New>
-      </Arg>
-      <Arg type="boolean">true</Arg>
-    </Call>
+<Configure id="MetaDataServer" class="com.google.apphosting.vmruntime.jetty9.TestMetadataServer">
+  <Call name="start"/>
 </Configure>

@@ -12,13 +12,16 @@ java -Droot.webapp=../webapps/testwebapp/ \
      -jar ../jetty-distribution-9.3.5.v20151012/start.jar \
      --module=testMetadataServer
 ```
-The command uses the system property `root.webapp` to point to an exploded WAR file suitable for GAE deployment (default `webapps/root`); 
-the system property `com.google.apphosting.logs` to configure a directory to log into (default /var/log/appi\_engine);
-the normal jetty start.jar;
-A testMetadataServer module that locally handles GAE rest calls 
+This example command uses:
+ * the system property `root.webapp` to point to an exploded WAR file suitable for GAE deployment (default `webapps/root`)
+ * the system property `com.google.apphosting.logs` to configure a directory to log into (default /var/log/appi\_engine)
+ * the normal jetty start.jar
+ * A testMetadataServer module that locally handles GAE rest calls 
+
+The system property `quickstart_web_xml` may also be set to a file location to trigger the generation of a quickstart-web.xml
+that can be used to quickstart the context if deployed in WEB-INF/quickstart-web.xml
 
 ## Artefacts
-
 This module builds 3 maven artefacts:
  * jetty9-compat-base-@VERSION@.jar - The classes built in this module that addapt the generic appengine-managed-runtime module to the Jetty9 container.
  * jetty9-compat-base-@VERSION@.tar.gz - A tar archive of the jar file deployed with all it's dependencies as a runnable [jetty base](https://www.eclipse.org/jetty/documentation/current/startup-base-and-home.html). 

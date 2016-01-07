@@ -22,10 +22,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.jsp.JspFactory;
-import org.apache.jasper.runtime.JspFactoryImpl;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
@@ -69,7 +65,7 @@ class JettyRunner implements Runnable {
 
   public void setAppEngineWebXml (String appengineWebXml)
   {
-  	this.appengineWebXml = appengineWebXml;
+    this.appengineWebXml = appengineWebXml;
   }
   
   
@@ -82,7 +78,6 @@ class JettyRunner implements Runnable {
   
   @Override
   public void run() {
-
     try
     {
       // find projectDir
@@ -206,7 +201,6 @@ class JettyRunner implements Runnable {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
   }
 
   /**
@@ -230,9 +224,14 @@ class JettyRunner implements Runnable {
     server.stop();
   }
   
-  public static void main(String... args)
-  {
-    new JettyRunner(8080).run(); 
+  public static void main(String... args) throws Exception {
+    TestMetadataServer meta = new TestMetadataServer();
+    try {
+      meta.start();
+      new JettyRunner(8080).run(); 
+    } finally {
+      meta.stop();
+    }
   }
 
   public File getLogDir() {

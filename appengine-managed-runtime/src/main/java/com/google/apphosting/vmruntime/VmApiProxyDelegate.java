@@ -492,7 +492,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     public IdleConnectionMonitorThread(ClientConnectionManager connectionManager) {
       super("IdleApiConnectionMontorThread");
       this.connectionManager = connectionManager;
-      this.setDaemon(false);
+      this.setDaemon(true);
     }
 
     @Override
