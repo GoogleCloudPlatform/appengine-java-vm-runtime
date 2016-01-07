@@ -44,16 +44,21 @@ import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
 import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
+import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.URIUtil;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,6 +99,8 @@ public class VmRuntimeWebAppContext
   private final Timer wallclockTimer;
   private VmApiProxyEnvironment defaultEnvironment;  
   private DatastoreService datastoreService;
+  private String quickstartWebXml;
+  private PreconfigureDescriptorProcessor preconfigProcessor;
 
   // Indicates if the context is running via the Cloud SDK, or the real runtime.
   
@@ -129,6 +136,22 @@ public class VmRuntimeWebAppContext
     org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
   };
   
+  public String getQuickstartWebXml() {
+    return quickstartWebXml;
+  }
+
+  /** Set the quickstart WebXml
+   * <p>If set, this context will not start, rather it will generate the
+   * quickstart-web.xml file and then stop the server. 
+   * If not set, the context will start normally </p>
+   * @param quickstartWebXml The location of the quickstart web.xml to generate
+   */
+  public void setQuickstartWebXml(String quickstartWebXml) {
+    if (quickstartWebXml!=null && quickstartWebXml.length()==0)
+      quickstartWebXml=null;
+    this.quickstartWebXml = quickstartWebXml;
+  }
+
   @Override
   protected void doStart() throws Exception {
     // unpack and Adjust paths.
@@ -152,11 +175,45 @@ public class VmRuntimeWebAppContext
     
     datastoreService = getDatastoreService();
     
-    addEventListener(new ContextListener());
+    if (quickstartWebXml==null)
+      addEventListener(new ContextListener());
+    else
+      getMetaData().addDescriptorProcessor(preconfigProcessor=new PreconfigureDescriptorProcessor());
     
     super.doStart();
   }
   
+  @Override
+  protected void startWebapp() throws Exception
+  {
+    if (quickstartWebXml==null)
+      super.startWebapp();
+    else
+    {
+      LOG.info("Generating quickstart web.xml: {}", quickstartWebXml);
+      Resource descriptor = Resource.newResource(quickstartWebXml);
+      if (descriptor.exists())
+        descriptor.delete();
+      descriptor.getFile().createNewFile();
+      QuickStartDescriptorGenerator generator = new QuickStartDescriptorGenerator(this, preconfigProcessor.getXML());
+      try (FileOutputStream fos = new FileOutputStream(descriptor.getFile()))
+      {
+        generator.generateQuickStartWebXml(fos);
+      }
+      finally
+      {
+        System.exit(0);
+      }
+    }
+  }
+
+
+  @Override
+  protected void stopWebapp() throws Exception
+  {
+      if (quickstartWebXml==null)
+        super.stopWebapp();
+  }
 
   /**
    * Broken out to facilitate testing.
@@ -256,6 +313,9 @@ public class VmRuntimeWebAppContext
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
+    String logConfig = System.getProperty("java.util.logging.config.file");
+    if (logConfig!=null && logConfig.startsWith("WEB-INF/"))
+      System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
     VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();
 
@@ -304,7 +364,7 @@ public class VmRuntimeWebAppContext
     }
   }
   
-  class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
+  public class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);

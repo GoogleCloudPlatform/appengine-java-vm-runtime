@@ -22,10 +22,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.jsp.JspFactory;
-import org.apache.jasper.runtime.JspFactoryImpl;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
@@ -43,6 +39,7 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
+import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 class JettyRunner implements Runnable {
@@ -68,7 +65,7 @@ class JettyRunner implements Runnable {
 
   public void setAppEngineWebXml (String appengineWebXml)
   {
-  	this.appengineWebXml = appengineWebXml;
+    this.appengineWebXml = appengineWebXml;
   }
   
   
@@ -81,19 +78,21 @@ class JettyRunner implements Runnable {
   
   @Override
   public void run() {
-
     try
     {
       // find projectDir
-      File project = new File(".").getAbsoluteFile().getCanonicalFile();
+      File project = new File(System.getProperty("user.dir",".")).getAbsoluteFile().getCanonicalFile();
       File target = new File(project,"target");
       while(!target.exists())
       {
         project=project.getParentFile();
         target = new File(project,"target");
       }
+
+      File jetty_base = new File(System.getProperty("jetty.base",new File(target,"jetty-base").getAbsolutePath()));
       
-      Assert.assertTrue(target.toString(),target.isDirectory());
+      Assert.assertTrue(target.isDirectory());
+      Assert.assertTrue(jetty_base.isDirectory());
       logs=new File(target,"logs");
       logs.delete();
       logs.mkdirs();
@@ -182,7 +181,7 @@ class JettyRunner implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
-      File webDefault = new File(project, "src/main/docker/etc/webdefault.xml");
+      File webDefault = new File(jetty_base, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
@@ -205,7 +204,6 @@ class JettyRunner implements Runnable {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
   }
 
   /**
@@ -217,8 +215,7 @@ class JettyRunner implements Runnable {
 
     String log_file_pattern = logs.getAbsolutePath()+"/log.%g";
     
-    System.setProperty(
-            "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern", log_file_pattern);
+    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, log_file_pattern);
     System.setProperty("jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
@@ -230,9 +227,14 @@ class JettyRunner implements Runnable {
     server.stop();
   }
   
-  public static void main(String... args)
-  {
-    new JettyRunner(8080).run(); 
+  public static void main(String... args) throws Exception {
+    TestMetadataServer meta = new TestMetadataServer();
+    try {
+      meta.start();
+      new JettyRunner(8080).run(); 
+    } finally {
+      meta.stop();
+    }
   }
 
   public File getLogDir() {

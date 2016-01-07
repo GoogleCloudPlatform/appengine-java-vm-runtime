@@ -134,7 +134,7 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
   private PutResponse createDatastorePutResponse() {
     PutResponse putResponse = new PutResponse();
     Reference key = putResponse.addKey();
-    key.setApp(VmRuntimeTestBase.PROJECT);
+    key.setApp(TestMetadataServer.PROJECT);
     Path path = key.getMutablePath();
     Element element = path.addElement();
     element.setType("kind");

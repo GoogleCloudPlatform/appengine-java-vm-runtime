@@ -11,6 +11,9 @@ quickstart
 jsp
 jstl
 
+[optional]
+testMetadataServer
+
 [xml]
 etc/gae.xml
 

@@ -69,7 +69,7 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
     // Second: a call to datastore_v3/Rollback
     Transaction transactionResponse = new Transaction();
     transactionResponse.setHandle(transactionId);
-    transactionResponse.setApp(PROJECT);
+    transactionResponse.setApp(TestMetadataServer.PROJECT);
     fakeApiProxy.addApiResponse(transactionResponse); // Response to datastore_v3/BeginTransaction.
     fakeApiProxy.addApiResponse(new VoidProto()); // Response to datastore_v3/Rollback.
 
