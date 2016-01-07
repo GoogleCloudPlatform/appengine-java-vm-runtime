@@ -24,7 +24,7 @@
     <version>1.9.30-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Runtime Support</name>
+  <name>Google App Engine Runtime Utilities</name>
   <artifactId>appengine-managed-runtime</artifactId>
   <packaging>jar</packaging>
 
@@ -64,13 +64,6 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>1.10</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>gke-jetty</artifactId>
-      <version>1.9.30-SNAPSHOT</version>
-      <type>pom</type>
     </dependency>
 
     <dependency>

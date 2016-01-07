@@ -31,11 +31,14 @@ import java.util.logging.Logger;
  *
  */
 public class VmRuntimeFileLogHandler extends FileHandler {
+  
   // This exists for testing purposes only.  If set, the cloud logger may lose logs.
-  private static final String LOG_PATTERN_CONFIG_PROPERTY =
+  public static final String LOG_DIRECTORY_PROPERTY = "com.google.apphosting.logs";
+  public static final String LOG_PATTERN_CONFIG_PROPERTY =
       "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern";
   // Log files to /var/log/app_engine/app.[0-2].log.json
-  private static final String DEFAULT_LOG_PATTERN = "/var/log/app_engine/app.%g.log.json";
+  private static final String DEFAULT_LOG_DIRECTORY = "/var/log/app_engine";
+  private static final String DEFAULT_LOG_PATTERN = "app.%g.log.json";
   private static final String APP_ENGINE_LOG_CONFIG_PATTERN_ENV =
       "APP_ENGINE_LOG_CONFIG_PATTERN";
   private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
@@ -53,11 +56,17 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     if (pattern != null) {
       return pattern;
     }
+    
+    String directory = System.getProperty(LOG_DIRECTORY_PROPERTY,DEFAULT_LOG_DIRECTORY);
+    
     pattern = System.getProperty(LOG_PATTERN_CONFIG_PROPERTY);
     if (pattern != null) {
-      return pattern;
+      if (pattern.startsWith("/"))
+        return pattern;
+      return directory+"/"+pattern;
     }
-    return DEFAULT_LOG_PATTERN;
+    
+    return directory+"/"+DEFAULT_LOG_PATTERN;
   }
 
   /**

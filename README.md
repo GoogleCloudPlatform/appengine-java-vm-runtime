@@ -11,13 +11,13 @@ instance:
       mvn clean install
 
 This will create the following docker images:
- * gke-debian-openjdk:8-jre
- * gke-jetty:9.3.x
- * appengine-mvn-opensource:1.9.x
+ * openjdk8:8-jre
+ * jetty9:9.3.x
+ * jetty9-compatible:1.9.x
 
 The last of these images may be used as the basis for a Java Web Application Archive: put a Dockerfile at the top directory (for example, with a Maven build, create the Dockerfile in ./src/main/webapp directory) and from this Docker image, just add your Web Application content into the /app of the container.
 
-      FROM appengine-mvn-opensource:latest
+      FROM jetty9-compat:latest
       ADD . /app
 
 Then, you can run this App Engine Managed VM container via the Cloud SDK [https://cloud.google.com/appengine/docs/java/managed-vms/](https://cloud.google.com/appengine/docs/java/managed-vms/)
