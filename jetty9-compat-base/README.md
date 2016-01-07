@@ -8,7 +8,7 @@ Google App Engine on Google Container Engine in compatibility mode.
 The base can also be run directly for local testing with:
 ```shell
 java -Droot.webapp=../webapps/testwebapp/ \
-     -Dcom.google.apphosting.logs=./logs \
+     -Dcom.google.apphosting.logs=/tmp \
      -jar ../jetty-distribution-9.3.5.v20151012/start.jar \
      --module=testMetadataServer
 ```
