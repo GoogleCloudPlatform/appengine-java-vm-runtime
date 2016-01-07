@@ -81,15 +81,18 @@ class JettyRunner implements Runnable {
     try
     {
       // find projectDir
-      File project = new File(".").getAbsoluteFile().getCanonicalFile();
+      File project = new File(System.getProperty("user.dir",".")).getAbsoluteFile().getCanonicalFile();
       File target = new File(project,"target");
       while(!target.exists())
       {
         project=project.getParentFile();
         target = new File(project,"target");
       }
+
+      File jetty_base = new File(System.getProperty("jetty.base",new File(target,"jetty-base").getAbsolutePath()));
       
-      Assert.assertTrue(target.toString(),target.isDirectory());
+      Assert.assertTrue(target.isDirectory());
+      Assert.assertTrue(jetty_base.isDirectory());
       logs=new File(target,"logs");
       logs.delete();
       logs.mkdirs();
@@ -178,7 +181,7 @@ class JettyRunner implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
       
       // Hack to find the webdefault.xml
-      File webDefault = new File(target, "jetty-base/etc/webdefault.xml");
+      File webDefault = new File(jetty_base, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
      
       contexts.addHandler(context);
