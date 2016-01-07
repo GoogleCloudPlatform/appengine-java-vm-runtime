@@ -19,7 +19,7 @@ RUN rm -fr $JETTY_BASE \
  && mkdir $JETTY_BASE  
 
 # add jetty9 compat base
-ADD jetty9-compat-base-@@project.version@@ jetty_run.sh $JETTY_BASE/ 
+ADD jetty-base jetty_run.sh $JETTY_BASE/ 
 
 WORKDIR $JETTY_BASE
 RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini \

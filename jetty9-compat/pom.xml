@@ -105,7 +105,6 @@
 		  <fileset dir="${project.basedir}/src/main/docker"/>
 		</copy>
 		<replace file="${project.build.directory}/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}${jetty.version}"/>
-		<replace file="${project.build.directory}/docker/Dockerfile" token="@@project.version@@" value="${project.version}"/>
               </target>
             </configuration>
             <goals>

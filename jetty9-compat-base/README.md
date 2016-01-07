@@ -17,4 +17,10 @@ the system property `com.google.apphosting.logs` to configure a directory to log
 the normal jetty start.jar;
 A testMetadataServer module that locally handles GAE rest calls 
 
+## Artefacts
+
+This module builds 3 maven artefacts:
+ * jetty9-compat-base-@VERSION@.jar - The classes built in this module that addapt the generic appengine-managed-runtime module to the Jetty9 container.
+ * jetty9-compat-base-@VERSION@.tar.gz - A tar archive of the jar file deployed with all it's dependencies as a runnable [jetty base](https://www.eclipse.org/jetty/documentation/current/startup-base-and-home.html). 
+ * jetty9-compat-base-@VERSION@.zip - A zip archive of the jar file deployed with all it's dependencies as a runnable [jetty base](https://www.eclipse.org/jetty/documentation/current/startup-base-and-home.html). 
 Enjoy...
