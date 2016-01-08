@@ -277,7 +277,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
     final String appengineHostname = getEnvOrMetadata(
         envMap, cache, APPENGINE_HOSTNAME_KEY, APPENGINE_HOSTNAME_ATTRIBUTE);
-    final String ticket = null;
     final String email = null;
     final boolean admin = false;
     final String authDomain = null;
@@ -299,7 +298,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
     attributes.put(AFFINITY_KEY, affinity);
-    VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
+    VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
         authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
     // Add the thread factories required by the threading API.
@@ -337,7 +336,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final boolean useMvmAgent = defaultEnvironment.getUseMvmAgent();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
-    final String ticket = request.getHeader(TICKET_HEADER);
+    // this one is not used: final String ticket = request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
     boolean admin = false;
     String value = request.getHeader(IS_ADMIN_HEADER);
@@ -380,7 +379,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       attributes.put(IS_TRUSTED_IP_KEY, trustedIp);
     }
 
-    VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
+    VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, longAppId,
         partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
         authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
     // Add the thread factories required by the threading API.
@@ -420,7 +419,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * Constructs a VM AppEngine API environment.
    *
    * @param server the host:port address of the VM's HTTP proxy server.
-   * @param ticket the request ticket (if null the default one will be computed).
    * @param appId the application ID (required if ticket is null).
    * @param partition the partition name.
    * @param module the module name (required if ticket is null).
@@ -437,7 +435,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param attributes map containing any attributes set on this environment.
    */
   private VmApiProxyEnvironment(
-      String server, String ticket, String appId, String partition, String module,
+      String server, String appId, String partition, String module,
       String majorVersion, String minorVersion, String instance, String appengineHostname,
       String email, boolean admin, String authDomain, boolean useMvmAgent, Timer wallTimer,
       Long millisUntilSoftDeadline, Map<String, Object> attributes) {
@@ -447,20 +445,17 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     if (millisUntilSoftDeadline != null && wallTimer == null) {
       throw new IllegalArgumentException("wallTimer required when setting millisUntilSoftDeadline");
     }
-    if (ticket == null || ticket.isEmpty()) {
-      if ((appId == null || appId.isEmpty()) ||
-          (module == null || module.isEmpty()) ||
-          (majorVersion == null || majorVersion.isEmpty()) ||
-          (instance == null || instance.isEmpty())) {
-        throw new IllegalArgumentException(
-            "When ticket == null, the following must be specified: appId=" + appId
-            + ", module=" + module + ", version=" + majorVersion + ", instance=" + instance);
-      }
-      String escapedAppId = appId.replace(':', '_').replace('.', '_');
-      this.ticket = escapedAppId + '/' + module + '.' + majorVersion + "." + instance;
-    } else {
-      this.ticket = ticket;
+    if ((appId == null || appId.isEmpty())
+            || (module == null || module.isEmpty())
+            || (majorVersion == null || majorVersion.isEmpty())
+            || (instance == null || instance.isEmpty())) {
+      throw new IllegalArgumentException(
+              "When ticket == null, the following must be specified: appId=" + appId
+              + ", module=" + module + ", version=" + majorVersion + ", instance=" + instance);
     }
+    String escapedAppId = appId.replace(':', '_').replace('.', '_');
+    this.ticket = escapedAppId + '/' + module + '.' + majorVersion + "." + instance;
+
     this.server = server;
     this.partition = partition;
     String port = System.getenv(GAE_SERVER_PORT) == null ? 
