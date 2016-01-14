@@ -31,6 +31,12 @@
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-java-logging</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
       <artifactId>openjdk8</artifactId>
       <version>1.9.31-SNAPSHOT</version>
       <type>pom</type>
@@ -43,7 +49,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy</id>
+            <id>jetty-distribution</id>
             <phase>package</phase>
             <goals>
               <goal>copy</goal>
@@ -63,6 +69,46 @@
               </artifactItems>
             </configuration>
           </execution>
+          <execution>
+            <id>gae-jars</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker/jetty-base/lib/mvm</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <excludeTransitive>false</excludeTransitive>
+              <includeScope>runtime</includeScope>
+              <excludeTypes>pom</excludeTypes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>generate-jetty-base</id>
+            <phase>generate-resources</phase>
+            <configuration>
+              <target>
+                <copy todir="${project.build.directory}/docker">
+                  <fileset dir="${project.basedir}/src/main/docker"/>
+                </copy>
+                <replace file="${project.build.directory}/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}8-jre"/>
+                <copy todir="${project.build.directory}/docker/jetty-base">
+                  <fileset dir="${project.basedir}/src/main/jetty-base"/>
+                </copy>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
 
@@ -78,7 +124,7 @@
             </goals>
             <configuration>
               <imageName>jetty9:${docker.label.prefix}${jetty.version}</imageName>
-              <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+              <dockerDirectory>${project.build.directory}/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>

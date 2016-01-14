@@ -59,12 +59,6 @@
       <version>${jetty.version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-    </dependency>
     
     <!-- tests-->
     <dependency>
@@ -212,6 +206,7 @@
               <excludeTransitive>false</excludeTransitive>
               <excludeGroupIds>org.eclipse.jetty,org.ow2.asm,javax.annotation,javax.servlet,javax.transaction</excludeGroupIds>
               <includeScope>runtime</includeScope>
+              <excludeTypes>pom</excludeTypes>
             </configuration>
           </execution>
         </executions>
