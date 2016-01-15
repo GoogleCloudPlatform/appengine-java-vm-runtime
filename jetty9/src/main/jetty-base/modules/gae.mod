@@ -1,5 +1,5 @@
 #
-# MVM Module
+# GAE Module for Jetty 9 MVM Image
 #
 
 [depend]
@@ -9,10 +9,10 @@ server
 [optional]
 
 [xml]
-etc/mvm.xml
+etc/gae.xml
 
 [lib]
-lib/mvm/*.jar
+lib/gae/*.jar
 
 [ini-template]
 

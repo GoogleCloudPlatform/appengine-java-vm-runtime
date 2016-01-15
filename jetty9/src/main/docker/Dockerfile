@@ -36,8 +36,7 @@ RUN mv /usr/local/jetty-distribution-* $JETTY_HOME \
 ENV JETTY_BASE /var/lib/jetty
 ADD jetty-base $JETTY_BASE
 WORKDIR $JETTY_BASE
-ADD gae-alpn.mod modules/
-RUN java -jar $JETTY_HOME/start.jar --add-to-startd=mvm,http,deploy,jsp,jstl,setuid \
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=gae,http,deploy,jsp,jstl,setuid \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
  && ln -s $JETTY_BASE/webapps/root /app

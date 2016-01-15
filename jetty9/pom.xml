@@ -76,7 +76,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/docker/jetty-base/lib/mvm</outputDirectory>
+              <outputDirectory>${project.build.directory}/docker/jetty-base/lib/gae</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>
               <excludeTransitive>false</excludeTransitive>
