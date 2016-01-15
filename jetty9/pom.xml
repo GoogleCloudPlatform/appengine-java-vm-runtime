@@ -123,7 +123,10 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>jetty9:${docker.label.prefix}${jetty.version}</imageName>
+              <imageName>jetty9</imageName>
+	      <imageTags>
+	        <imageTag>${docker.label.prefix}${jetty.version}</imageTag>
+	      </imageTags> 
               <dockerDirectory>${project.build.directory}/docker</dockerDirectory>
             </configuration>
           </execution>
