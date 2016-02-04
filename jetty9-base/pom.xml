@@ -21,10 +21,10 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.31-SNAPSHOT</version>
+    <version>1.9.32-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Image Jetty (jetty9)</name>
+  <name>Google App Engine Image Jetty (jetty9-base)</name>
   <artifactId>jetty9-base</artifactId>
   <packaging>jar</packaging>
 
