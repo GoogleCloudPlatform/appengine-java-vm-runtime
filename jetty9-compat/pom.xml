@@ -28,6 +28,15 @@
   <artifactId>jetty9-compat</artifactId>
   <packaging>pom</packaging>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>jetty9-compat-base</artifactId>
+      <version>${project.version}</version>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+  
   <build>
     <plugins>
       <plugin>
@@ -45,7 +54,7 @@
                   <groupId>com.google.appengine</groupId>
                   <artifactId>jetty9-compat-base</artifactId>
                   <version>${project.version}</version>
-                  <type>zip</type>
+                  <type>tar.gz</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
                   <outputDirectory>${project.build.directory}/docker/</outputDirectory>
@@ -59,7 +68,6 @@
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.3.2</version>
         <executions>
           <execution>
             <id>build-gae</id>
@@ -93,7 +101,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>generate-docker</id>

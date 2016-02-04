@@ -23,3 +23,5 @@ jetty.httpConfig.headerCacheSize=512
 jetty.httpConfig.sendServerVersion=true
 jetty.httpConfig.sendDateHeader=false
 
+#gae.httpPort=80
+#gae.httpsPort=443

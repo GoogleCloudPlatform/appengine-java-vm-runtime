@@ -79,6 +79,7 @@
     <module>appengine-java-logging</module>
     <module>appengine-managed-runtime</module>
     <module>openjdk8</module>
+    <module>jetty9-base</module>
     <module>jetty9</module>
     <module>testwebapp</module>
     <module>jetty9-compat-base</module>
@@ -113,6 +114,12 @@
             <source>1.8</source>
             <target>1.8</target>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.4.0</version>
         </plugin>
 
         <plugin>
@@ -152,8 +159,14 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.7</version>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
         </plugin>
 
         <plugin>
