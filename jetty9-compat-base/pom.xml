@@ -59,12 +59,6 @@
       <version>${jetty.version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-    </dependency>
     
     <!-- tests-->
     <dependency>
@@ -78,7 +72,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
       <scope>test</scope>
     </dependency>   
     <dependency>
@@ -139,7 +132,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.5</version>
         <configuration>
           <archive>
             <manifestEntries>
@@ -212,6 +204,7 @@
               <excludeTransitive>false</excludeTransitive>
               <excludeGroupIds>org.eclipse.jetty,org.ow2.asm,javax.annotation,javax.servlet,javax.transaction</excludeGroupIds>
               <includeScope>runtime</includeScope>
+              <excludeTypes>pom</excludeTypes>
             </configuration>
           </execution>
         </executions>
@@ -219,7 +212,6 @@
 
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>generate-jetty-base</id>
