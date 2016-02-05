@@ -34,7 +34,9 @@ RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/
 ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2f-2_amd64.deb /tmp/
 RUN dpkg -i /tmp/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/openssl_1.0.2f-2_amd64.deb \
- && rm /tmp/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/openssl_1.0.2f-2_amd64.deb
+ && rm /tmp/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/openssl_1.0.2f-2_amd64.deb \
+ && apt-get -y -q upgrade \
+ && apt-get -y -q autoremove
 
 # Add the cloud debugger and profiler libraries
 ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/
