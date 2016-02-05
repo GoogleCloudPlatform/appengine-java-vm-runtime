@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
+
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+  <!-- =========================================================== -->
+  <!-- Ammend HttpConfig -->
+  <!-- =========================================================== -->
+  <Ref refid="httpConfig">
+    <Set name="headerCacheSize">
+      <Property name="jetty.httpConfig.headerCacheSize"
+        default="512" />
+    </Set>
+    <Call name="addCustomizer">
+      <Arg>
+        <New class="com.google.apphosting.jetty9.GoogleRequestCustomizer">
+          <Arg name="httpPort" type="int"><Property name="gae.httpPort" default="80"/></Arg>
+          <Arg name="httpsPort" type="int"><Property name="gae.httpsPort" default="443"/></Arg>
+        </New>
+      </Arg>
+    </Call>
+  </Ref>
+  
+  <!-- =========================================================== -->
+  <!-- Setup server log -->
+  <!-- =========================================================== -->
+  <Call id="logMgr" class="java.util.logging.LogManager" name="getLogManager">
+    <Call name="readConfiguration">
+      <Arg>
+        <New class="java.io.FileInputStream">
+          <Arg><Property name="jetty.base" default="."/>/etc/java-util-logging.properties</Arg>
+        </New>
+      </Arg>
+    </Call>
+  </Call>
+
+  <!-- =========================================================== -->
+  <!-- Setup a request log -->
+  <!-- =========================================================== -->
+  <Ref refid="Handlers">
+    <Call name="addHandler">
+      <Arg>
+        <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler">
+          <Set name="requestLog">
+            <New id="RequestLogImpl" class="org.eclipse.jetty.server.NCSARequestLog">
+              <Arg><Property name="com.google.apphosting.logs" default="/var/log/app_engine" />/request.yyyy_mm_dd.log</Arg>
+              <Set name="retainDays">2</Set>
+              <Set name="append">true</Set>
+              <Set name="extended">true</Set>
+              <Set name="LogTimeZone">GMT</Set>
+              <Set name="logLatency">true</Set>
+              <Set name="preferProxiedForAddress">true</Set>
+            </New>
+          </Set>
+        </New>
+      </Arg>
+    </Call>
+  </Ref>
+</Configure>

@@ -25,6 +25,21 @@ and can be run with:
 ```console
 docker run jetty9:9.3.5.v20151012
 ```
+## Google Modules & Configuration
+The jetty base in this image has some additional google specific modules:
+
+Module | Description | enabled
+-------|-------------|------- 
+ gae   | enables JSON formatted server logging; enables request log; | true  
+ gae-alpn | exposes ALPN API jars | false
+
+The `$JETTY_BASE/resources/jetty-logging.properties` file configures the
+jetty logging mechanism to use `java.util.logging'.  This is configured
+using `$JETTY_BASE/etc/java-util-logging.properties` which set a JSON formatter
+for logging to `/var/log/app_engine/app.%g.log.json`.  
+
+The request log also defaults to log into `/var/log/app_engine/` by the 
+`gae` module
 
 ## Configuring the Jetty image
 Arguments passed to the docker run command are passed to Jetty, so the 
