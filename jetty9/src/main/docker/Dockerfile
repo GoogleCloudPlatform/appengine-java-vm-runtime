@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO remove or generate the async label prefix before merge with master
-FROM openjdk8:async-8-jre 
+FROM openjdk8:${docker.label.prefix}8-jre
 
 # create jetty group and user
 RUN groupadd -r jetty \
  && useradd -r -g jetty jetty
+
+# Create log directory
+RUN mkdir /var/log/app_engine \
+ && chgrp jetty /var/log/app_engine \
+ && chmod g+rw /var/log/app_engine
 
 # Create Jetty Home
 ENV JETTY_HOME /usr/local/jetty
@@ -29,10 +33,9 @@ RUN mv /usr/local/jetty-distribution-* $JETTY_HOME \
 
 # Create Jetty Base
 ENV JETTY_BASE /var/lib/jetty
-RUN mkdir -p $JETTY_BASE
+ADD jetty-base $JETTY_BASE
 WORKDIR $JETTY_BASE
-ADD gae-alpn.mod modules/
-RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid \
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=setuid \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
  && ln -s $JETTY_BASE/webapps/root /app

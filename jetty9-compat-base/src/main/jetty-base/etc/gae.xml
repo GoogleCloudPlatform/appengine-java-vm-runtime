@@ -54,7 +54,7 @@
           <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler">
 	    <Set name="requestLog">
 	      <New id="RequestLogImpl" class="org.eclipse.jetty.server.NCSARequestLog">
-		<Arg><Property name="com.google.apphosting.logs" default="/var/logs/app_engine"/>/request.yyyy_mm_dd.log</Arg>
+		<Arg><Property name="com.google.apphosting.logs" default="/var/log/app_engine"/>/request.yyyy_mm_dd.log</Arg>
 		<Set name="retainDays">2</Set>
 		<Set name="append">true</Set>
 		<Set name="extended">true</Set>
