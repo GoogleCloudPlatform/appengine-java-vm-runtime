@@ -1,10 +1,7 @@
-## Customize the test machine
+## Customize the Circle CI test machine
 machine:
  java:
   version: oraclejdk8
-
- services:
-  - docker
 
 ## Prevent mvn dependency:resolve failing for intra-dependencies
 dependencies:
