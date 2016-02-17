@@ -29,15 +29,13 @@ import com.google.appengine.api.search.SearchException;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.appengine.api.users.UserServiceFailureException;
 import com.google.appengine.api.xmpp.XMPPFailureException;
+import com.google.appengine.repackaged.com.google.common.collect.Lists;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
-
-
-import com.google.appengine.repackaged.com.google.common.collect.Lists;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -157,22 +155,20 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
       logger.log(Level.INFO, String.format(
-              "Service bridge API call to package: %s, call: %s, of size: %s " +
-              "complete. Service bridge status code: %s; response " +
-              "content-length: %s. Took %s ms.",
-              packageName, methodName, requestData.length, 200,
-              responseData.length, (end - start)));
+          "Service bridge API call to package: %s, call: %s, of size: %s " +
+          "complete. Service bridge status code: %s; response " +
+          "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
+          responseData.length, (end - start)));
       return responseData;
     } catch(Exception e) {
       long end = System.currentTimeMillis();
       int statusCode = 200; // default
-      if(e instanceof RPCFailedStatusException)
+      if (e instanceof RPCFailedStatusException)
         statusCode = ((RPCFailedStatusException) e).getStatusCode();
       logger.log(Level.WARNING, String.format(
-              "Exception during service bridge API call to package: %s, call: %s, " +
-              "of size: %s bytes, status code: %d. Took %s ms. %s",
-              packageName, methodName, requestData.length, statusCode,
-              (end-start), e.getClass().getSimpleName()),e);
+          "Exception during service bridge API call to package: %s, call: %s, " +
+          "of size: %s bytes, status code: %d. Took %s ms. %s", packageName, methodName,
+          requestData.length, statusCode, (end - start), e.getClass().getSimpleName()), e);
       throw e;
     } finally {
       environment.apiCallCompleted();
