@@ -17,5 +17,12 @@
         <exclude>**/META-INF/**</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>jetty-base/lib/gae</outputDirectory>
+      <includes>
+        <include>${artifactId}-${version}.jar</include>
+      </includes>
+    </fileSet>
   </fileSets>
 </assembly>

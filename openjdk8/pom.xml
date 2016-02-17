@@ -21,7 +21,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.31-SNAPSHOT</version>
+    <version>1.9.32-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Image for OpenJDK (openjdk8)</name>
@@ -66,7 +66,10 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>openjdk8:${docker.label.prefix}8-jre</imageName>
+              <imageName>openjdk8</imageName>
+	      <imageTags>
+	        <imageTag>${docker.label.prefix}8-jre</imageTag>
+	      </imageTags> 
               <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
             </configuration>
           </execution>

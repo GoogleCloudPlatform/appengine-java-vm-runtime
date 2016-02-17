@@ -21,13 +21,22 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.31-SNAPSHOT</version>
+    <version>1.9.32-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Image with GAE Compatibility (jetty9-compat)</name>
   <artifactId>jetty9-compat</artifactId>
   <packaging>pom</packaging>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>jetty9-compat-base</artifactId>
+      <version>${project.version}</version>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+  
   <build>
     <plugins>
       <plugin>
@@ -45,7 +54,7 @@
                   <groupId>com.google.appengine</groupId>
                   <artifactId>jetty9-compat-base</artifactId>
                   <version>${project.version}</version>
-                  <type>zip</type>
+                  <type>tar.gz</type>
                   <overWrite>true</overWrite>
                   <includes>**</includes>
                   <outputDirectory>${project.build.directory}/docker/</outputDirectory>
@@ -59,7 +68,6 @@
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.3.2</version>
         <executions>
           <execution>
             <id>build-gae</id>
@@ -69,9 +77,9 @@
             </goals>
             <configuration>
               <forceTags>true</forceTags>
-              <imageName>jetty9-compat:${docker.label.prefix}${project.version}</imageName>
+              <imageName>jetty9-compat</imageName>
               <imageTags>
-                <imageTag>latest</imageTag>
+                <imageTag>${docker.label.prefix}${project.version}</imageTag>
               </imageTags>
               <dockerDirectory>${project.basedir}/target/docker</dockerDirectory>
             </configuration>
@@ -86,7 +94,6 @@
 	      <imageName>jetty9-compat</imageName>
 	      <imageTags>
 	        <imageTag>${docker.label.prefix}${project.version}</imageTag>
-	        <imageTag>latest</imageTag>
 	      </imageTags> 
 	    </configuration>
           </execution>
@@ -94,7 +101,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>generate-docker</id>
