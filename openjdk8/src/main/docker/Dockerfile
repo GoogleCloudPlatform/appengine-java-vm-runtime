@@ -35,14 +35,12 @@ ADD sid.list /etc/apt/sources.list.d/
 RUN apt-get -y update \
  && apt-get -y -q --no-install-recommends install \
     libssl1.0.2 \
-    openssl
-
+    openssl \
 # Cleanup sid references
-RUN rm /etc/apt/sources.list.d/sid.list \
- && apt-get -y update
-
+ && rm /etc/apt/sources.list.d/sid.list \
+ && apt-get -y update \
 # Cleanup apt-get temporary files
-RUN apt-get -y -q upgrade \
+ && apt-get -y -q upgrade \
  && apt-get -y -q autoremove
 
 # Add the cloud debugger and profiler libraries
