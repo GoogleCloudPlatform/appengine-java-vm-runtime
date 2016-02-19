@@ -35,6 +35,8 @@ import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLRequest;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLResponse;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
 
 import org.apache.http.HttpResponse;
@@ -148,9 +150,27 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
+    
+
+    // HACK TO FIX USER_SERVICE BUG
+    if ("user".equals(packageName)) {
+      if ("CreateLogoutURL".equals(methodName)) {
+        CreateLogoutURLRequest request = new CreateLogoutURLRequest();
+        request.parseFrom(requestData);
+        String dest_url=request.getDestinationUrl();
+        CreateLogoutURLResponse response = new CreateLogoutURLResponse();
+        String url ="https://test"+dest_url;
+        response.setLogoutUrl(url);
+        logger.log(Level.INFO, String.format(
+            "Local override API call to package: %s, call: %s, dest: %s url:%s", packageName, methodName, dest_url,url));
+        return response.toByteArray();
+      }
+    }    
+    
     // If this was caused by an async call we need to return the pending call semaphore.
     long start = System.currentTimeMillis();
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
+    
     try {
       byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
