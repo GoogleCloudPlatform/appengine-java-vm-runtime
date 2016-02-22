@@ -187,7 +187,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
               response.parseFrom(responseData);
               URI uri = new URI(response.getLoginUrl());
               String query=uri.getQuery().replaceAll("http?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
-              response.setLoginUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
+              response.setLoginUrl(new URI(uri.getScheme(),uri.getUserInfo(),uri.getHost(),
                   uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
               return response.toByteArray();
             }
