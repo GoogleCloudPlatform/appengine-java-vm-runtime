@@ -177,16 +177,18 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
               CreateLogoutURLResponse response = new CreateLogoutURLResponse();
               response.parseFrom(responseData);
               URI uri = new URI(response.getLogoutUrl());
+              String query=uri.getQuery().replaceAll("https?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
               response.setLogoutUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
-                  uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toASCIIString());
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
               return response.toByteArray();
             }
             if ("CreateLoginURL".equals(methodName)) {
               CreateLoginURLResponse response = new CreateLoginURLResponse();
               response.parseFrom(responseData);
               URI uri = new URI(response.getLoginUrl());
+              String query=uri.getQuery().replaceAll("http?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
               response.setLoginUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
-                  uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toASCIIString());
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
               return response.toByteArray();
             }
           } catch (URISyntaxException e) {
