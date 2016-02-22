@@ -35,6 +35,7 @@ import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
+import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
 import com.google.apphosting.api.UserServicePb.CreateLogoutURLRequest;
 import com.google.apphosting.api.UserServicePb.CreateLogoutURLResponse;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
@@ -57,6 +58,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -150,23 +153,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
-    
-
-    // HACK TO FIX USER_SERVICE BUG
-    if ("user".equals(packageName)) {
-      if ("CreateLogoutURL".equals(methodName)) {
-        CreateLogoutURLRequest request = new CreateLogoutURLRequest();
-        request.parseFrom(requestData);
-        String dest_url=request.getDestinationUrl();
-        CreateLogoutURLResponse response = new CreateLogoutURLResponse();
-        String url ="https://test"+dest_url;
-        response.setLogoutUrl(url);
-        logger.log(Level.INFO, String.format(
-            "Local override API call to package: %s, call: %s, dest: %s url:%s", packageName, methodName, dest_url,url));
-        return response.toByteArray();
-      }
-    }    
-    
+        
     // If this was caused by an async call we need to return the pending call semaphore.
     long start = System.currentTimeMillis();
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
@@ -179,6 +166,34 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
           "complete. Service bridge status code: %s; response " +
           "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
           responseData.length, (end - start)));
+      
+      // HACK TO FIX USER_SERVICE BUG
+      if ("user".equals(packageName)) {
+        String host = (String) environment.getAttributes().get("com.google.appengine.runtime.host");
+        String https = (String) environment.getAttributes().get("com.google.appengine.runtime.https");
+        if (host != null && host.length() > 0) {
+          try {
+            if ("CreateLogoutURL".equals(methodName)) {
+              CreateLogoutURLResponse response = new CreateLogoutURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLogoutUrl());
+              response.setLogoutUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
+                  uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+            if ("CreateLoginURL".equals(methodName)) {
+              CreateLoginURLResponse response = new CreateLoginURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLoginUrl());
+              response.setLoginUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
+                  uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+          } catch (URISyntaxException e) {
+            logger.log(Level.WARNING,"Problem adjusting UserService URI",e);
+          }
+        }
+      }
       return responseData;
     } catch(Exception e) {
       long end = System.currentTimeMillis();

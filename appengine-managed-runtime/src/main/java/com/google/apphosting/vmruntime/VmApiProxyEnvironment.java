@@ -20,14 +20,12 @@ package com.google.apphosting.vmruntime;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
-import com.google.apphosting.api.logservice.LogServicePb.UserAppLogLine;
 import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.http.HttpRequest;
 
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -207,7 +205,16 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     APPSERVER_TASK_BNS(
         "X-AppEngine-Appserver-Task-Bns",
         "com.google.appengine.runtime.appserver_task_bns",
-        "", true);
+        "", true),
+    HTTPS(
+        HTTPS_HEADER,
+        "com.google.appengine.runtime.https",
+        "off", false),
+    HOST(
+        "Host",
+        "com.google.appengine.runtime.host",
+        null, false),
+    ;
 
     String headerKey;
     String attributeKey;
