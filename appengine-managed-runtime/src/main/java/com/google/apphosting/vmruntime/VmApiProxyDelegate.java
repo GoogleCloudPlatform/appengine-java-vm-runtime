@@ -167,12 +167,15 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
           "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
           responseData.length, (end - start)));
       
-      // HACK TO FIX USER_SERVICE ISSUE #164
+      // TODO Remove HACK TO FIX USER_SERVICE ISSUE #164
+      // Disable with -DUserServiceLocalSchemeHost=false
       if ("user".equals(packageName)) {
-        boolean userservicefix = !Boolean.getBoolean("UserService164");
+        String userservicelocal = System.getProperty("UserServiceLocalSchemeHost");
         String host = (String) environment.getAttributes().get("com.google.appengine.runtime.host");
         String https = (String) environment.getAttributes().get("com.google.appengine.runtime.https");
-        if (userservicefix && host != null && host.length() > 0) {
+        if ((userservicelocal==null || Boolean.valueOf(userservicelocal)) 
+            && host != null && host.length() > 0
+            && https!=null && https.length() > 0) {
           try {
             if ("CreateLogoutURL".equals(methodName)) {
               CreateLogoutURLResponse response = new CreateLogoutURLResponse();
