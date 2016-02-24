@@ -27,12 +27,6 @@
       <version>${project.version}</version>
       <type>tar.gz</type>
     </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-distribution</artifactId>
-      <version>${jetty.version}</version>
-      <type>tar.gz</type>
-    </dependency>
   </dependencies>
 
   <build>

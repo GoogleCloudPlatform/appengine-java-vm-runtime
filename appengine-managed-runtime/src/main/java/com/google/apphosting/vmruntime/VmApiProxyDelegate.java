@@ -35,6 +35,9 @@ import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
+import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLRequest;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLResponse;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
 
 import org.apache.http.HttpResponse;
@@ -55,6 +58,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -148,9 +153,11 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
+        
     // If this was caused by an async call we need to return the pending call semaphore.
     long start = System.currentTimeMillis();
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
+    
     try {
       byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
@@ -159,6 +166,40 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
           "complete. Service bridge status code: %s; response " +
           "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
           responseData.length, (end - start)));
+      
+      // TODO Remove HACK TO FIX USER_SERVICE ISSUE #164
+      // Disable with -DUserServiceLocalSchemeHost=false
+      if ("user".equals(packageName)) {
+        String userservicelocal = System.getProperty("UserServiceLocalSchemeHost");
+        String host = (String) environment.getAttributes().get("com.google.appengine.runtime.host");
+        String https = (String) environment.getAttributes().get("com.google.appengine.runtime.https");
+        if ((userservicelocal==null || Boolean.valueOf(userservicelocal)) 
+            && host != null && host.length() > 0
+            && https!=null && https.length() > 0) {
+          try {
+            if ("CreateLogoutURL".equals(methodName)) {
+              CreateLogoutURLResponse response = new CreateLogoutURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLogoutUrl());
+              String query=uri.getQuery().replaceAll("https?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
+              response.setLogoutUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+            if ("CreateLoginURL".equals(methodName)) {
+              CreateLoginURLResponse response = new CreateLoginURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLoginUrl());
+              String query=uri.getQuery().replaceAll("http?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
+              response.setLoginUrl(new URI(uri.getScheme(),uri.getUserInfo(),uri.getHost(),
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+          } catch (URISyntaxException e) {
+            logger.log(Level.WARNING,"Problem adjusting UserService URI",e);
+          }
+        }
+      }
       return responseData;
     } catch(Exception e) {
       long end = System.currentTimeMillis();
