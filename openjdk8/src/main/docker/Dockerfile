@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO (ludo) remove qa dependency.
-FROM gcr.io/google_appengine_qa/debian
+FROM gcr.io/google_appengine/base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Update debian 
