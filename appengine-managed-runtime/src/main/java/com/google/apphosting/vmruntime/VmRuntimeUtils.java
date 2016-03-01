@@ -42,7 +42,7 @@ public class VmRuntimeUtils {
   private static final String SKIP_ADMIN_CHECK_ATTR =
       "com.google.apphosting.internal.SkipAdminCheck";
 
-  private static final String VM_API_PROXY_HOST = "appengine.googleapis.com";
+  private static final String VM_API_PROXY_HOST = "appengine.googleapis.internal";
   private static final int VM_API_PROXY_PORT = 10001;
 
   public static final long ONE_DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
