@@ -696,4 +696,25 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     }
     return false;
   }
+
+  public String getTraceId() {
+    Object value = getAttributes().get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
+    if (!(value instanceof String)) {
+      return null;
+    }
+    String fullTraceId = (String) value;
+
+    // Extract the trace id from the header.
+    // TODO(user, qike): Use the code from the Trace SDK when it's available in /third_party.
+    if (fullTraceId.isEmpty() || Character.digit(fullTraceId.charAt(0), 16) < 0) {
+      return null;
+    }
+    for (int index = 1; index < fullTraceId.length(); index++) {
+      char ch = fullTraceId.charAt(index);
+      if (Character.digit(ch, 16) < 0) {
+        return fullTraceId.substring(0, index);
+      }
+    }
+    return null;
+  }
 }

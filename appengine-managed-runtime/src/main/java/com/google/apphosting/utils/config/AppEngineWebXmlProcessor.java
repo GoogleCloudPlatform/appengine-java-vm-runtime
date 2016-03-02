@@ -29,18 +29,16 @@ import com.google.apphosting.utils.config.AppEngineWebXml.Network;
 import com.google.apphosting.utils.config.AppEngineWebXml.Pagespeed;
 import com.google.apphosting.utils.config.AppEngineWebXml.PrioritySpecifierEntry;
 import com.google.apphosting.utils.config.AppEngineWebXml.Resources;
-import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static com.google.apphosting.vmruntime.VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
+import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Constructs an {@link AppEngineWebXml} from an xml document corresponding to
@@ -53,8 +51,6 @@ import java.util.logging.Logger;
 class AppEngineWebXmlProcessor {
 
   enum FileType { STATIC, RESOURCE }
-
-  private static final Logger logger = Logger.getLogger(AppEngineWebXmlProcessor.class.getName());
 
   /**
    * Construct an {@link AppEngineWebXml} from the xml document
@@ -432,8 +428,8 @@ class AppEngineWebXmlProcessor {
       String propertyName = trim(subNode.getAttribute("name"));
       String propertyValue = trim(subNode.getAttribute("value"));
       
-      if (VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY.equals(propertyName) && System.getProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY)!=null)
-        propertyValue = System.getProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+      if (JAVA_UTIL_LOGGING_CONFIG_PROPERTY.equals(propertyName) && System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY)!=null)
+        propertyValue = System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
       
       appEngineWebXml.addSystemProperty(propertyName, propertyValue);
     }
