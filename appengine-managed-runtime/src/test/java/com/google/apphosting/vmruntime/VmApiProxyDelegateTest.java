@@ -1,12 +1,12 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,8 @@
 
 package com.google.apphosting.vmruntime;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -223,7 +225,7 @@ public class VmApiProxyDelegateTest extends TestCase {
             delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
         fail();
       } catch (ApiProxyException exception) {
-        assertEquals(expectedException.getClass(), exception.getClass());
+        assertThat(exception, instanceOf(expectedException.getClass()));
       }
     } else {
       try {
@@ -234,7 +236,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         fail();
       } catch (ExecutionException exception) {
         // ExecutionException is expected, and make sure the cause is expected as well.
-        assertEquals(expectedException.getClass(), exception.getCause().getClass());
+        assertThat(exception.getCause(), instanceOf(expectedException.getClass()));
       }
     }
     assertNull(result);

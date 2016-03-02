@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO (ludo) remove qa dependency.
-FROM gcr.io/google_appengine_qa/debian
+FROM gcr.io/google_appengine/base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Update debian 
@@ -30,11 +29,18 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
 # workaround for https://bugs.debian.org/775775
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
-# Upgrade to OpenSSL 1.0.2
-ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/
-ADD http://ftp.us.debian.org/debian/pool/main/o/openssl/openssl_1.0.2f-2_amd64.deb /tmp/
-RUN dpkg -i /tmp/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/openssl_1.0.2f-2_amd64.deb \
- && rm /tmp/libssl1.0.2_1.0.2f-2_amd64.deb /tmp/openssl_1.0.2f-2_amd64.deb
+# Upgrade to OpenSSL 1.0.2 (via sid)
+ADD sid.list /etc/apt/sources.list.d/
+RUN apt-get -y update \
+ && apt-get -y -q --no-install-recommends install \
+    libssl1.0.2 \
+    openssl \
+# Cleanup sid references
+ && rm /etc/apt/sources.list.d/sid.list \
+ && apt-get -y update \
+# Cleanup apt-get temporary files
+ && apt-get -y -q upgrade \
+ && apt-get -y -q autoremove
 
 # Add the cloud debugger and profiler libraries
 ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/

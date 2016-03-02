@@ -1,12 +1,12 @@
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,15 +29,16 @@ import com.google.appengine.api.search.SearchException;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.appengine.api.users.UserServiceFailureException;
 import com.google.appengine.api.xmpp.XMPPFailureException;
+import com.google.appengine.repackaged.com.google.common.collect.Lists;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
+import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLRequest;
+import com.google.apphosting.api.UserServicePb.CreateLogoutURLResponse;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
-
-
-import com.google.appengine.repackaged.com.google.common.collect.Lists;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -57,6 +58,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -64,6 +67,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -113,7 +117,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     this(new DefaultHttpClient(createConnectionManager()));
   }
 
-  
+
   VmApiProxyDelegate(HttpClient httpclient) {
     this.defaultTimeoutMs = DEFAULT_RPC_TIMEOUT_MS;
     this.executor = Executors.newCachedThreadPool();
@@ -149,16 +153,70 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
+        
     // If this was caused by an async call we need to return the pending call semaphore.
+    long start = System.currentTimeMillis();
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
+    
     try {
-      return runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
+      byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
+      long end = System.currentTimeMillis();
+      logger.log(Level.INFO, String.format(
+          "Service bridge API call to package: %s, call: %s, of size: %s " +
+          "complete. Service bridge status code: %s; response " +
+          "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
+          responseData.length, (end - start)));
+      
+      // TODO Remove HACK TO FIX USER_SERVICE ISSUE #164
+      // Disable with -DUserServiceLocalSchemeHost=false
+      if ("user".equals(packageName)) {
+        String userservicelocal = System.getProperty("UserServiceLocalSchemeHost");
+        String host = (String) environment.getAttributes().get("com.google.appengine.runtime.host");
+        String https = (String) environment.getAttributes().get("com.google.appengine.runtime.https");
+        if ((userservicelocal==null || Boolean.valueOf(userservicelocal)) 
+            && host != null && host.length() > 0
+            && https!=null && https.length() > 0) {
+          try {
+            if ("CreateLogoutURL".equals(methodName)) {
+              CreateLogoutURLResponse response = new CreateLogoutURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLogoutUrl());
+              String query=uri.getQuery().replaceAll("https?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
+              response.setLogoutUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+            if ("CreateLoginURL".equals(methodName)) {
+              CreateLoginURLResponse response = new CreateLoginURLResponse();
+              response.parseFrom(responseData);
+              URI uri = new URI(response.getLoginUrl());
+              String query=uri.getQuery().replaceAll("http?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
+              response.setLoginUrl(new URI(uri.getScheme(),uri.getUserInfo(),uri.getHost(),
+                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              return response.toByteArray();
+            }
+          } catch (URISyntaxException e) {
+            logger.log(Level.WARNING,"Problem adjusting UserService URI",e);
+          }
+        }
+      }
+      return responseData;
+    } catch(Exception e) {
+      long end = System.currentTimeMillis();
+      int statusCode = 200; // default
+      if (e instanceof RPCFailedStatusException)
+        statusCode = ((RPCFailedStatusException) e).getStatusCode();
+      logger.log(Level.WARNING, String.format(
+          "Exception during service bridge API call to package: %s, call: %s, " +
+          "of size: %s bytes, status code: %d. Took %s ms. %s", packageName, methodName,
+          requestData.length, statusCode, (end - start), e.getClass().getSimpleName()), e);
+      throw e;
     } finally {
       environment.apiCallCompleted();
     }
   }
 
-  
+
   protected byte[] runSyncCall(VmApiProxyEnvironment environment, String packageName,
       String methodName, byte[] requestData, int timeoutMs) {
     HttpPost request = createRequest(environment, packageName, methodName, requestData, timeoutMs);
@@ -172,7 +230,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
         try (Scanner errorStreamScanner =
             new Scanner(new BufferedInputStream(response.getEntity().getContent()));) {
           logger.info("Error body: " + errorStreamScanner.useDelimiter("\\Z").next());
-          throw new RPCFailedException(packageName, methodName);
+          throw new RPCFailedStatusException(packageName, methodName, response.getStatusLine().getStatusCode());
         }
       }
       try (BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent())) {
@@ -259,7 +317,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
    * @param timeoutMs The timeout for this request
    * @return an HttpPost object to send to the API.
    */
-  // 
+  //
   static HttpPost createRequest(VmApiProxyEnvironment environment, String packageName,
       String methodName, byte[] requestData, int timeoutMs) {
     // Wrap the payload in a RemoteApi Request.
