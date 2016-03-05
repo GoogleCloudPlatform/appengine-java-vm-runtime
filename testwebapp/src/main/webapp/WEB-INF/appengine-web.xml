@@ -18,9 +18,9 @@
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
   <threadsafe>true</threadsafe>
   <vm>true</vm>
-  <beta-settings>
+  <!--beta-settings>
     <setting name="java_quickstart" value="true"/>
-  </beta-settings>
+  </beta-settings-->
 
   <sessions-enabled>true</sessions-enabled>
   <precompilation-enabled>false</precompilation-enabled>
@@ -30,8 +30,8 @@
     <property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>
   </system-properties>
   <env-variables>
-    <env-var name="envvar1 key" value="envvar1 value"/>
-    <env-var name="envvar2 key" value="envvar2 value"/>
+    <env-var name="envvar1key" value="envvar1value"/>
+    <env-var name="envvar2key" value="envvar2value"/>
   </env-variables>
   
 </appengine-web-app>

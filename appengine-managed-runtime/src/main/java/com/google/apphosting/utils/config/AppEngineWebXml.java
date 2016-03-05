@@ -71,6 +71,8 @@ public class AppEngineWebXml implements Cloneable {
   private String majorVersionId;
 
   private String module;
+  // Used to be module, but now replaced by service.
+  private String service;
   private String instanceClass;
 
   private final AutomaticScaling automaticScaling;
@@ -119,11 +121,11 @@ public class AppEngineWebXml implements Cloneable {
 
   private boolean codeLock = false;
   private boolean useVm = false;
-  // Default env is 1 (GAE V1)
-  private String env = "1";
+  // Default env is standard (GAE V1)
+  // TODO(user): Add a test emitting an error if "env" is present but it has an invalid value.
+  private String env = "standard";
   private ApiConfig apiConfig;
   private final List<String> apiEndpointIds;
-  private Pagespeed pagespeed;
 
   /**
    * Represent user's choice w.r.t the usage of Google's customized connector-j.
@@ -239,6 +241,10 @@ public class AppEngineWebXml implements Cloneable {
     return module;
   }
 
+  public String getService() {
+    return service;
+  }
+
   /**
    * Sets instanceClass (aka class in the xml/yaml files). Normalizes empty and null
    * inputs to null.
@@ -275,6 +281,10 @@ public class AppEngineWebXml implements Cloneable {
 
   public void setModule(String module) {
     this.module = module;
+  }
+
+  public void setService(String service) {
+    this.service = service;
   }
 
   public void setSslEnabled(boolean ssl) {
@@ -367,6 +377,7 @@ public class AppEngineWebXml implements Cloneable {
     permissions.setReadOnly();
     return permissions;
   }
+
 
   public void setPublicRoot(String root) {
     if (root.indexOf('*') != -1) {
@@ -475,6 +486,10 @@ public class AppEngineWebXml implements Cloneable {
     return env;
   }
 
+  public boolean isFlexible() {
+    return ("flex".equalsIgnoreCase(env) || "2".equals(env) || "flexible".equalsIgnoreCase(env));
+  }
+
   public ApiConfig getApiConfig() {
     return apiConfig;
   }
@@ -523,14 +538,6 @@ public class AppEngineWebXml implements Cloneable {
     apiEndpointIds.add(id);
   }
 
-  public Pagespeed getPagespeed() {
-    return pagespeed;
-  }
-
-  public void setPagespeed(Pagespeed pagespeed) {
-    this.pagespeed = pagespeed;
-  }
-
   public void setUseGoogleConnectorJ(boolean useGoogleConnectorJ) {
     if (useGoogleConnectorJ) {
       this.useGoogleConnectorJ = UseGoogleConnectorJ.TRUE;
@@ -545,51 +552,98 @@ public class AppEngineWebXml implements Cloneable {
 
   @Override
   public String toString() {
-    return "AppEngineWebXml{" +
-        "systemProperties=" + systemProperties +
-        ", envVariables=" + envVariables +
-        ", userPermissions=" + userPermissions +
-        ", appId='" + appId + '\'' +
-        ", majorVersionId='" + majorVersionId + '\'' +
-        ", sourceLanguage='" + sourceLanguage + '\'' +
-        ", module='" + module + '\'' +
-        ", instanceClass='" + instanceClass + '\'' +
-        ", automaticScaling=" + automaticScaling  +
-        ", manualScaling=" + manualScaling  +
-        ", basicScaling=" + basicScaling  +
-        ", healthCheck=" + healthCheck +
-        ", resources=" + resources +
-        ", network=" + network +
-        ", sslEnabled=" + sslEnabled +
-        ", useSessions=" + useSessions +
-        ", asyncSessionPersistence=" + asyncSessionPersistence +
-        ", asyncSessionPersistenceQueueName='" + asyncSessionPersistenceQueueName + '\'' +
-        ", staticFileIncludes=" + staticFileIncludes +
-        ", staticFileExcludes=" + staticFileExcludes +
-        ", resourceFileIncludes=" + resourceFileIncludes +
-        ", resourceFileExcludes=" + resourceFileExcludes +
-        ", staticIncludePattern=" + staticIncludePattern +
-        ", staticExcludePattern=" + staticExcludePattern +
-        ", resourceIncludePattern=" + resourceIncludePattern +
-        ", resourceExcludePattern=" + resourceExcludePattern +
-        ", publicRoot='" + publicRoot + '\'' +
-        ", appRoot='" + appRoot + '\'' +
-        ", inboundServices=" + inboundServices +
-        ", precompilationEnabled=" + precompilationEnabled +
-        ", adminConsolePages=" + adminConsolePages +
-        ", errorHandlers=" + errorHandlers +
-        ", threadsafe=" + threadsafe +
-        ", threadsafeValueProvided=" + threadsafeValueProvided +
-        ", autoIdPolicy=" + autoIdPolicy +
-        ", codeLock=" + codeLock +
-        ", apiConfig=" + apiConfig +
-        ", apiEndpointIds=" + apiEndpointIds +
-        ", pagespeed=" + pagespeed +
-        ", classLoaderConfig=" + classLoaderConfig +
-        ", urlStreamHandlerType=" +
-            (urlStreamHandlerType == null ? URL_HANDLER_URLFETCH : urlStreamHandlerType) +
-        ", useGoogleConnectorJ=" + useGoogleConnectorJ +
-        '}';
+    return "AppEngineWebXml{"
+        + "systemProperties="
+        + systemProperties
+        + ", envVariables="
+        + envVariables
+        + ", userPermissions="
+        + userPermissions
+        + ", appId='"
+        + appId
+        + '\''
+        + ", majorVersionId='"
+        + majorVersionId
+        + '\''
+        + ", sourceLanguage='"
+        + sourceLanguage
+        + '\''
+        + ", service='"
+        + service
+        + '\''
+        + ", instanceClass='"
+        + instanceClass
+        + '\''
+        + ", automaticScaling="
+        + automaticScaling
+        + ", manualScaling="
+        + manualScaling
+        + ", basicScaling="
+        + basicScaling
+        + ", healthCheck="
+        + healthCheck
+        + ", resources="
+        + resources
+        + ", network="
+        + network
+        + ", sslEnabled="
+        + sslEnabled
+        + ", useSessions="
+        + useSessions
+        + ", asyncSessionPersistence="
+        + asyncSessionPersistence
+        + ", asyncSessionPersistenceQueueName='"
+        + asyncSessionPersistenceQueueName
+        + '\''
+        + ", staticFileIncludes="
+        + staticFileIncludes
+        + ", staticFileExcludes="
+        + staticFileExcludes
+        + ", resourceFileIncludes="
+        + resourceFileIncludes
+        + ", resourceFileExcludes="
+        + resourceFileExcludes
+        + ", staticIncludePattern="
+        + staticIncludePattern
+        + ", staticExcludePattern="
+        + staticExcludePattern
+        + ", resourceIncludePattern="
+        + resourceIncludePattern
+        + ", resourceExcludePattern="
+        + resourceExcludePattern
+        + ", publicRoot='"
+        + publicRoot
+        + '\''
+        + ", appRoot='"
+        + appRoot
+        + '\''
+        + ", inboundServices="
+        + inboundServices
+        + ", precompilationEnabled="
+        + precompilationEnabled
+        + ", adminConsolePages="
+        + adminConsolePages
+        + ", errorHandlers="
+        + errorHandlers
+        + ", threadsafe="
+        + threadsafe
+        + ", threadsafeValueProvided="
+        + threadsafeValueProvided
+        + ", autoIdPolicy="
+        + autoIdPolicy
+        + ", codeLock="
+        + codeLock
+        + ", apiConfig="
+        + apiConfig
+        + ", apiEndpointIds="
+        + apiEndpointIds
+        + ", classLoaderConfig="
+        + classLoaderConfig
+        + ", urlStreamHandlerType="
+        + (urlStreamHandlerType == null ? URL_HANDLER_URLFETCH : urlStreamHandlerType)
+        + ", useGoogleConnectorJ="
+        + useGoogleConnectorJ
+        + '}';
   }
 
   @Override
@@ -639,7 +693,7 @@ public class AppEngineWebXml implements Cloneable {
         : that.majorVersionId != null) {
       return false;
     }
-    if (module != null ? !module.equals(that.module) : that.module != null) {
+    if (service != null ? !service.equals(that.service) : that.service != null) {
       return false;
     }
     if (instanceClass != null ? !instanceClass.equals(that.instanceClass)
@@ -747,9 +801,6 @@ public class AppEngineWebXml implements Cloneable {
         : that.apiEndpointIds != null) {
       return false;
     }
-    if (pagespeed != null ? !pagespeed.equals(that.pagespeed) : that.pagespeed != null) {
-      return false;
-    }
     if (classLoaderConfig != null ? !classLoaderConfig.equals(that.classLoaderConfig) :
         that.classLoaderConfig != null) {
       return false;
@@ -773,7 +824,7 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
     result = 31 * result + (majorVersionId != null ? majorVersionId.hashCode() : 0);
     result = 31 * result + (sourceLanguage != null ? sourceLanguage.hashCode() : 0);
-    result = 31 * result + (module != null ? module.hashCode() : 0);
+    result = 31 * result + (service != null ? service.hashCode() : 0);
     result = 31 * result + (instanceClass != null ? instanceClass.hashCode() : 0);
     result = 31 * result + automaticScaling.hashCode();
     result = 31 * result + manualScaling.hashCode();
@@ -804,7 +855,6 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (codeLock ? 1 : 0);
     result = 31 * result + (apiConfig != null ? apiConfig.hashCode() : 0);
     result = 31 * result + (apiEndpointIds != null ? apiEndpointIds.hashCode() : 0);
-    result = 31 * result + (pagespeed != null ? pagespeed.hashCode() : 0);
     result = 31 * result + (classLoaderConfig != null ? classLoaderConfig.hashCode() : 0);
     result = 31 * result + (urlStreamHandlerType != null ? urlStreamHandlerType.hashCode() : 0);
     result = 31 * result + (useGoogleConnectorJ.hashCode());
@@ -943,7 +993,7 @@ public class AppEngineWebXml implements Cloneable {
   }
 
   private static String toNullIfEmptyOrWhitespace(String string) {
-    if (string == null || CharMatcher.WHITESPACE.matchesAllOf(string)) {
+    if (string == null || CharMatcher.whitespace().matchesAllOf(string)) {
       return null;
     }
     return string;
@@ -1244,7 +1294,7 @@ public class AppEngineWebXml implements Cloneable {
       return "ApiConfig{servletClass=\"" + servletClass + "\", url=\"" + url + "\"}";
     }
   }
-
+  
   /**
    * Holder for automatic settings.
    */
@@ -1527,7 +1577,7 @@ public class AppEngineWebXml implements Cloneable {
    */
   public static class CpuUtilization {
     private static final CpuUtilization EMPTY_SETTINGS = new CpuUtilization();
-    // The target of CPU utilization.
+    // The target of CPU utilization. 
     private Double targetUtilization;
     // The number of seconds used to aggregate CPU usage.
     private Integer aggregationWindowLengthSec;
@@ -1535,23 +1585,23 @@ public class AppEngineWebXml implements Cloneable {
     public Double getTargetUtilization() {
       return targetUtilization;
     }
-
+    
     public void setTargetUtilization(Double targetUtilization) {
       this.targetUtilization = targetUtilization;
     }
-
+    
     public Integer getAggregationWindowLengthSec() {
       return aggregationWindowLengthSec;
     }
-
+    
     public void setAggregationWindowLengthSec(Integer aggregationWindowLengthSec) {
       this.aggregationWindowLengthSec = aggregationWindowLengthSec;
     }
-
+    
     public boolean isEmpty() {
       return this.equals(EMPTY_SETTINGS);
     }
-
+    
     @Override
     public int hashCode() {
       return Objects.hash(targetUtilization, aggregationWindowLengthSec);
@@ -1984,85 +2034,6 @@ public class AppEngineWebXml implements Cloneable {
     public String toString() {
       return "BasicScaling [" + "maxInstances=" + maxInstances
           + ", idleTimeout=" + idleTimeout + "]";
-    }
-  }
-
-  /**
-   * Represents a &lt;pagespeed&gt; element. This is used to specify configuration for the Page
-   * Speed Service, which can be used to automatically optimize the loading speed of app engine
-   * sites.
-   */
-  public static class Pagespeed {
-    private final List<String> urlBlacklist = Lists.newArrayList();
-    private final List<String> domainsToRewrite = Lists.newArrayList();
-    private final List<String> enabledRewriters = Lists.newArrayList();
-    private final List<String> disabledRewriters = Lists.newArrayList();
-
-    public void addUrlBlacklist(String url) {
-      urlBlacklist.add(url);
-    }
-
-    public List<String> getUrlBlacklist() {
-      return Collections.unmodifiableList(urlBlacklist);
-    }
-
-    public void addDomainToRewrite(String domain) {
-      domainsToRewrite.add(domain);
-    }
-
-    public List<String> getDomainsToRewrite() {
-      return Collections.unmodifiableList(domainsToRewrite);
-    }
-
-    public void addEnabledRewriter(String rewriter) {
-      enabledRewriters.add(rewriter);
-    }
-
-    public List<String> getEnabledRewriters() {
-      return Collections.unmodifiableList(enabledRewriters);
-    }
-
-    public void addDisabledRewriter(String rewriter) {
-      disabledRewriters.add(rewriter);
-    }
-
-    public List<String> getDisabledRewriters() {
-      return Collections.unmodifiableList(disabledRewriters);
-    }
-
-    public boolean isEmpty() {
-      return urlBlacklist.isEmpty() && domainsToRewrite.isEmpty() && enabledRewriters.isEmpty()
-          && disabledRewriters.isEmpty();
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(urlBlacklist, domainsToRewrite, enabledRewriters, disabledRewriters);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
-      Pagespeed other = (Pagespeed) obj;
-      return Objects.equals(urlBlacklist, other.urlBlacklist)
-          && Objects.equals(domainsToRewrite, other.domainsToRewrite)
-          && Objects.equals(enabledRewriters, other.enabledRewriters)
-          && Objects.equals(disabledRewriters, other.disabledRewriters);
-    }
-
-    @Override
-    public String toString() {
-      return "Pagespeed [urlBlacklist=" + urlBlacklist + ", domainsToRewrite=" + domainsToRewrite
-          + ", enabledRewriters=" + enabledRewriters + ", disabledRewriters=" + disabledRewriters
-          + "]";
     }
   }
 
