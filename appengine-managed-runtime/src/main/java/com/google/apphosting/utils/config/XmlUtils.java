@@ -16,22 +16,22 @@
 
 package com.google.apphosting.utils.config;
 
-import com.google.appengine.repackaged.com.google.common.base.Charsets;
 import com.google.appengine.repackaged.com.google.common.io.Files;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,21 +48,6 @@ public class XmlUtils {
    * if the passed in node does not contain any text.
    */
   static String getText(Element node) throws AppEngineConfigException {
-    /*    Object child = node.get(0);
-     String value;
-     if (child == null) {
-     value = "";
-     } else {
-     if (!(child instanceof String)) {
-     String msg = "Invalid XML: String content expected in node '" + node.getTagName() + "'.";
-     //  logger.log(Level.SEVERE, msg);
-     throw new AppEngineConfigException(msg);
-     }
-     value = (String) child;
-     }
-
-     return value.trim();
-     */
     String content = node.getTextContent();
     if (content == null) {
       return "";
@@ -70,7 +55,11 @@ public class XmlUtils {
     return content.trim();
   }
 
-  public static Document parseXml(InputStream inputStream) {
+  static Document parseXml(InputStream inputStream) {
+    return parseXml(inputStream, null);
+  }
+
+  static Document parseXml(InputStream inputStream, String filename) {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -78,16 +67,24 @@ public class XmlUtils {
       doc.getDocumentElement().normalize();
       return doc;
     } catch (IOException e) {
-      String msg = "Received IOException parsing the input stream.";
+      String msg = "Received IOException parsing the input stream" + maybeFilename(filename);
       throw new AppEngineConfigException(msg, e);
     } catch (SAXException e) {
-      String msg = "Received SAXException parsing the input stream.";
+      String msg = "Received SAXException parsing the input stream" + maybeFilename(filename);
       throw new AppEngineConfigException(msg, e);
     } catch (ParserConfigurationException e) {
-      String msg = "Received ParserConfigurationException parsing the input stream.";
+      String msg = "Received ParserConfigurationException parsing the input stream"
+          + maybeFilename(filename);
       throw new AppEngineConfigException(msg, e);
     }
+  }
 
+  private static String maybeFilename(String filename) {
+    if (filename == null) {
+      return ".";
+    } else {
+      return " for " + filename;
+    }
   }
 
   /**
@@ -107,7 +104,7 @@ public class XmlUtils {
       throw new AppEngineConfigException("Schema file: " + schema.getPath() + " does not exist.");
     }
     try {
-      validateXmlContent(Files.toString(xml, Charsets.UTF_8), schema);
+      validateXmlContent(Files.toString(xml, StandardCharsets.UTF_8), schema);
     } catch (IOException ex) {
       throw new AppEngineConfigException(
           "IO error validating " + xmlFilename + " against " + schema.getPath(), ex);
@@ -122,7 +119,7 @@ public class XmlUtils {
    *
    * @throws AppEngineConfigException for malformed XML, or IO errors
    */
-  public static void validateXmlContent(String content, File schema) {
+  static void validateXmlContent(String content, File schema) {
     if (!schema.exists()) {
       throw new AppEngineConfigException("Schema file: " + schema.getPath() + " does not exist.");
     }
@@ -132,7 +129,8 @@ public class XmlUtils {
         factory
             .newSchema(schema)
             .newValidator()
-            .validate(new StreamSource(new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))));
+            .validate(new StreamSource(new ByteArrayInputStream(
+                content.getBytes(StandardCharsets.UTF_8))));
       } catch (SAXException ex) {
         throw new AppEngineConfigException(
             "XML error validating " + content + " against " + schema.getPath(), ex);
@@ -143,20 +141,24 @@ public class XmlUtils {
     }
   }
 
-  public static String getChildElementBody(Element element, String tagName) {
+  static String getRequiredChildElementBody(Element element, String tagName) {
     return getChildElementBody(element, tagName, true);
   }
 
-  public static String getChildElementBody(Element element, String tagName, boolean required) {
+  static String getOptionalChildElementBody(Element element, String tagName) {
+    return getChildElementBody(element, tagName, false);
+  }
+
+  static String getChildElementBody(Element element, String tagName, boolean required) {
     Element elt = getChildElement(element, tagName, required);
     return (elt != null) ? getBody(elt) : null;
   }
 
-  public static Element getChildElement(Element parent, String tagName) {
+  static Element getOptionalChildElement(Element parent, String tagName) {
     return getChildElement(parent, tagName, false);
   }
 
-  public static Element getChildElement(Element parent, String tagName, boolean required) {
+  static Element getChildElement(Element parent, String tagName, boolean required) {
     NodeList nodes = parent.getElementsByTagName(tagName);
     if (nodes == null || nodes.getLength() == 0) {
       if (required) {
@@ -169,11 +171,15 @@ public class XmlUtils {
     return (Element) nodes.item(0);
   }
 
-  public static String getAttribute(Element element, String name) {
-    return element.getAttribute(name);
+  static String getAttributeOrNull(Element element, String name) {
+    if (!element.hasAttribute(name)) {
+      return null;
+    } else {
+      return element.getAttribute(name);
+    }
   }
 
-  public static String getBody(Element element) {
+  static String getBody(Element element) {
     NodeList nodes = element.getChildNodes();
     if (nodes == null || nodes.getLength() == 0) {
       return null;
@@ -187,12 +193,26 @@ public class XmlUtils {
     return firstNode.getNodeValue();
   }
 
-  public static List<Element> getChildren(Element element, String tagName) {
-    NodeList nodes = element.getElementsByTagName(tagName);
+  static List<Element> getChildren(Element element) {
+    return getChildren(element, null);
+  }
+
+  /**
+   * Returns the immediate children of the given element that have the given {@code tagName}.
+   * If the {@code tagName} is null, all immediate children are returned.
+   */
+  static List<Element> getChildren(Element element, String tagName) {
+    NodeList nodes = element.getChildNodes();
 
     List<Element> elements = new ArrayList<>(nodes.getLength());
     for (int i = 0; i < nodes.getLength(); i++) {
-      elements.add((Element) nodes.item(i));
+      Node item = nodes.item(i);
+      if (item instanceof Element) {
+        Element itemElement = (Element) item;
+        if (tagName == null || tagName.equals(itemElement.getTagName())) {
+          elements.add(itemElement);
+        }
+      }
     }
     return elements;
   }

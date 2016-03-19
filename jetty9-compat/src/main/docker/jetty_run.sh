@@ -22,6 +22,4 @@ source /setup-env.bash
   
 # use generated fast cli:
 cd /var/lib/jetty
-# TODO(ludo) remove when we upgrade to a newer Jetty version, see issue #171
-sed -i -e 's/jar:${WAR}/jar:file:${WAR}/' /app/WEB-INF/quickstart-web.xml
 source /var/lib/jetty/jetty_cmd.sh
