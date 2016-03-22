@@ -15,6 +15,7 @@ package com.google.apphosting.logging;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -24,86 +25,59 @@ import java.util.stream.Stream;
  * <p>This is an implementation of a Mapped Diagnostic Context for use with the java.util.logging
  * framework.
  */
-public class LogContext {
+public class LogContext extends ConcurrentHashMap<String, Object>{
 
-    private static final ThreadLocal<LogContext> threadContext = new ThreadLocal<>();
-
-    private final Map<String, Object> values;
-
-    public LogContext(Map<String, Object> values) {
-        this.values = values;
+  private static final ThreadLocal<LogContext> threadContext = new ThreadLocal<LogContext>()
+  {
+    @Override
+    protected LogContext initialValue() {
+      return new LogContext();
     }
+  };
 
-    /**
-     * Returns the log context associated with the current Thread.
-     */
-    public static LogContext current() {
-        return threadContext.get();
-    }
+  private final Map<String, Object> values = new ConcurrentHashMap<>();
 
-    /**
-     * Execute a Runnable in this context. This context will be bound to the current Thread as the
-     * Runnable is executing. It will automatically be unbound after execution.
-     *
-     * @param runnable the Runnable to be executed
-     */
-    public void execute(Runnable runnable) {
-        LogContext parent = current();
-        try {
-            threadContext.set(this);
-            runnable.run();
-        } finally {
-            if (parent == null) {
-                threadContext.remove();
-            } else {
-                threadContext.set(parent);
-            }
-        }
-    }
+  private LogContext() {
+  }
 
-    /**
-     * Execute a Callable in this context. This context will be bound to the current Thread as the
-     * Runnable is executing. It will automatically be unbound after execution.
-     *
-     * @param callable the Callable to be executed
-     */
-    public <T> T execute(Callable<T> callable) throws Exception {
-        LogContext parent = current();
-        try {
-            threadContext.set(this);
-            return callable.call();
-        } finally {
-            if (parent == null) {
-                threadContext.remove();
-            } else {
-                threadContext.set(parent);
-            }
-        }
-    }
+  /**
+   * Returns the log context associated with the current Thread.
+   */
+  public static LogContext current() {
+    return threadContext.get();
+  }
 
-    /**
-     * Returns the value of a context property.
-     *
-     * @param name the name of the property
-     * @param type the type of value expected
-     * @param <T>  the type of value expected
-     * @return the property's value
-     */
-    public <T> T get(String name, Class<T> type) {
-        return type.cast(values.get(name));
-    }
+  /**
+   * Remove the log context associated with the current Thread.
+   */
+  public static void nullLogContext() {
+    threadContext.set(null);
+  }
 
-    /**
-     * Stream all property values defined in this context.
-     */
-    public Stream<Map.Entry<String, Object>> stream() {
-        return values.entrySet().stream();
-    }
+  /**
+   * Remove the log context associated with the current Thread.
+   */
+  public static void removeLogContext() {
+    threadContext.remove();
+  }
 
-    /**
-     * Perform an action for each property in this context.
-     */
-    public void forEach(BiConsumer<String, Object> consumer) {
-        stream().forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
-    }
+  /**
+   * Returns the value of a context property.
+   *
+   * @param name the name of the property
+   * @param type the type of value expected
+   * @param <T>  the type of value expected
+   * @return the property's value
+   */
+  public <T> T get(String name, Class<T> type) {
+    return type.cast(values.get(name));
+  }
+
+  /**
+   * Stream all property values defined in this context.
+   */
+  public Stream<Map.Entry<String, Object>> stream() {
+    return values.entrySet().stream();
+  }
+
 }

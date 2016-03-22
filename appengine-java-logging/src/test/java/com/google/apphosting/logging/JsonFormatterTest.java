@@ -34,9 +34,9 @@ public class JsonFormatterTest {
         LogRecord record = new LogRecord(Level.INFO, "message");
         record.setMillis(12345_678);
         record.setLoggerName("logger");
-        LogContext context = new LogContext(Collections.singletonMap("traceId", "abcdef"));
+        LogContext.current().put("traceId", "abcdef");
 
-        String logLine = context.execute(() -> formatter.format(record));
+        String logLine = formatter.format(record);
         assertThat(logLine, endsWith(System.lineSeparator()));
 
         JsonData data = new Gson().fromJson(logLine, JsonData.class);

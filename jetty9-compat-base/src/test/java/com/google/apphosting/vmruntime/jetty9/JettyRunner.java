@@ -15,6 +15,7 @@
  */
 package com.google.apphosting.vmruntime.jetty9;
 
+import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
 import java.io.File;
@@ -40,7 +41,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
-import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 
 class JettyRunner implements Runnable {
 
@@ -172,7 +172,7 @@ class JettyRunner implements Runnable {
       File webAppLocation = new File(target, "webapps/testwebapp");
       
       File logging = new File(webAppLocation,"WEB-INF/logging.properties").getCanonicalFile().getAbsoluteFile();
-      System.setProperty(VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY,logging.toPath().toString());
+      System.setProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY,logging.toPath().toString());
 
       Assert.assertTrue(webAppLocation.toString(),webAppLocation.isDirectory());
       
