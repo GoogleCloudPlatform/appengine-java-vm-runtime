@@ -48,8 +48,11 @@ import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
 import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.HttpOutput;
+import org.eclipse.jetty.server.HttpOutput.Interceptor;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
@@ -59,6 +62,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -355,6 +359,23 @@ public class VmRuntimeWebAppContext
       VmApiProxyEnvironment.createFromHeaders(
           System.getenv(), metadataCache, this, VmRuntimeUtils.getApiServerAddress(),
           wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+      final HttpOutput httpOutput = request.getResponse().getHttpOutput();
+      final HttpOutput.Interceptor nextOutput = httpOutput.getInterceptor();
+      httpOutput.setInterceptor(new Interceptor() {
+        @Override
+        public void write(ByteBuffer content, boolean complete, Callback callback) {
+          requestSpecificEnvironment.clearTicket(); // Request ticket not valid after commit
+          nextOutput.write(content, complete, callback);
+        }
+        @Override
+        public boolean isOptimizedForDirectBuffers() {
+          return nextOutput.isOptimizedForDirectBuffers();
+        }
+        @Override
+        public Interceptor getNextInterceptor() {
+          return nextOutput;
+        }
+      });
     }
 
     VmApiProxyEnvironment getRequestSpecificEnvironment() {
