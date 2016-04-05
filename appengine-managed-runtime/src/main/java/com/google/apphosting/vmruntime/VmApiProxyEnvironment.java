@@ -529,12 +529,12 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   public void clearTicket() {
-    ticket=null;
+    ticket = null;
   }
   
   public String getTicket() {
-    String t=ticket;
-    return (t!=null&&!t.isEmpty())?t:globalTicket;
+    String t = ticket;
+    return (t != null && !t.isEmpty()) ? t : globalTicket;
   }
 
   public String getPartition() {
