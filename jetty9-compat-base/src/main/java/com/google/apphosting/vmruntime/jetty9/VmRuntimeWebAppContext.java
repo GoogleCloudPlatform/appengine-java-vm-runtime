@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.logging.LogContext;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
@@ -39,7 +40,6 @@ import com.google.apphosting.vmruntime.VmEnvironmentFactory;
 import com.google.apphosting.vmruntime.VmMetadataCache;
 import com.google.apphosting.vmruntime.VmRequestUtils;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
-import com.google.apphosting.vmruntime.VmRuntimeLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
@@ -51,7 +51,6 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.util.URIUtil;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.resource.Resource;
@@ -316,7 +315,6 @@ public class VmRuntimeWebAppContext
     String logConfig = System.getProperty("java.util.logging.config.file");
     if (logConfig!=null && logConfig.startsWith("WEB-INF/"))
       System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
-    VmRuntimeLogHandler.init();
     VmRuntimeFileLogHandler.init();
 
     for (String systemClass : SYSTEM_CLASSES) {
@@ -368,9 +366,13 @@ public class VmRuntimeWebAppContext
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
+      VmApiProxyEnvironment environment=requestContext.getRequestSpecificEnvironment();
+      String traceId=environment.getTraceId();
+      if (traceId!=null)
+        LogContext.current().put("traceId", environment.getTraceId());
       if (LOG.isDebugEnabled())
-        LOG.debug("Enter {} -> {}",ApiProxy.getCurrentEnvironment(),requestContext.getRequestSpecificEnvironment());
-      ApiProxy.setEnvironmentForCurrentThread(requestContext.getRequestSpecificEnvironment());      
+        LOG.debug("Enter {} -> {}",ApiProxy.getCurrentEnvironment(),environment);
+      ApiProxy.setEnvironmentForCurrentThread(environment); 
     }
 
     @Override
@@ -412,6 +414,7 @@ public class VmRuntimeWebAppContext
       if (LOG.isDebugEnabled())
         LOG.debug("Exit {} -> {}",ApiProxy.getCurrentEnvironment(),defaultEnvironment);
       ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
+      LogContext.current().remove("traceId");
     }
     
     private void complete(Request baseRequest)
@@ -436,7 +439,6 @@ public class VmRuntimeWebAppContext
       // Interrupt all API calls
       VmRuntimeUtils.interruptRequestThreads(env, VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
       env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
-      
     }
 
     void handleAbandonedTxns(Collection<Transaction> txns) {

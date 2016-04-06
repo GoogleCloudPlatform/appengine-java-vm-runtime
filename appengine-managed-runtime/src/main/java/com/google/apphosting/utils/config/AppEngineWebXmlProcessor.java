@@ -35,7 +35,6 @@ import org.w3c.dom.NodeList;
 
 import java.io.InputStream;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Constructs an {@link AppEngineWebXml} from an xml document corresponding to
@@ -49,11 +48,9 @@ class AppEngineWebXmlProcessor {
 
   enum FileType { STATIC, RESOURCE }
 
-  private static final Logger logger = Logger.getLogger(AppEngineWebXmlProcessor.class.getName());
   // Error handling to disallow having both module and service entries.
   private boolean moduleNodeFound;
   private boolean serviceNodeFound;
-
   /**
    * Construct an {@link AppEngineWebXml} from the xml document
    * identified by the provided {@link InputStream}.

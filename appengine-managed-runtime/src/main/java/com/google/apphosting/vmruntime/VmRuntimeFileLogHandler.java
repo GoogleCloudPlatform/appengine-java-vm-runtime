@@ -16,12 +16,14 @@
 
 package com.google.apphosting.vmruntime;
 
+import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.logging.JsonFormatter;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -43,6 +45,7 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       "APP_ENGINE_LOG_CONFIG_PATTERN";
   private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;
+  public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
 
   private VmRuntimeFileLogHandler() throws IOException {
     super(fileLogPattern(), LOG_MAX_SIZE, LOG_MAX_FILES, true);
@@ -73,6 +76,7 @@ public class VmRuntimeFileLogHandler extends FileHandler {
    * Initialize the {@code VmRuntimeFileLogHandler} by installing it on the root logger.
    */
   public static void init() throws IOException {
+    reloadLoggingProperties(LogManager.getLogManager());
     Logger rootLogger = Logger.getLogger("");
     for (Handler handler : rootLogger.getHandlers()) {
       if (handler instanceof VmRuntimeFileLogHandler) {
@@ -80,5 +84,22 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       }
     }
     rootLogger.addHandler(new VmRuntimeFileLogHandler());
+  }
+
+  /**
+   * Reloads logging to pick up changes to the java.util.logging.config.file system property.
+   */
+  private static void reloadLoggingProperties(LogManager logManager) {
+    String logging=System.getProperty(VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+    if (logging == null) {
+      return;
+    }
+    try {
+      logManager.readConfiguration();
+    } catch (SecurityException | IOException e) {
+      e.printStackTrace();
+      System.err.println("Warning: caught exception when reading logging properties.");
+      System.err.println(e.getClass().getName() + ": " + e.getMessage());
+    }
   }
 }
