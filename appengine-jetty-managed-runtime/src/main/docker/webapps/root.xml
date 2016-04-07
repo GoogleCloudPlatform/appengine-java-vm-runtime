@@ -22,7 +22,7 @@
     <SystemProperty name="jetty_parent_classloader" default="false"/>
   </Set>
   <Set name="defaultsDescriptor">
-    <SystemProperty name="jetty.home" default="."/>/etc/webdefault.xml
+    <SystemProperty name="jetty.base" default="."/>/etc/webdefault.xml
   </Set>
     <!-- Allow directory symbolic links  -->
   <!--Call name="addAliasCheck">
