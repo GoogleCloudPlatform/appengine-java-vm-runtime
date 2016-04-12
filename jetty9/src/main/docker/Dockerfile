@@ -36,6 +36,7 @@ ENV JETTY_BASE /var/lib/jetty
 ADD jetty-base $JETTY_BASE
 WORKDIR $JETTY_BASE
 RUN java -jar $JETTY_HOME/start.jar --add-to-startd=setuid \
+ && mkdir $JETTY_BASE/work \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
  && ln -s $JETTY_BASE/webapps/root /app
