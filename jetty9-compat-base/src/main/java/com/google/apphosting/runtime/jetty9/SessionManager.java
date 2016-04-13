@@ -196,7 +196,8 @@ public class SessionManager extends AbstractSessionManager {
 
     protected void save (boolean force)
     {
-      logger.fine("Session " + getId() + "is"+(dirty?" dirty":" not dirty")+(force || dirty ? " saving":" not saving"));
+      if (logger.isLoggable(Level.FINE))
+        logger.fine("Session " + getId() + "is"+(dirty?" dirty":" not dirty")+(force || dirty ? " saving":" not saving"));
       
       //save if it is dirty or its a forced save
       if (force || dirty)
@@ -216,6 +217,8 @@ public class SessionManager extends AbstractSessionManager {
                     sessionStore.saveSession(key, sessionData);
                   }
                   dirty = false;
+                  if (logger.isLoggable(Level.FINE))
+                    logger.fine("Session " + getId() + "saved");
                   return;
                 }
               }
@@ -316,8 +319,9 @@ public class SessionManager extends AbstractSessionManager {
       if (dirty) {
       } else if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
         dirty = true;
-        logger.fine("Session " + getId() + " accessed while near expiration, marking dirty.");
-      } else {
+        if (logger.isLoggable(Level.FINE))
+          logger.fine("Session " + getId() + " accessed while near expiration, marking dirty.");
+      } else if (logger.isLoggable(Level.FINE)){
         logger.fine("Session " + getId() + " accessed early, not marking dirty.");
       }
       sessionData.setExpirationTime(System.currentTimeMillis()
@@ -411,12 +415,16 @@ public class SessionManager extends AbstractSessionManager {
     String key = SESSION_PREFIX + sessionId;
 
     SessionData data = null;
+    if (logger.isLoggable(Level.FINE))
+      logger.fine("loadSession " + sessionId);
     for (SessionStore sessionStore : sessionStoresInReadOrder) {
       // Keep iterating until we find a store that has the session data we
       // want.
       try {
         data = sessionStore.getSession(key);
         if (data != null) {
+          if (logger.isLoggable(Level.FINE))
+            logger.fine("loaded " + sessionId+ " from "+sessionStore);
           break;
         }
       } catch (RuntimeException e) {
@@ -430,9 +438,8 @@ public class SessionManager extends AbstractSessionManager {
     }
     if (data != null) {
       if (System.currentTimeMillis() > data.getExpirationTime()) {
-        logger.fine("Session " + sessionId + " expired " +
-                    ((System.currentTimeMillis() - data.getExpirationTime()) / 1000) +
-                    " seconds ago, ignoring.");
+        if (logger.isLoggable(Level.FINE))
+          logger.fine("Session " + sessionId + " expired " + ((System.currentTimeMillis() - data.getExpirationTime()) / 1000) + " seconds ago, ignoring.");
         return null;
       }
     }
@@ -440,6 +447,8 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   SessionData createSession(String sessionId) {
+    if (logger.isLoggable(Level.FINE))
+      logger.fine("createSession " + sessionId);
     String key = SESSION_PREFIX + sessionId;
     SessionData data = new SessionData();
     data.setExpirationTime(System.currentTimeMillis() + getSessionExpirationInMilliseconds());
@@ -475,10 +484,6 @@ public class SessionManager extends AbstractSessionManager {
             System.currentTimeMillis() * 1000,
             stringWriter.toString());
   }
-
-
-
-
 
   @Override
   public void doStart() throws Exception {
