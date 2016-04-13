@@ -54,8 +54,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.URIUtil;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
+import org.eclipse.jetty.util.log.JavaUtilLog;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -66,6 +65,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
@@ -80,8 +81,9 @@ import javax.servlet.http.HttpSession;
  */
 public class VmRuntimeWebAppContext
   extends WebAppContext implements VmRuntimeTrustedAddressChecker {
-
-  private static final Logger LOG = Log.getLogger(VmRuntimeWebAppContext.class);
+  
+  private static final Logger logger =
+      Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
   // It's undesirable to have the user app override classes provided by us.
   // So we mark them as Jetty system classes, which cannot be overridden.
@@ -193,7 +195,7 @@ public class VmRuntimeWebAppContext
       super.startWebapp();
     else
     {
-      LOG.info("Generating quickstart web.xml: {}", quickstartWebXml);
+      logger.info("Generating quickstart web.xml: "+quickstartWebXml);
       Resource descriptor = Resource.newResource(quickstartWebXml);
       if (descriptor.exists())
         descriptor.delete();
@@ -266,7 +268,7 @@ public class VmRuntimeWebAppContext
    */
   public VmRuntimeWebAppContext() {
     setServerInfo(VmRuntimeUtils.getServerInfo());
-    setLogger(LOG.getLogger("webapp"));
+    setLogger(new JavaUtilLog(VmRuntimeWebAppContext.class.getName()));
 
     // Configure the Jetty SecurityHandler to understand our method of authentication
     // (via the UserService). Only the default ConstraintSecurityHandler is supported.
@@ -383,22 +385,28 @@ public class VmRuntimeWebAppContext
     VmApiProxyEnvironment getRequestSpecificEnvironment() {
       return requestSpecificEnvironment;
     }
+    
+    @Override
+    public String toString()
+    {
+      return String.format("RequestContext@%x %s==%s",hashCode(),request.getRequestURI(),requestSpecificEnvironment);
+    }
   }
-  
+
   public class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
       if (requestContext==null) {
-        if (LOG.isDebugEnabled())
-          LOG.debug("Entered with default env");
+        if (logger.isLoggable(Level.FINE))
+          logger.fine("Entered with default env");
       } else {
         VmApiProxyEnvironment environment=requestContext.getRequestSpecificEnvironment();
         String traceId=environment.getTraceId();
         if (traceId!=null)
           LogContext.current().put("traceId", environment.getTraceId());
-        if (LOG.isDebugEnabled())
-          LOG.debug("Entered {} -> {}",ApiProxy.getCurrentEnvironment(),environment);
+        if (logger.isLoggable(Level.FINE))
+          logger.fine("enterScope "+requestContext);
         ApiProxy.setEnvironmentForCurrentThread(environment); 
       }
     }
@@ -407,7 +415,10 @@ public class VmRuntimeWebAppContext
     public void requestInitialized(ServletRequestEvent sre) {
       ServletRequest request = sre.getServletRequest();
       Request baseRequest = Request.getBaseRequest(request);
+      
       RequestContext requestContext = getRequestContext(baseRequest);
+      if (logger.isLoggable(Level.FINE))
+        logger.fine("requestInitialized "+requestContext);
       
       // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(requestContext);
@@ -420,6 +431,8 @@ public class VmRuntimeWebAppContext
     public void requestDestroyed(ServletRequestEvent sre) {      
       ServletRequest request = sre.getServletRequest();
       Request baseRequest = Request.getBaseRequest(request);
+      if (logger.isLoggable(Level.FINE))
+        logger.fine("requestDestroyed "+getRequestContext(baseRequest));
       
       if (request.isAsyncStarted()) {
         request.getAsyncContext().addListener(new AsyncListener() {
@@ -436,18 +449,24 @@ public class VmRuntimeWebAppContext
         complete(baseRequest);  
       }
     }
-    
+
     @Override
     public void exitScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest) {
-      if (LOG.isDebugEnabled())
-        LOG.debug("Exit {} -> {}",ApiProxy.getCurrentEnvironment(),defaultEnvironment);
+      if (logger.isLoggable(Level.FINE)) {
+        if (baseRequest==null)
+          logger.fine("exitScope");
+        else
+          logger.fine("exitScope "+getRequestContext(baseRequest));
+      }
       ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
       LogContext.current().remove("traceId");
     }
-    
+
     private void complete(Request baseRequest)
     {
       RequestContext requestContext = getRequestContext(baseRequest);
+      if (logger.isLoggable(Level.FINE))
+        logger.fine("complete "+requestContext);
       VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
 
       // Transaction Cleanup 
@@ -474,13 +493,13 @@ public class VmRuntimeWebAppContext
       // transaction is started so we can print it here.
       for (Transaction txn : txns) {
         try {
-          LOG.warn("Request completed without committing or rolling back transaction with id "
+          logger.warning("Request completed without committing or rolling back transaction with id "
               + txn.getId() + ".  Transaction will be rolled back.");
           txn.rollback();
         } catch (Exception e) {
           // We swallow exceptions so that there is no risk of our cleanup
           // impacting the actual result of the request.
-          LOG.warn("Swallowing an exception we received while trying to rollback "
+          logger.log(Level.WARNING, "Swallowing an exception we received while trying to rollback "
               + "abandoned transaction with id " + txn.getId(), e);
         }
       }
