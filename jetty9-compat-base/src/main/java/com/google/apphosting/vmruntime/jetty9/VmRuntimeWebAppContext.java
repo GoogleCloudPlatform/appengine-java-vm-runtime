@@ -396,8 +396,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
       } else {
         VmApiProxyEnvironment environment = requestContext.getRequestSpecificEnvironment();
         String traceId = environment.getTraceId();
-        if (traceId != null)
+        if (traceId != null) {
           LogContext.current().put("traceId", environment.getTraceId());
+        }
         if (logger.isLoggable(Level.FINE)) {
           logger.fine("enterScope " + requestContext);
         }
