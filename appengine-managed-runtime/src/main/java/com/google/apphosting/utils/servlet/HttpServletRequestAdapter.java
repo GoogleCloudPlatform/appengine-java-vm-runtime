@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  */
 public class HttpServletRequestAdapter implements HttpRequest {
-  private final HttpServletRequest request;
+  protected final HttpServletRequest request;
 
   public HttpServletRequestAdapter(HttpServletRequest request) {
     this.request = request;
