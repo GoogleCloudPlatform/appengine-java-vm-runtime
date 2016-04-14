@@ -341,6 +341,8 @@ public class VmRuntimeWebAppContext
   }
 
   public RequestContext getRequestContext(Request baseRequest) {
+    if (baseRequest == null)
+      return null;
     RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
     if (requestContext==null) {
       // No instance found, so create a new environment
@@ -385,15 +387,20 @@ public class VmRuntimeWebAppContext
   
   public class ContextListener implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
-    public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
+    public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context,
+        Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
-      VmApiProxyEnvironment environment=requestContext.getRequestSpecificEnvironment();
-      String traceId=environment.getTraceId();
-      if (traceId!=null)
-        LogContext.current().put("traceId", environment.getTraceId());
-      if (LOG.isDebugEnabled())
-        LOG.debug("Enter {} -> {}",ApiProxy.getCurrentEnvironment(),environment);
-      ApiProxy.setEnvironmentForCurrentThread(environment); 
+      if (requestContext == null) {
+        LOG.debug("Enter");
+      } else {
+        VmApiProxyEnvironment environment = requestContext.getRequestSpecificEnvironment();
+        String traceId = environment.getTraceId();
+        if (traceId != null)
+          LogContext.current().put("traceId", environment.getTraceId());
+        if (LOG.isDebugEnabled())
+          LOG.debug("Enter {} -> {}", ApiProxy.getCurrentEnvironment(), environment);
+        ApiProxy.setEnvironmentForCurrentThread(environment);
+      }
     }
 
     @Override
