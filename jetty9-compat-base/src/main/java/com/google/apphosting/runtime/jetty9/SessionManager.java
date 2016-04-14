@@ -187,17 +187,15 @@ public class SessionManager extends AbstractSessionManager {
       ((SessionManager)getSessionManager()).callSessionIdListeners(this, oldId);
     }
     
-   
-
     public void save() {
       save(false);
     }
-    
 
     protected void save (boolean force)
     {
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("Session " + getId() + "is"+(dirty?" dirty":" not dirty")+(force || dirty ? " saving":" not saving"));
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine(String.format("Session %s dirty=%b force=%b", getId(),dirty,force));
+      }
       
       //save if it is dirty or its a forced save
       if (force || dirty)
@@ -217,8 +215,9 @@ public class SessionManager extends AbstractSessionManager {
                     sessionStore.saveSession(key, sessionData);
                   }
                   dirty = false;
-                  if (logger.isLoggable(Level.FINE))
-                    logger.fine("Session " + getId() + "saved");
+                  if (logger.isLoggable(Level.FINE)) {
+                    logger.fine(String.format("Session %s saved", getId()));
+                  }
                   return;
                 }
               }
@@ -232,15 +231,12 @@ public class SessionManager extends AbstractSessionManager {
             } catch (InterruptedException e) {
               // Just try again prematurely
             }
-            logger.warning("Timeout while saving session " + getId() + ".");
+            logger.log(Level.WARNING, String.format("Session %s timeout while saving", getId()));
             delay *= 2;
           }
-          logger.log(Level.SEVERE, "Unable to save session " + getId() +
-              " - too many attempts");
+          logger.log(Level.SEVERE, String.format("Session %s not saved: too many attempts", getId()));
         } catch (DeadlineExceededException e) {
-          logger.log(Level.SEVERE, "Unable to save session " + getId() +
-              " - too many timeouts.", e);
-        }
+          logger.log(Level.SEVERE, String.format("Session %s not saved: too many timeouts", getId()), e);        }
       }
     }
 
@@ -319,10 +315,11 @@ public class SessionManager extends AbstractSessionManager {
       if (dirty) {
       } else if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
         dirty = true;
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("Session " + getId() + " accessed while near expiration, marking dirty.");
-      } else if (logger.isLoggable(Level.FINE)){
-        logger.fine("Session " + getId() + " accessed early, not marking dirty.");
+        if (logger.isLoggable(Level.FINE)) {
+          logger.fine(String.format("Session %s accessed while near expiration, marking dirty.", getId()));
+        }
+      } else if (logger.isLoggable(Level.FINE)) {
+        logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
       }
       sessionData.setExpirationTime(System.currentTimeMillis()
               + getSessionExpirationInMilliseconds());
@@ -415,31 +412,33 @@ public class SessionManager extends AbstractSessionManager {
     String key = SESSION_PREFIX + sessionId;
 
     SessionData data = null;
-    if (logger.isLoggable(Level.FINE))
-      logger.fine("loadSession " + sessionId);
+    if (logger.isLoggable(Level.FINE)) {
+      logger.fine(String.format("Session %s load", sessionId));
+    }
     for (SessionStore sessionStore : sessionStoresInReadOrder) {
       // Keep iterating until we find a store that has the session data we
       // want.
       try {
         data = sessionStore.getSession(key);
         if (data != null) {
-          if (logger.isLoggable(Level.FINE))
-            logger.fine("loaded " + sessionId+ " from "+sessionStore);
+          if (logger.isLoggable(Level.FINE)){
+            logger.fine(String.format("Session %s loaded from %s", sessionId, sessionStore));
+          }
           break;
         }
       } catch (RuntimeException e) {
-        String msg = "Exception while loading session data";
-        logger.log(Level.WARNING, msg, e);
+        logger.log(Level.WARNING, String.format("Session %s load exception", sessionId), e);
         if (ApiProxy.getCurrentEnvironment() != null) {
-          ApiProxy.log(createWarningLogRecord(msg, e));
+          ApiProxy.log(createWarningLogRecord("Exception while loading session data", e));
         }
         break;
       }
     }
     if (data != null) {
       if (System.currentTimeMillis() > data.getExpirationTime()) {
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("Session " + sessionId + " expired " + ((System.currentTimeMillis() - data.getExpirationTime()) / 1000) + " seconds ago, ignoring.");
+        if (logger.isLoggable(Level.FINE)) {
+          logger.fine(String.format("Session %s expired %d seconds ago, ignoring", sessionId,(System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+        }
         return null;
       }
     }
@@ -447,8 +446,6 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   SessionData createSession(String sessionId) {
-    if (logger.isLoggable(Level.FINE))
-      logger.fine("createSession " + sessionId);
     String key = SESSION_PREFIX + sessionId;
     SessionData data = new SessionData();
     data.setExpirationTime(System.currentTimeMillis() + getSessionExpirationInMilliseconds());
@@ -459,6 +456,9 @@ public class SessionManager extends AbstractSessionManager {
         // rethrowing the cause to maintain backwards compatibility
         throw retryable.getCause();
       }
+    }
+    if (logger.isLoggable(Level.FINE)) {
+      logger.fine(String.format("Session %s created", sessionId));
     }
     return data;
   }
@@ -533,8 +533,7 @@ public class SessionManager extends AbstractSessionManager {
    */
   public void callSessionIdListeners (AbstractSession session, String oldId) {
     HttpSessionEvent event = new HttpSessionEvent(session);
-    for (HttpSessionIdListener l:_sessionIdListeners)
-    {
+    for (HttpSessionIdListener l:_sessionIdListeners) {
         l.sessionIdChanged(event, oldId);
     }
   }

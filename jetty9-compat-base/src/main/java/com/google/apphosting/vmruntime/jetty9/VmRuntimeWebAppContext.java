@@ -191,14 +191,14 @@ public class VmRuntimeWebAppContext
   @Override
   protected void startWebapp() throws Exception
   {
-    if (quickstartWebXml==null)
+    if (quickstartWebXml==null) {
       super.startWebapp();
-    else
-    {
-      logger.info("Generating quickstart web.xml: "+quickstartWebXml);
+    } else {
+      logger.info("Generating quickstart web.xml: " + quickstartWebXml);
       Resource descriptor = Resource.newResource(quickstartWebXml);
-      if (descriptor.exists())
+      if (descriptor.exists()) {
         descriptor.delete();
+      }
       descriptor.getFile().createNewFile();
       QuickStartDescriptorGenerator generator = new QuickStartDescriptorGenerator(this, preconfigProcessor.getXML());
       try (FileOutputStream fos = new FileOutputStream(descriptor.getFile()))
@@ -343,10 +343,10 @@ public class VmRuntimeWebAppContext
   }
 
   public RequestContext getRequestContext(Request baseRequest) {
-    if (baseRequest==null)
+    if (baseRequest == null)
       return null;
     RequestContext requestContext = (RequestContext)baseRequest.getAttribute(RequestContext.class.getName());
-    if (requestContext==null) {
+    if (requestContext == null) {
       // No instance found, so create a new environment
       requestContext=new RequestContext(baseRequest);
       baseRequest.setAttribute(RequestContext.class.getName(), requestContext);
@@ -359,8 +359,7 @@ public class VmRuntimeWebAppContext
     
     RequestContext(Request request) {
       super(request);
-      this.requestSpecificEnvironment=
-      VmApiProxyEnvironment.createFromHeaders(
+      this.requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(
           System.getenv(), metadataCache, this, VmRuntimeUtils.getApiServerAddress(),
           wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
       final HttpOutput httpOutput = request.getResponse().getHttpOutput();
@@ -389,7 +388,7 @@ public class VmRuntimeWebAppContext
     @Override
     public String toString()
     {
-      return String.format("RequestContext@%x %s==%s",hashCode(),request.getRequestURI(),requestSpecificEnvironment);
+      return String.format("RequestContext@%x %s==%s", hashCode(), request.getRequestURI(), requestSpecificEnvironment);
     }
   }
 
@@ -397,16 +396,16 @@ public class VmRuntimeWebAppContext
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
-      if (requestContext==null) {
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("Entered with default env");
+      if (requestContext == null) {
+          logger.fine("enterScope no request");
       } else {
-        VmApiProxyEnvironment environment=requestContext.getRequestSpecificEnvironment();
-        String traceId=environment.getTraceId();
-        if (traceId!=null)
+        VmApiProxyEnvironment environment = requestContext.getRequestSpecificEnvironment();
+        String traceId = environment.getTraceId();
+        if (traceId != null)
           LogContext.current().put("traceId", environment.getTraceId());
-        if (logger.isLoggable(Level.FINE))
-          logger.fine("enterScope "+requestContext);
+        if (logger.isLoggable(Level.FINE)) {
+          logger.fine("enterScope " + requestContext);
+        }
         ApiProxy.setEnvironmentForCurrentThread(environment); 
       }
     }
@@ -417,8 +416,9 @@ public class VmRuntimeWebAppContext
       Request baseRequest = Request.getBaseRequest(request);
       
       RequestContext requestContext = getRequestContext(baseRequest);
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("requestInitialized "+requestContext);
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine("requestInitialized " + requestContext);
+      }
       
       // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(requestContext);
@@ -431,9 +431,9 @@ public class VmRuntimeWebAppContext
     public void requestDestroyed(ServletRequestEvent sre) {      
       ServletRequest request = sre.getServletRequest();
       Request baseRequest = Request.getBaseRequest(request);
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("requestDestroyed "+getRequestContext(baseRequest));
-      
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine("requestDestroyed " + getRequestContext(baseRequest));
+      }
       if (request.isAsyncStarted()) {
         request.getAsyncContext().addListener(new AsyncListener() {
           @Override public void onTimeout(AsyncEvent event) throws IOException {}
@@ -453,10 +453,11 @@ public class VmRuntimeWebAppContext
     @Override
     public void exitScope(org.eclipse.jetty.server.handler.ContextHandler.Context context, Request baseRequest) {
       if (logger.isLoggable(Level.FINE)) {
-        if (baseRequest==null)
+        if (baseRequest == null) {
           logger.fine("exitScope");
-        else
-          logger.fine("exitScope "+getRequestContext(baseRequest));
+        } else {
+          logger.fine("exitScope " + getRequestContext(baseRequest));
+        }
       }
       ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
       LogContext.current().remove("traceId");
@@ -465,8 +466,9 @@ public class VmRuntimeWebAppContext
     private void complete(Request baseRequest)
     {
       RequestContext requestContext = getRequestContext(baseRequest);
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("complete "+requestContext);
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine("complete " + requestContext);
+      }
       VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
 
       // Transaction Cleanup 
@@ -479,8 +481,9 @@ public class VmRuntimeWebAppContext
       HttpSession session = baseRequest.getSession(false);
       if (session instanceof AppEngineSession) {
         final AppEngineSession aeSession = (AppEngineSession) session;
-              if (aeSession.isDirty())
+              if (aeSession.isDirty()) {
                 aeSession.save();
+              }
       }
 
       // Interrupt all API calls
