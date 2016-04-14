@@ -1,17 +1,15 @@
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 
@@ -25,11 +23,9 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.apphosting.runtime.SessionData;
 import com.google.apphosting.runtime.SessionStore;
 
-
 import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
-
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -51,23 +47,20 @@ import javax.servlet.http.HttpSessionIdListener;
 
 
 /**
- * Implements the Jetty {@link AbstractSessionManager} and, as an
- * inner class, {@link HashSessionIdManager} for our context.  The
- * session manager has to check the provided {@link SessionStore SessionStores}
- * to find sessions.
+ * Implements the Jetty {@link AbstractSessionManager} and, as an inner class,
+ * {@link HashSessionIdManager} for our context. The session manager has to check the provided
+ * {@link SessionStore SessionStores} to find sessions.
  *
  */
 public class SessionManager extends AbstractSessionManager {
-  private static final Logger logger =
-      Logger.getLogger(SessionManager.class.getName());
+  private static final Logger logger = Logger.getLogger(SessionManager.class.getName());
 
   static final String SESSION_PREFIX = "_ahs";
 
   /**
-   * To reduce our datastore put time, we only consider a session
-   * dirty on access if it is at least 25% expired.  So a session
-   * that expires in 1 hr will only be re-stored every 15 minutes,
-   * unless a "real" attribute change occurs.
+   * To reduce our datastore put time, we only consider a session dirty on access if it is at least
+   * 25% expired. So a session that expires in 1 hr will only be re-stored every 15 minutes, unless
+   * a "real" attribute change occurs.
    */
   public static final double UPDATE_TIMESTAMP_RATIO = 0.75;
 
@@ -82,15 +75,15 @@ public class SessionManager extends AbstractSessionManager {
   // SecureRandom class.
   public static class SessionIdManager extends HashSessionIdManager {
 
-    
+
     public SessionIdManager() {
       super(new SecureRandom());
     }
 
     /**
      * Computes a new session key.
-     * @return a string representing the session id, effectively unique to
-     *    this session
+     * 
+     * @return a string representing the session id, effectively unique to this session
      */
     @Override
     public String newSessionId(HttpServletRequest request, long created) {
@@ -99,11 +92,11 @@ public class SessionManager extends AbstractSessionManager {
 
     @Override
     public String newSessionId(long seedTerm) {
-     return generateNewId();
+      return generateNewId();
     }
-    
-    
-    public String generateNewId () {
+
+
+    public String generateNewId() {
       byte randomBytes[] = new byte[16];
       _random.nextBytes(randomBytes);
       // Use a web-safe encoding in case the session identifier gets
@@ -113,31 +106,28 @@ public class SessionManager extends AbstractSessionManager {
       logger.fine("Created a random session identifier: " + id);
       return id;
     }
-   
+
   }
 
   /**
-   * A session implementation using the provided list of
-   * {@link SessionStore SessionStores} to store attributes.  Expiration is
-   * also stored.
+   * A session implementation using the provided list of {@link SessionStore SessionStores} to store
+   * attributes. Expiration is also stored.
    * <p>
-   * An instance of this class may be used simultaneously be multiple
-   * request threads. We use synchronization to guard access to sessionData
-   * and the parent object state.
+   * An instance of this class may be used simultaneously be multiple request threads. We use
+   * synchronization to guard access to sessionData and the parent object state.
    *
    */
   public class AppEngineSession extends AbstractSession {
-  
+
 
     private final SessionData sessionData;
     private String key;
     private volatile boolean dirty;
 
-    
+
     /**
-     * Create a new brand new session for the specified request.  This
-     * constructor saves the new session to the datastore and
-     * memcache.
+     * Create a new brand new session for the specified request. This constructor saves the new
+     * session to the datastore and memcache.
      */
     public AppEngineSession(HttpServletRequest request) {
       super(SessionManager.this, request);
@@ -150,8 +140,8 @@ public class SessionManager extends AbstractSessionManager {
     /**
      * Create an object for an existing session
      */
-    public AppEngineSession(long created, long accessed,
-        String sessionId, SessionData sessionData) {
+    public AppEngineSession(long created, long accessed, String sessionId,
+        SessionData sessionData) {
       super(SessionManager.this, created, accessed, sessionId);
       this.sessionData = sessionData;
       key = SESSION_PREFIX + sessionId;
@@ -161,45 +151,45 @@ public class SessionManager extends AbstractSessionManager {
     public boolean isDirty() {
       return dirty;
     }
-    
+
     @Override
     public void renewId(HttpServletRequest request) {
-      
+
       String oldId = getClusterId();
-      
-      //remove session with the old from storage
+
+      // remove session with the old from storage
       deleteSession();
-      
+
       // generate a new id
-      String newClusterId = ((SessionIdManager)getSessionManager().getSessionIdManager()).newSessionId(request.hashCode());
-      String newNodeId =  ((SessionIdManager)getSessionManager().getSessionIdManager()).getNodeId(newClusterId, request);
-      
-      //change the ids and recreate the key
+      String newClusterId = ((SessionIdManager) getSessionManager().getSessionIdManager())
+          .newSessionId(request.hashCode());
+      String newNodeId = ((SessionIdManager) getSessionManager().getSessionIdManager())
+          .getNodeId(newClusterId, request);
+
+      // change the ids and recreate the key
       setClusterId(newClusterId);
       setNodeId(newNodeId);
       key = SESSION_PREFIX + newClusterId;
-      
-      //save the session with the new id
+
+      // save the session with the new id
       save(true);
-      
-      setIdChanged(true);  
-      
-      ((SessionManager)getSessionManager()).callSessionIdListeners(this, oldId);
+
+      setIdChanged(true);
+
+      ((SessionManager) getSessionManager()).callSessionIdListeners(this, oldId);
     }
-    
+
     public void save() {
       save(false);
     }
 
-    protected void save (boolean force)
-    {
+    protected void save(boolean force) {
       if (logger.isLoggable(Level.FINE)) {
-        logger.fine(String.format("Session %s dirty=%b force=%b", getId(),dirty,force));
+        logger.fine(String.format("Session %s dirty=%b force=%b", getId(), dirty, force));
       }
-      
-      //save if it is dirty or its a forced save
-      if (force || dirty)
-      {
+
+      // save if it is dirty or its a forced save
+      if (force || dirty) {
         int delay = 50; // Start with a delay of 50ms if a put fails.
         try {
           // Try 10 times with exponential back-off. The tenth time the
@@ -210,7 +200,7 @@ public class SessionManager extends AbstractSessionManager {
             try {
               synchronized (this) {
 
-                if (dirty || force ) {
+                if (dirty || force) {
                   for (SessionStore sessionStore : sessionStoresInWriteOrder) {
                     sessionStore.saveSession(key, sessionData);
                   }
@@ -234,9 +224,12 @@ public class SessionManager extends AbstractSessionManager {
             logger.log(Level.WARNING, String.format("Session %s timeout while saving", getId()));
             delay *= 2;
           }
-          logger.log(Level.SEVERE, String.format("Session %s not saved: too many attempts", getId()));
+          logger.log(Level.SEVERE,
+              String.format("Session %s not saved: too many attempts", getId()));
         } catch (DeadlineExceededException e) {
-          logger.log(Level.SEVERE, String.format("Session %s not saved: too many timeouts", getId()), e);        }
+          logger.log(Level.SEVERE,
+              String.format("Session %s not saved: too many timeouts", getId()), e);
+        }
       }
     }
 
@@ -259,7 +252,7 @@ public class SessionManager extends AbstractSessionManager {
     @Override
     public Object doPutOrRemove(String name, Object value) {
       return value == null ? sessionData.getValueMap().remove(name)
-                             : sessionData.getValueMap().put(name, value);
+          : sessionData.getValueMap().put(name, value);
     }
 
     @Override
@@ -286,8 +279,8 @@ public class SessionManager extends AbstractSessionManager {
           }
           unbindValue(key, value);
 
-          ((SessionManager) getSessionManager()).doSessionAttributeListeners(this,
-              key, value, null);
+          ((SessionManager) getSessionManager()).doSessionAttributeListeners(this, key, value,
+              null);
         }
       }
       if (sessionData.getValueMap() != null) {
@@ -302,9 +295,9 @@ public class SessionManager extends AbstractSessionManager {
 
     @Override
     protected void timeout() throws IllegalStateException {
-     // TODO(user) only called by a session scavenger thread which appengine does not have.
-     // Sessions are only checked for expiry when a request comes in for them. If the
-     // SessionData is expired in the datastore, then getSession() returns null.
+      // TODO(user) only called by a session scavenger thread which appengine does not have.
+      // Sessions are only checked for expiry when a request comes in for them. If the
+      // SessionData is expired in the datastore, then getSession() returns null.
     }
 
     @Override
@@ -316,13 +309,14 @@ public class SessionManager extends AbstractSessionManager {
       } else if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
         dirty = true;
         if (logger.isLoggable(Level.FINE)) {
-          logger.fine(String.format("Session %s accessed while near expiration, marking dirty.", getId()));
+          logger.fine(
+              String.format("Session %s accessed while near expiration, marking dirty.", getId()));
         }
       } else if (logger.isLoggable(Level.FINE)) {
         logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
       }
-      sessionData.setExpirationTime(System.currentTimeMillis()
-              + getSessionExpirationInMilliseconds());
+      sessionData
+          .setExpirationTime(System.currentTimeMillis() + getSessionExpirationInMilliseconds());
       // Handle session being invalid, update number of requests inside session.
       return super.access(accessTime);
     }
@@ -348,7 +342,7 @@ public class SessionManager extends AbstractSessionManager {
         sessionStore.deleteSession(key);
       }
     }
-    
+
     @Override
     public int getAttributes() {
       return 0;
@@ -371,11 +365,10 @@ public class SessionManager extends AbstractSessionManager {
   /**
    * Constructs a SessionManager
    *
-   * @param sessionStoresInWriteOrder The SessionStores in the order to which
-   * they should be written.  When attempting to load a session, the read order
-   * is the opposite of the write order, so if the write order is A, B, C, when
-   * reading we will first consult C, and if the session is not found move on
-   * to B, and if not found then on to A.
+   * @param sessionStoresInWriteOrder The SessionStores in the order to which they should be
+   *        written. When attempting to load a session, the read order is the opposite of the write
+   *        order, so if the write order is A, B, C, when reading we will first consult C, and if
+   *        the session is not found move on to B, and if not found then on to A.
    */
   public SessionManager(List<SessionStore> sessionStoresInWriteOrder) {
     super();
@@ -384,9 +377,10 @@ public class SessionManager extends AbstractSessionManager {
     // of the stores in write order and then reverse it.
     this.sessionStoresInReadOrder = new ArrayList<SessionStore>(sessionStoresInWriteOrder);
     Collections.reverse(this.sessionStoresInReadOrder);
-    
-    //NOTE: this breaks the standard jetty contract that a single server has a single SessionIdManager
-    //but there is 1 SessionManager per context.
+
+    // NOTE: this breaks the standard jetty contract that a single server has a single
+    // SessionIdManager
+    // but there is 1 SessionManager per context.
     _sessionIdManager = new SessionIdManager();
   }
 
@@ -421,7 +415,7 @@ public class SessionManager extends AbstractSessionManager {
       try {
         data = sessionStore.getSession(key);
         if (data != null) {
-          if (logger.isLoggable(Level.FINE)){
+          if (logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("Session %s loaded from %s", sessionId, sessionStore));
           }
           break;
@@ -437,7 +431,8 @@ public class SessionManager extends AbstractSessionManager {
     if (data != null) {
       if (System.currentTimeMillis() > data.getExpirationTime()) {
         if (logger.isLoggable(Level.FINE)) {
-          logger.fine(String.format("Session %s expired %d seconds ago, ignoring", sessionId,(System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+          logger.fine(String.format("Session %s expired %d seconds ago, ignoring", sessionId,
+              (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
         }
         return null;
       }
@@ -480,21 +475,20 @@ public class SessionManager extends AbstractSessionManager {
       ex.printStackTrace(printWriter);
     }
 
-    return new LogRecord(LogRecord.Level.warn,
-            System.currentTimeMillis() * 1000,
-            stringWriter.toString());
+    return new LogRecord(LogRecord.Level.warn, System.currentTimeMillis() * 1000,
+        stringWriter.toString());
   }
 
   @Override
   public void doStart() throws Exception {
-  	// always use our special id manager one
-  	_sessionIdManager.start();
-  	addBean(_sessionIdManager,true);
+    // always use our special id manager one
+    _sessionIdManager.start();
+    addBean(_sessionIdManager, true);
 
-  	super.doStart();
+    super.doStart();
   }
 
-@Override
+  @Override
   protected void addSession(AbstractSession session) {
     // No list of sessions is kept in memory, so do nothing here.
   }
@@ -514,28 +508,30 @@ public class SessionManager extends AbstractSessionManager {
     // Called when the session manager is stopping. We don't need to do anything here.
   }
 
-	/**
-	 * Not used
-	 */
+  /**
+   * Not used
+   */
   @Override
-  public void renewSessionId(String oldClusterId, String oldNodeId, String newClusterId, String newNodeId) {
+  public void renewSessionId(String oldClusterId, String oldNodeId, String newClusterId,
+      String newNodeId) {
 
-    //Not used. See instead AppEngineSession.renewId
-    
+    // Not used. See instead AppEngineSession.renewId
+
   }
 
-  
+
   /**
-   * Call any session id listeners registered.
-   * Usually done by renewSessionId() method, but that is not used in appengine.
+   * Call any session id listeners registered. Usually done by renewSessionId() method, but that is
+   * not used in appengine.
+   * 
    * @param session
    * @param oldId
    */
-  public void callSessionIdListeners (AbstractSession session, String oldId) {
+  public void callSessionIdListeners(AbstractSession session, String oldId) {
     HttpSessionEvent event = new HttpSessionEvent(session);
-    for (HttpSessionIdListener l:_sessionIdListeners) {
-        l.sessionIdChanged(event, oldId);
+    for (HttpSessionIdListener l : _sessionIdListeners) {
+      l.sessionIdChanged(event, oldId);
     }
   }
-  
+
 }
