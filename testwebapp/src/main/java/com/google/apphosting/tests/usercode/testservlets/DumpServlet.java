@@ -1,11 +1,11 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -33,8 +33,9 @@ public class DumpServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     Collection<String> history = (Collection<String>) request.getAttribute("history");
-    if (history != null)
+    if (history != null) {
       history.add(String.format("%d,%s", System.nanoTime(), "doGet"));
+    }
 
     response.setContentType("text/html");
     response.setStatus(HttpServletResponse.SC_OK);
@@ -71,9 +72,11 @@ public class DumpServlet extends HttpServlet {
     out.println("</pre>");
     out.println("<h2>Request Headers:</h2>");
     out.println("<pre>");
-    for (String n : Collections.list(request.getHeaderNames()))
-      for (String v : Collections.list(request.getHeaders(n)))
+    for (String n : Collections.list(request.getHeaderNames())) {
+      for (String v : Collections.list(request.getHeaders(n))) {
         out.printf("%s: %s%n", n, v);
+      }
+    }
     out.println("</pre>");
 
     out.println("<h2>Session:</h2>");
@@ -103,20 +106,24 @@ public class DumpServlet extends HttpServlet {
     out.println("</pre>");
     out.println("<h2>Environment:</h2>");
     out.println("<pre>");
-    for (Map.Entry<String, String> e : System.getenv().entrySet())
+    for (Map.Entry<String, String> e : System.getenv().entrySet()) {
       out.printf("%s=%s%n", e.getKey(), e.getValue());
+    }
     out.println("</pre>");
     out.println("<h2>System Properties:</h2>");
     out.println("<pre>");
-    for (Object n : System.getProperties().keySet())
+    for (Object n : System.getProperties().keySet()) {
       out.printf("%s=%s%n", n, System.getProperty(n.toString()));
+    }
     out.println("</pre>");
 
-    if (history != null)
+    if (history != null) {
       history.add(String.format("%d,%s", System.nanoTime(), "response written"));
+    }
     response.flushBuffer();
-    if (history != null)
+    if (history != null) {
       history.add(String.format("%d,%s", System.nanoTime(), "flushed"));
+    }
     out.println("<h2>History:</h2>");
     out.println("<pre>");
     if (history != null) {

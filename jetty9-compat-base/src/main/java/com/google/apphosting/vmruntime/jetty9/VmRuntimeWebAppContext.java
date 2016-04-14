@@ -1,11 +1,11 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,6 +13,38 @@
  */
 
 package com.google.apphosting.vmruntime.jetty9;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
+import javax.servlet.http.HttpSession;
+
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
+import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.HttpOutput;
+import org.eclipse.jetty.server.HttpOutput.Interceptor;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.util.URIUtil;
+import org.eclipse.jetty.util.log.JavaUtilLog;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -40,38 +72,6 @@ import com.google.apphosting.vmruntime.VmRequestUtils;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
-
-import org.eclipse.jetty.http.HttpScheme;
-import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
-import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.HttpOutput;
-import org.eclipse.jetty.server.HttpOutput.Interceptor;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.util.Callback;
-import org.eclipse.jetty.util.URIUtil;
-import org.eclipse.jetty.util.log.JavaUtilLog;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
-import javax.servlet.http.HttpSession;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -142,12 +142,13 @@ public class VmRuntimeWebAppContext extends WebAppContext
    * If set, this context will not start, rather it will generate the quickstart-web.xml file and
    * then stop the server. If not set, the context will start normally
    * </p>
-   * 
+   *
    * @param quickstartWebXml The location of the quickstart web.xml to generate
    */
   public void setQuickstartWebXml(String quickstartWebXml) {
-    if (quickstartWebXml != null && quickstartWebXml.length() == 0)
+    if (quickstartWebXml != null && quickstartWebXml.length() == 0) {
       quickstartWebXml = null;
+    }
     this.quickstartWebXml = quickstartWebXml;
   }
 
@@ -157,8 +158,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
     Resource base = getBaseResource();
     if (base == null) {
       String war = getWar();
-      if (war == null)
+      if (war == null) {
         throw new IllegalStateException("No war");
+      }
       base = Resource.newResource(getWar());
     }
     Resource dir;
@@ -174,11 +176,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
     datastoreService = getDatastoreService();
 
-    if (quickstartWebXml == null)
+    if (quickstartWebXml == null) {
       addEventListener(new ContextListener());
-    else
-      getMetaData()
-          .addDescriptorProcessor(preconfigProcessor = new PreconfigureDescriptorProcessor());
+    } else {
+      getMetaData().addDescriptorProcessor(preconfigProcessor = 
+          new PreconfigureDescriptorProcessor());
+    }
 
     super.doStart();
   }
@@ -207,8 +210,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
   @Override
   protected void stopWebapp() throws Exception {
-    if (quickstartWebXml == null)
+    if (quickstartWebXml == null) {
       super.stopWebapp();
+    }
   }
 
   /**
@@ -309,8 +313,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
     String logConfig = System.getProperty("java.util.logging.config.file");
-    if (logConfig != null && logConfig.startsWith("WEB-INF/"))
+    if (logConfig != null && logConfig.startsWith("WEB-INF/")) {
       System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
+    }
     VmRuntimeFileLogHandler.init();
 
     for (String systemClass : SYSTEM_CLASSES) {
@@ -333,8 +338,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
   }
 
   public RequestContext getRequestContext(Request baseRequest) {
-    if (baseRequest == null)
+    if (baseRequest == null) {
       return null;
+    }
     RequestContext requestContext =
         (RequestContext) baseRequest.getAttribute(RequestContext.class.getName());
     if (requestContext == null) {

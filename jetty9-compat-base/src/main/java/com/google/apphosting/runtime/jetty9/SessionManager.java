@@ -1,11 +1,11 @@
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -16,16 +16,6 @@
 package com.google.apphosting.runtime.jetty9;
 
 import static com.google.appengine.repackaged.com.google.common.io.BaseEncoding.base64Url;
-
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.LogRecord;
-import com.google.apphosting.api.DeadlineExceededException;
-import com.google.apphosting.runtime.SessionData;
-import com.google.apphosting.runtime.SessionStore;
-
-import org.eclipse.jetty.server.session.AbstractSession;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionIdManager;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -44,6 +34,16 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionIdListener;
+
+import org.eclipse.jetty.server.session.AbstractSession;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
+
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.LogRecord;
+import com.google.apphosting.api.DeadlineExceededException;
+import com.google.apphosting.runtime.SessionData;
+import com.google.apphosting.runtime.SessionStore;
 
 
 /**
@@ -82,7 +82,7 @@ public class SessionManager extends AbstractSessionManager {
 
     /**
      * Computes a new session key.
-     * 
+     *
      * @return a string representing the session id, effectively unique to this session
      */
     @Override
@@ -271,7 +271,7 @@ public class SessionManager extends AbstractSessionManager {
 
         Iterator<String> iter = keys.iterator();
         while (iter.hasNext()) {
-          String key = (String) iter.next();
+          String key = iter.next();
 
           Object value;
           synchronized (this) {
@@ -523,7 +523,7 @@ public class SessionManager extends AbstractSessionManager {
   /**
    * Call any session id listeners registered. Usually done by renewSessionId() method, but that is
    * not used in appengine.
-   * 
+   *
    * @param session
    * @param oldId
    */
