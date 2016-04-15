@@ -31,10 +31,13 @@ ENV JETTY_BASE /var/lib/jetty
 RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
 ADD gke-alpn.mod modules/
+COPY root.xml $JETTY_BASE/webapps/
 RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid \
+ && mkdir $JETTY_BASE/webapps/root \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
- && ln -s $JETTY_BASE/webapps/root /app
+ && ln -s $JETTY_BASE/webapps/root /app \
+ && touch $JETTY_BASE/webapps/root.war
 
 # Start Jetty directly
 COPY docker-entrypoint.bash /
