@@ -36,15 +36,15 @@ root@c7b35e88ff93:/#
 ## Entry Point Features
 The entry point for the gke-debian-openjdk image is [docker-entrypoint.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/gke-debian-openjdk/src/main/docker/docker-entrypoint.bash), which does the processing of the passed command line arguments to look for an executable alternative or arguments to the default command (java).
 
-If the default command (java) is used, then the entry point sources the [gke-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/gke-debian-openjdk/src/main/docker/gke-env.bash), which looks for supported features: ALPN, Cloud Debugger & Cloud Profiler.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
+If the default command (java) is used, then the entry point sources the [gke-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/gke-debian-openjdk/src/main/docker/gke-env.bash), which looks for supported features: ALPN, Stackdriver Debugger & Cloud Profiler.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
 
-| Feature        | directory    | Enable            | Disable        | JVM args      |
-|----------------|--------------|-------------------|----------------|---------------|
-| ALPN           | /opt/alpn/   | $ALPN_ENABLE      | $ALPN_DISABLE  | $ALPN_BOOT    |
-| Cloud Debugger | /opt/cdbg/   | \<on by default\> | $CDBG_DISABLE  | $DBG_AGENT    |
-| Cloud Profile  | /opt/cprof/  | $CPROF_ENABLE     | $CPROF_DISABLE | $PROF_AGENT   |
-| Temporary file |              | $TMPDIR           |                | $SET_TMP      |
-| Java options   |              | $JAVA_OPTS        |                | $JAVA_OPTS    |
+| Feature              | directory    | Enable            | Disable        | JVM args      |
+|----------------------|--------------|-------------------|----------------|---------------|
+| ALPN                 | /opt/alpn/   | $ALPN_ENABLE      | $ALPN_DISABLE  | $ALPN_BOOT    |
+| Stackdriver Debugger | /opt/cdbg/   | \<on by default\> | $CDBG_DISABLE  | $DBG_AGENT    |
+| Cloud Profile        | /opt/cprof/  | $CPROF_ENABLE     | $CPROF_DISABLE | $PROF_AGENT   |
+| Temporary file       |              | $TMPDIR           |                | $SET_TMP      |
+| Java options         |              | $JAVA_OPTS        |                | $JAVA_OPTS    |
 
 The command line executed is effectively (where $@ are the args passed into the 
 docker entry point):
