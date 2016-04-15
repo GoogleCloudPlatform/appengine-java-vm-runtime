@@ -36,7 +36,7 @@ RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid 
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
  && ln -s $JETTY_BASE/webapps/root /app \
- && touch $JETTY_BASE/webapps/root.war
+ && touch --date '1970/01/01' $JETTY_BASE/webapps/root
 
 # Start Jetty directly
 COPY docker-entrypoint.bash /
