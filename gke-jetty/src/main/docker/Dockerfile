@@ -32,7 +32,7 @@ RUN mkdir -p $JETTY_BASE
 WORKDIR $JETTY_BASE
 ADD gke-alpn.mod modules/
 RUN java -jar $JETTY_HOME/start.jar --add-to-startd=http,deploy,jsp,jstl,setuid \
- && mkdir $JETTY_BASE/webapps/root \
+ && mkdir -p $JETTY_BASE/webapps/root \
  && chown -R jetty:jetty $JETTY_BASE \
  && mkdir /tmp/jetty && chown -R jetty:jetty /tmp/jetty \
  && ln -s $JETTY_BASE/webapps/root /app \
