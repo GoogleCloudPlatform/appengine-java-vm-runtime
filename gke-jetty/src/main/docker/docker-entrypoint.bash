@@ -3,6 +3,11 @@
 # default jetty arguments
 DEFAULT_ARGS="-Djetty.base=$JETTY_BASE -jar $JETTY_HOME/start.jar"
 
+if [ -e "$JETTY_BASE/webapps/root.war" ]; then
+  unzip $JETTY_BASE/webapps/root.war -d $JETTY_BASE/webapps/root
+  chown -R jetty.jetty $JETTY_BASE/webapps/root
+fi
+
 # If the passed arguments start with the java command
 if [ "java" = "$1" -o "$(which java)" = "$1" ] ; then
   # ignore the java command as it is the default
