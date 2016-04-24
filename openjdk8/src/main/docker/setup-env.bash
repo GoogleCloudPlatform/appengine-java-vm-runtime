@@ -4,7 +4,7 @@ if [[ -n "$ALPN_ENABLE" ]]; then
   ALPN_BOOT="$( /opt/alpn/format-env-appengine-vm.sh )"
 fi
 
-DBG_AGENT="$( /opt/cdbg/format-env-appengine-vm.sh )"
+DBG_AGENT="$( RUNTIME_DIR=$JETTY_BASE /opt/cdbg/format-env-appengine-vm.sh )"
 if [[ -n "$DBG_ENABLE" ]]; then
   if [[ "$GAE_PARTITION" = "dev" ]]; then
     echo "Running locally and DBG_ENABLE is set, enabling standard Java debugger agent"
