@@ -24,7 +24,7 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
     openjdk-8-jre \
     netbase \
     wget \ 
-    zip \
+    unzip \
  && apt-get clean \
  && rm /var/lib/apt/lists/*_*
 
