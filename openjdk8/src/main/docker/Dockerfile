@@ -28,7 +28,7 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
  && rm /var/lib/apt/lists/*_*
 
 # workaround for https://bugs.debian.org/775775
-RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
+#RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
 # Upgrade to OpenSSL 1.0.2 (via sid)
 ADD sid.list /etc/apt/sources.list.d/
