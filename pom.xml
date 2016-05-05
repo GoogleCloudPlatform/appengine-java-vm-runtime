@@ -21,7 +21,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.36-SNAPSHOT</version>
+  <version>1.9.37-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Google App Engine Runtime Parent</name>
   <scm>
