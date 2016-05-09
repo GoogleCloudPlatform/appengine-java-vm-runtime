@@ -48,6 +48,12 @@ public class VmMetadataCache {
     cache = new HashMap<String, String>();
   }
 
+  public String putMetadata(String path,String value) {
+    synchronized (cache) {
+      return cache.put(path,value);
+    }
+  }
+
   /**
    * Returns the value of the VM's meta-data attribute, or null if retrieval has failed.
    *
