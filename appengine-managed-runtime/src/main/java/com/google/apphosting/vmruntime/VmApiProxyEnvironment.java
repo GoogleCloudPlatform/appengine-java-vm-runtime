@@ -41,42 +41,44 @@ import java.util.concurrent.TimeUnit;
  */
 public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
+  public static final String USE_GLOBAL_TICKET_KEY="GAE_USE_GLOBAL_TICKET";
+
   // TODO(user): remove old metadata attributes once we set environment variables everywhere.
   public static final String PROJECT_ATTRIBUTE = "attributes/gae_project";
   // A long app id is the app_id minus the partition.
-  static final String LONG_APP_ID_KEY = "GAE_LONG_APP_ID";
+  public static final String LONG_APP_ID_KEY = "GAE_LONG_APP_ID";
 
   public static final String PARTITION_ATTRIBUTE = "attributes/gae_partition";
-  static final String PARTITION_KEY = "GAE_PARTITION";
+  public static final String PARTITION_KEY = "GAE_PARTITION";
 
   // the port number of the server, passed as a system env.
   // This is needed for the Cloud SDK to pass the real server port which is by
   // default 8080. In case of the real runtime this port number(appspot.com is 80).
-  static final String GAE_SERVER_PORT = "GAE_SERVER_PORT";
+  public static final String GAE_SERVER_PORT = "GAE_SERVER_PORT";
 
   // TODO(user): Change the name to MODULE_ATTRIBUTE, as the field contains the name of the
   // App Engine Module.
   public static final String BACKEND_ATTRIBUTE = "attributes/gae_backend_name";
-  static final String MODULE_NAME_KEY = "GAE_MODULE_NAME";
+  public static final String MODULE_NAME_KEY = "GAE_MODULE_NAME";
 
   public static final String VERSION_ATTRIBUTE = "attributes/gae_backend_version";
-  static final String VERSION_KEY = "GAE_MODULE_VERSION";
+  public static final String VERSION_KEY = "GAE_MODULE_VERSION";
 
   // Note: This environment variable is not set in prod and we still need to rely on metadata.
   public static final String INSTANCE_ATTRIBUTE = "attributes/gae_backend_instance";
-  static final String INSTANCE_KEY = "GAE_MODULE_INSTANCE";
+  public static final String INSTANCE_KEY = "GAE_MODULE_INSTANCE";
 
-  static final String MINOR_VERSION_KEY = "GAE_MINOR_VERSION";
+  public static final String MINOR_VERSION_KEY = "GAE_MINOR_VERSION";
 
   public static final String APPENGINE_HOSTNAME_ATTRIBUTE = "attributes/gae_appengine_hostname";
-  static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
+  public static final String APPENGINE_HOSTNAME_KEY = "GAE_APPENGINE_HOSTNAME";
 
   // Attribute is only for testing.
   public static final String USE_MVM_AGENT_ATTRIBUTE = "attributes/gae_use_nginx_proxy";
-  static final String USE_MVM_AGENT_KEY = "USE_MVM_AGENT";
+  public static final String USE_MVM_AGENT_KEY = "USE_MVM_AGENT";
 
   public static final String AFFINITY_ATTRIBUTE = "attributes/gae_affinity";
-  static final String AFFINITY_ENV_KEY = "GAE_AFFINITY";
+  public static final String AFFINITY_ENV_KEY = "GAE_AFFINITY";
 
   public static final String TICKET_HEADER = "X-AppEngine-Api-Ticket";
   public static final String EMAIL_HEADER = "X-AppEngine-User-Email";
@@ -86,33 +88,33 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   // Google specific annotations are commented out so we don't have to take a dependency
   // on the annotations lib. Please don't use these constants except for testing this class.
-  
-  static final String BACKEND_ID_KEY = "com.google.appengine.backend.id";
-  
 
-  static final String INSTANCE_ID_KEY = "com.google.appengine.instance.id";
+  public static final String BACKEND_ID_KEY = "com.google.appengine.backend.id";
 
-  static final String AFFINITY_KEY = "com.google.appengine.affinity";
 
-  static final String REQUEST_THREAD_FACTORY_ATTR =
+  public static final String INSTANCE_ID_KEY = "com.google.appengine.instance.id";
+
+  public static final String AFFINITY_KEY = "com.google.appengine.affinity";
+
+  public static final String REQUEST_THREAD_FACTORY_ATTR =
       "com.google.appengine.api.ThreadManager.REQUEST_THREAD_FACTORY";
-  static final String BACKGROUND_THREAD_FACTORY_ATTR =
+  public static final String BACKGROUND_THREAD_FACTORY_ATTR =
       "com.google.appengine.api.ThreadManager.BACKGROUND_THREAD_FACTORY";
 
   // If the "X-AppEngine-Federated-Identity" header is included in the request this attribute
   // should be set to the boolean true, otherwise it should be set to false.
-  
 
-  static final String IS_FEDERATED_USER_KEY =
+
+  public static final String IS_FEDERATED_USER_KEY =
       "com.google.appengine.api.users.UserService.is_federated_user";
 
   // If the app is trusted AND the "X-AppEngine-Trusted-IP-Request" header is "1" this attribute
   // should be set the the boolean true, otherwise it should be set to false.
 
-  
-  static final String IS_TRUSTED_IP_KEY = "com.google.appengine.runtime.is_trusted_ip";
-  
-  static final String IS_TRUSTED_IP_HEADER = "X-AppEngine-Trusted-IP-Request";
+
+  public static final String IS_TRUSTED_IP_KEY = "com.google.appengine.runtime.is_trusted_ip";
+
+  public static final String IS_TRUSTED_IP_HEADER = "X-AppEngine-Trusted-IP-Request";
 
   // Set from the nginx proxy if running.
   public static final String REAL_IP_HEADER = "X-Google-Real-IP";
@@ -243,7 +245,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   /**
    * Helper method to use during the transition from metadata to environment variables.
    *
-   * @param environmentMap the
+   * @param environmentMap the environment
    * @param envKey The name of the environment variable to check first.
    * @param metadataPath The path of the metadata server entry to use as fallback.
    * @param cache The metadata server cache.
@@ -253,6 +255,20 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       String envKey, String metadataPath) {
     String envValue = environmentMap.get(envKey);
     return envValue != null ? envValue : cache.getMetadata(metadataPath);
+  }
+
+  /**
+   * Helper method to get a booolean System Property or Env variable
+   * @param environmentMap the environment
+   * @param envKey The name of the environment variable and System Property
+   * @param dftValue The default value
+   * @return true if the System property or Env variable is true
+   */
+  private static boolean getSystemPropertyOrEnvBoolean(Map<String, String> environmentMap,
+                                                       String envKey,
+                                                       boolean dftValue){
+    return Boolean.valueOf(System.getProperty(envKey,
+      environmentMap.getOrDefault(envKey, dftValue?Boolean.TRUE.toString():Boolean.FALSE.toString())));
   }
 
   /**
@@ -344,7 +360,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final boolean useMvmAgent = defaultEnvironment.getUseMvmAgent();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
-    final String ticket = request.getHeader(TICKET_HEADER);
+    final String ticket = getSystemPropertyOrEnvBoolean(envMap,USE_GLOBAL_TICKET_KEY,false)
+      ?null
+      :request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
     boolean admin = false;
     String value = request.getHeader(IS_ADMIN_HEADER);
