@@ -74,20 +74,21 @@ import com.google.apphosting.vmruntime.VmTimer;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
- * functionality that installs a request specific thread local environment on each incoming request.
+ * functionality that installs a request specific thread local environment on each incoming
+ * request.
  */
 public class VmRuntimeWebAppContext extends WebAppContext
-    implements VmRuntimeTrustedAddressChecker {
+  implements VmRuntimeTrustedAddressChecker {
 
   private static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
   // It's undesirable to have the user app override classes provided by us.
   // So we mark them as Jetty system classes, which cannot be overridden.
   private static final String[] SYSTEM_CLASSES = {
-      // The trailing dot means these are all Java packages, not individual classes.
-      "com.google.appengine.api.", "com.google.appengine.tools.", "com.google.apphosting.",
-      "com.google.cloud.sql.jdbc.", "com.google.protos.cloud.sql.",
-      "com.google.storage.onestore.",};
+    // The trailing dot means these are all Java packages, not individual classes.
+    "com.google.appengine.api.", "com.google.appengine.tools.", "com.google.apphosting.",
+    "com.google.cloud.sql.jdbc.", "com.google.protos.cloud.sql.",
+    "com.google.storage.onestore.",};
   // constant. If it's much larger than this we may need to
   // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
@@ -102,34 +103,35 @@ public class VmRuntimeWebAppContext extends WebAppContext
   // Indicates if the context is running via the Cloud SDK, or the real runtime.
 
   boolean isDevMode;
+
   static {
     // Set SPI classloader priority to prefer the WebAppClassloader.
     System.setProperty(ServiceFactoryFactory.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY,
-        Boolean.TRUE.toString());
+      Boolean.TRUE.toString());
     // Use thread context class loader for memcache deserialization.
     System.setProperty(MemcacheSerialization.USE_THREAD_CONTEXT_CLASSLOADER_PROPERTY,
-        Boolean.TRUE.toString());
+      Boolean.TRUE.toString());
   }
 
   // List of Jetty configuration only needed if the quickstart process has been
   // executed, so we do not need the webinf, wedxml, fragment and annotation configurations
   // because they have been executed via the SDK.
   private static final String[] quickstartConfigurationClasses =
-      {org.eclipse.jetty.quickstart.QuickStartConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.webapp.JettyWebXmlConfiguration.class.getCanonicalName()};
+    {org.eclipse.jetty.quickstart.QuickStartConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.webapp.JettyWebXmlConfiguration.class.getCanonicalName()};
 
   // List of all the standard Jetty configurations that need to be executed when there
   // is no quickstart-web.xml.
   private static final String[] preconfigurationClasses =
-      {org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
-          org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()};
+    {org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
+      org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()};
 
   public String getQuickstartWebXml() {
     return quickstartWebXml;
@@ -140,10 +142,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
   }
 
   /**
-   * Set the quickstart WebXml
-   * <p>
-   * If set, this context will not start, rather it will generate the quickstart-web.xml file and
-   * then stop the server. If not set, the context will start normally
+   * Set the quickstart WebXml <p> If set, this context will not start, rather it will generate the
+   * quickstart-web.xml file and then stop the server. If not set, the context will start normally
    * </p>
    *
    * @param quickstartWebXml The location of the quickstart web.xml to generate
@@ -182,8 +182,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
     if (quickstartWebXml == null) {
       addEventListener(new ContextListener());
     } else {
-      getMetaData().addDescriptorProcessor(preconfigProcessor = 
-          new PreconfigureDescriptorProcessor());
+      getMetaData().addDescriptorProcessor(preconfigProcessor =
+        new PreconfigureDescriptorProcessor());
     }
 
     super.doStart();
@@ -201,7 +201,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
       }
       descriptor.getFile().createNewFile();
       QuickStartDescriptorGenerator generator =
-          new QuickStartDescriptorGenerator(this, preconfigProcessor.getXML());
+        new QuickStartDescriptorGenerator(this, preconfigProcessor.getXML());
       try (FileOutputStream fos = new FileOutputStream(descriptor.getFile())) {
         generator.generateQuickStartWebXml(fos);
       } finally {
@@ -233,17 +233,17 @@ public class VmRuntimeWebAppContext extends WebAppContext
    */
   private static List<SessionStore> createSessionStores(AppEngineWebXml appEngineWebXml) {
     DatastoreSessionStore datastoreSessionStore = appEngineWebXml.getAsyncSessionPersistence()
-        ? new DeferredDatastoreSessionStore(appEngineWebXml.getAsyncSessionPersistenceQueueName())
-        : new DatastoreSessionStore();
+      ? new DeferredDatastoreSessionStore(appEngineWebXml.getAsyncSessionPersistenceQueueName())
+      : new DatastoreSessionStore();
     // Write session data to the datastore before we write to memcache.
     return Arrays.asList(datastoreSessionStore, new MemcacheSessionStore());
   }
 
   /**
-   * Checks if the request was made over HTTPS. If so it modifies the request so that
-   * {@code HttpServletRequest#isSecure()} returns true, {@code HttpServletRequest#getScheme()}
-   * returns "https", and {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets
-   * the scheme to "http" and port to 80.
+   * Checks if the request was made over HTTPS. If so it modifies the request so that {@code
+   * HttpServletRequest#isSecure()} returns true, {@code HttpServletRequest#getScheme()} returns
+   * "https", and {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets the
+   * scheme to "http" and port to 80.
    *
    * @param request The request to modify.
    */
@@ -270,7 +270,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
     // Configure the Jetty SecurityHandler to understand our method of authentication
     // (via the UserService). Only the default ConstraintSecurityHandler is supported.
     AppEngineAuthentication
-        .configureSecurityHandler((ConstraintSecurityHandler) getSecurityHandler(), this);
+      .configureSecurityHandler((ConstraintSecurityHandler) getSecurityHandler(), this);
 
     setMaxFormContentSize(MAX_RESPONSE_SIZE);
     setConfigurationClasses(preconfigurationClasses);
@@ -292,14 +292,14 @@ public class VmRuntimeWebAppContext extends WebAppContext
    *
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
    * @throws AppEngineConfigException If there was a problem finding or parsing the
-   *         appengine-web.xml configuration.
-   * @throws IOException If the runtime was unable to find/read appDir.
+   *                                  appengine-web.xml configuration.
+   * @throws IOException              If the runtime was unable to find/read appDir.
    */
   public void init(String appengineWebXmlFile) throws AppEngineConfigException, IOException {
     String appDir = getBaseResource().getFile().getCanonicalPath();
     defaultEnvironment = VmApiProxyEnvironment.createDefaultContext(System.getenv(), metadataCache,
-        VmRuntimeUtils.getApiServerAddress(), wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS,
-        appDir);
+      VmRuntimeUtils.getApiServerAddress(), wallclockTimer, VmRuntimeUtils.ONE_DAY_IN_MILLIS,
+      appDir);
     ApiProxy.setEnvironmentForCurrentThread(defaultEnvironment);
     if (ApiProxy.getEnvironmentFactory() == null) {
       // Need the check above since certain unit tests initialize the context multiple times.
@@ -311,7 +311,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
     File appWebXml = new File(appDir, appengineWebXmlFile);
     if (appWebXml.exists()) {
       AppEngineWebXmlReader appEngineWebXmlReader =
-          new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
+        new AppEngineWebXmlReader(appDir, appengineWebXmlFile);
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
@@ -333,6 +333,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
       getSessionHandler().setSessionManager(sessionManager);
     }
+
+    VmRuntimeInterceptor.init(appEngineWebXml);
   }
 
   @Override
@@ -345,7 +347,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
       return null;
     }
     RequestContext requestContext =
-        (RequestContext) baseRequest.getAttribute(RequestContext.class.getName());
+      (RequestContext) baseRequest.getAttribute(RequestContext.class.getName());
     if (requestContext == null) {
       // No instance found, so create a new environment
       requestContext = new RequestContext(baseRequest);
@@ -359,9 +361,14 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
     RequestContext(Request request) {
       super(request);
-      this.requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(System.getenv(),
-          metadataCache, this, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
-          VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+      requestSpecificEnvironment = VmApiProxyEnvironment.createFromHeaders(System.getenv(),
+        metadataCache, this, VmRuntimeUtils.getApiServerAddress(), wallclockTimer,
+        VmRuntimeUtils.ONE_DAY_IN_MILLIS, defaultEnvironment);
+      if (requestSpecificEnvironment.isRequestTicket()) {
+        final HttpOutput httpOutput = request.getResponse().getHttpOutput();
+        final HttpOutput.Interceptor nextOutput = httpOutput.getInterceptor();
+        httpOutput.setInterceptor(new VmRuntimeInterceptor(requestSpecificEnvironment, nextOutput));
+      }
     }
 
     VmApiProxyEnvironment getRequestSpecificEnvironment() {
@@ -371,15 +378,15 @@ public class VmRuntimeWebAppContext extends WebAppContext
     @Override
     public String toString() {
       return String.format("RequestContext@%x %s==%s", hashCode(), request.getRequestURI(),
-          requestSpecificEnvironment);
+        requestSpecificEnvironment);
     }
   }
 
   public class ContextListener
-      implements ContextHandler.ContextScopeListener, ServletRequestListener {
+    implements ContextHandler.ContextScopeListener, ServletRequestListener {
     @Override
     public void enterScope(org.eclipse.jetty.server.handler.ContextHandler.Context context,
-        Request baseRequest, Object reason) {
+                           Request baseRequest, Object reason) {
       RequestContext requestContext = getRequestContext(baseRequest);
       if (requestContext == null) {
         logger.fine("enterScope no request");
@@ -423,13 +430,16 @@ public class VmRuntimeWebAppContext extends WebAppContext
       if (request.isAsyncStarted()) {
         request.getAsyncContext().addListener(new AsyncListener() {
           @Override
-          public void onTimeout(AsyncEvent event) throws IOException {}
+          public void onTimeout(AsyncEvent event) throws IOException {
+          }
 
           @Override
-          public void onStartAsync(AsyncEvent event) throws IOException {}
+          public void onStartAsync(AsyncEvent event) throws IOException {
+          }
 
           @Override
-          public void onError(AsyncEvent event) throws IOException {}
+          public void onError(AsyncEvent event) throws IOException {
+          }
 
           @Override
           public void onComplete(AsyncEvent event) throws IOException {
@@ -443,7 +453,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
     @Override
     public void exitScope(org.eclipse.jetty.server.handler.ContextHandler.Context context,
-        Request baseRequest) {
+                          Request baseRequest) {
       if (logger.isLoggable(Level.FINE)) {
         if (baseRequest == null) {
           logger.fine("exitScope");
@@ -479,7 +489,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
       // Interrupt all API calls
       VmRuntimeUtils.interruptRequestThreads(env,
-          VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
+        VmRuntimeUtils.MAX_REQUEST_THREAD_INTERRUPT_WAIT_TIME_MS);
       env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
     }
 
@@ -489,13 +499,13 @@ public class VmRuntimeWebAppContext extends WebAppContext
       for (Transaction txn : txns) {
         try {
           logger.warning("Request completed without committing or rolling back transaction with id "
-              + txn.getId() + ".  Transaction will be rolled back.");
+            + txn.getId() + ".  Transaction will be rolled back.");
           txn.rollback();
         } catch (Exception e) {
           // We swallow exceptions so that there is no risk of our cleanup
           // impacting the actual result of the request.
           logger.log(Level.WARNING, "Swallowing an exception we received while trying to rollback "
-              + "abandoned transaction with id " + txn.getId(), e);
+            + "abandoned transaction with id " + txn.getId(), e);
         }
       }
     }

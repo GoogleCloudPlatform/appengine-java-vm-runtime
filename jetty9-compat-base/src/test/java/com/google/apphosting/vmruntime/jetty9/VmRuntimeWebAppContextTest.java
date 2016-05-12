@@ -1,17 +1,15 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.google.apphosting.vmruntime.jetty9;
 
@@ -47,7 +45,7 @@ import static org.junit.Assert.assertTrue;
  * Test VmRuntimeWebAppContext directly, without using VmRuntimeTestBase
  *
  */
-public class VmRuntimeWebAppContextTest  {
+public class VmRuntimeWebAppContextTest {
 
   TestMetadataServer meta;
   private JettyRunner jetty;
@@ -60,12 +58,12 @@ public class VmRuntimeWebAppContextTest  {
     meta = new TestMetadataServer();
     meta.start();
 
-    jetty = new JettyRunner("test-classes/webapp",-1);
+    jetty = new JettyRunner("test-classes/webapp", -1);
 
     jetty.start();
     server = jetty.getServer();
-    connector = (LocalConnector)server.getConnectors()[0];
-    context = (VmRuntimeWebAppContext)server.getChildHandlersByClass(VmRuntimeWebAppContext.class)[0];
+    connector = (LocalConnector) server.getConnectors()[0];
+    context = (VmRuntimeWebAppContext) server.getChildHandlersByClass(VmRuntimeWebAppContext.class)[0];
   }
 
   @After
@@ -76,7 +74,6 @@ public class VmRuntimeWebAppContextTest  {
 
   @Test
   public void testIsTrustedRemoteAddr() throws Exception {
-
     assertTrue(context.isTrustedRemoteAddr("127.0.0.1")); // Local host
     assertTrue(context.isTrustedRemoteAddr("172.17.42.1")); // Docker
     assertTrue(context.isTrustedRemoteAddr("169.254.160.2")); // Virtual Peers
@@ -93,39 +90,67 @@ public class VmRuntimeWebAppContextTest  {
   @Test
   public void testNoRequestTicket() throws Exception {
     ReportProxyServlet servlet = new ReportProxyServlet();
-    context.addServlet(new ServletHolder("test", servlet),"/*");
+    context.addServlet(new ServletHolder("test", servlet), "/*");
     String response = connector.getResponses("GET / HTTP/1.0\r\n\r\n");
     assertThat(response, Matchers.containsString("200 OK"));
     assertThat(response, Matchers.containsString("initial ticket=google_com_test-project/testbackend.testversion.frontend1"));
     assertThat(response, Matchers.containsString("committed ticket=google_com_test-project/testbackend.testversion.frontend1"));
-    assertEquals("google_com_test-project/testbackend.testversion.frontend1",servlet.getAfterClose());
+    assertEquals("google_com_test-project/testbackend.testversion.frontend1", servlet.getAfterClose());
   }
 
   @Test
-  public void testRequestTicket() throws Exception {
-    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY,"FALSE");
+  public void testRequestTicketClearNever() throws Exception {
+    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY, "FALSE");
+    VmRuntimeInterceptor.setDftClearTicket(VmRuntimeInterceptor.ClearTicket.NEVER);
     ReportProxyServlet servlet = new ReportProxyServlet();
-    context.addServlet(new ServletHolder("test", servlet),"/*");
-    String response = connector.getResponses("GET / HTTP/1.0\r\n"+
-       VmApiProxyEnvironment.TICKET_HEADER+": request-ticket\r\n\r\n");
+    context.addServlet(new ServletHolder("test", servlet), "/*");
+    String response = connector.getResponses("GET / HTTP/1.0\r\n" +
+      VmApiProxyEnvironment.TICKET_HEADER + ": request-ticket\r\n\r\n");
     assertThat(response, Matchers.containsString("200 OK"));
     assertThat(response, Matchers.containsString("initial ticket=request-ticket"));
     assertThat(response, Matchers.containsString("committed ticket=request-ticket"));
-    assertEquals("request-ticket",servlet.getAfterClose());
+    assertEquals("request-ticket", servlet.getAfterClose());
   }
 
+  @Test
+  public void testRequestTicketClearOnCommit() throws Exception {
+    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY, "FALSE");
+    VmRuntimeInterceptor.setDftClearTicket(VmRuntimeInterceptor.ClearTicket.ON_COMMIT);
+    ReportProxyServlet servlet = new ReportProxyServlet();
+    context.addServlet(new ServletHolder("test", servlet), "/*");
+    String response = connector.getResponses("GET / HTTP/1.0\r\n" +
+      VmApiProxyEnvironment.TICKET_HEADER + ": request-ticket\r\n\r\n");
+    assertThat(response, Matchers.containsString("200 OK"));
+    assertThat(response, Matchers.containsString("initial ticket=request-ticket"));
+    assertThat(response, Matchers.containsString("committed ticket=google_com_test-project/testbackend.testversion.frontend1"));
+    assertEquals("google_com_test-project/testbackend.testversion.frontend1", servlet.getAfterClose());
+  }
+
+  @Test
+  public void testRequestTicketClearOnComplete() throws Exception {
+    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY, "FALSE");
+    VmRuntimeInterceptor.setDftClearTicket(VmRuntimeInterceptor.ClearTicket.ON_COMPLETE);
+    ReportProxyServlet servlet = new ReportProxyServlet();
+    context.addServlet(new ServletHolder("test", servlet), "/*");
+    String response = connector.getResponses("GET / HTTP/1.0\r\n" +
+      VmApiProxyEnvironment.TICKET_HEADER + ": request-ticket\r\n\r\n");
+    assertThat(response, Matchers.containsString("200 OK"));
+    assertThat(response, Matchers.containsString("initial ticket=request-ticket"));
+    assertThat(response, Matchers.containsString("committed ticket=request-ticket"));
+    assertEquals("google_com_test-project/testbackend.testversion.frontend1", servlet.getAfterClose());
+  }
 
   @Test
   public void testRequestTicketUseGlobal() throws Exception {
-    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY,"TRUE");
+    System.setProperty(VmApiProxyEnvironment.USE_GLOBAL_TICKET_KEY, "TRUE");
     ReportProxyServlet servlet = new ReportProxyServlet();
-    context.addServlet(new ServletHolder("test", servlet),"/*");
-    String response = connector.getResponses("GET / HTTP/1.0\r\n"+
-      VmApiProxyEnvironment.TICKET_HEADER+": request-ticket\r\n\r\n");
+    context.addServlet(new ServletHolder("test", servlet), "/*");
+    String response = connector.getResponses("GET / HTTP/1.0\r\n" +
+      VmApiProxyEnvironment.TICKET_HEADER + ": request-ticket\r\n\r\n");
     assertThat(response, Matchers.containsString("200 OK"));
     assertThat(response, Matchers.containsString("initial ticket=google_com_test-project/testbackend.testversion.frontend1"));
     assertThat(response, Matchers.containsString("committed ticket=google_com_test-project/testbackend.testversion.frontend1"));
-    assertEquals("google_com_test-project/testbackend.testversion.frontend1",servlet.getAfterClose());
+    assertEquals("google_com_test-project/testbackend.testversion.frontend1", servlet.getAfterClose());
   }
 
   private static class ReportProxyServlet extends HttpServlet {
@@ -143,11 +168,11 @@ public class VmRuntimeWebAppContextTest  {
       response.setContentType("text/plain;charset=iso-8859-1");
       PrintWriter writer = response.getWriter();
 
-      writer.printf("initial ticket=%s%n",env.getTicket());
+      writer.printf("initial ticket=%s%n", env.getTicket());
       response.flushBuffer();
-      writer.printf("committed ticket=%s%n",env.getTicket());
+      writer.printf("committed ticket=%s%n", env.getTicket());
       writer.close();
-      afterClose=env.getTicket();
+      afterClose = env.getTicket();
     }
   }
 }
