@@ -157,12 +157,12 @@ public class VmRuntimeWebAppContextTest {
 
     private String afterClose;
 
-    public String getAfterClose() {
+    public synchronized String getAfterClose() {
       return afterClose;
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
+    protected synchronized void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
       VmApiProxyEnvironment env = (VmApiProxyEnvironment) ApiProxy.getCurrentEnvironment();
 
       response.setContentType("text/plain;charset=iso-8859-1");
