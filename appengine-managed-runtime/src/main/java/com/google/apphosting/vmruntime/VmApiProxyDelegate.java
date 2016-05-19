@@ -161,7 +161,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     try {
       byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
-      logger.log(Level.INFO, String.format(
+      logger.log(Level.FINE, String.format(
           "Service bridge API call to package: %s, call: %s, of size: %s " +
           "complete. Service bridge status code: %s; response " +
           "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
@@ -229,14 +229,14 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
         try (Scanner errorStreamScanner =
             new Scanner(new BufferedInputStream(response.getEntity().getContent()));) {
-          logger.info("Error body: " + errorStreamScanner.useDelimiter("\\Z").next());
+          logger.warning("Error body: " + errorStreamScanner.useDelimiter("\\Z").next());
           throw new RPCFailedStatusException(packageName, methodName, response.getStatusLine().getStatusCode());
         }
       }
       try (BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent())) {
         RemoteApiPb.Response remoteResponse = new RemoteApiPb.Response();
         if (!remoteResponse.parseFrom(bis)) {
-          logger.info(
+          logger.warning(
               "HTTP ApiProxy unable to parse response for " + packageName + "." + methodName);
           throw new RPCFailedException(packageName, methodName);
         }
@@ -248,7 +248,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
         return remoteResponse.getResponseAsBytes();
       }
     } catch (IOException e) {
-      logger.info(
+      logger.warning(
           "HTTP ApiProxy I/O error for " + packageName + "." + methodName + ": " + e.getMessage());
       throw constructApiException(packageName, methodName);
     } finally {
