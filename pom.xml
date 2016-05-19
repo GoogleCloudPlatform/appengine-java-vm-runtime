@@ -21,7 +21,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.34-SNAPSHOT</version>
+  <version>1.9.37-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Google App Engine Runtime Parent</name>
   <scm>
@@ -33,7 +33,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.8.v20160314</jetty.version>
-    <appengine.api.version>1.9.34</appengine.api.version>
+    <appengine.api.version>1.9.37</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
   </properties>
 
@@ -106,6 +106,30 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.4.1</version>
+          <executions>
+            <execution>
+              <id>enforce-maven</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireMavenVersion>
+                    <version>[3.0,)</version>
+                  </requireMavenVersion>
+                  <requireJavaVersion>
+                    <version>[1.8,)</version>
+                  </requireJavaVersion>
+                </rules>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>

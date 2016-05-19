@@ -21,7 +21,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.34-SNAPSHOT</version>
+    <version>1.9.37-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Image for OpenJDK (openjdk8)</name>
