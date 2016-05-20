@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
@@ -249,9 +249,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * Helper method to use during the transition from metadata to environment variables.
    *
    * @param environmentMap the environment
-   * @param envKey The name of the environment variable to check first.
-   * @param metadataPath The path of the metadata server entry to use as fallback.
-   * @param cache The metadata server cache.
+   * @param envKey the name of the environment variable to check first.
+   * @param metadataPath the path of the metadata server entry to use as fallback.
+   * @param cache the metadata server cache.
    * @return If set the environment variable corresponding to envKey, the metadata entry otherwise.
    */
   public static String getEnvOrMetadata(Map<String, String> environmentMap, VmMetadataCache cache,
@@ -261,11 +261,13 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   /**
-   * Helper method to get a System Property or Env variable
+   * Helper method to get a System Property or if not found, an Env variable or if
+   * not found a default value.
+   *
    * @param environmentMap the environment
-   * @param envKey The name of the environment variable and System Property
-   * @param dftValue The default value
-   * @return  the System property or Env variable is true
+   * @param envKey the name of the environment variable and System Property
+   * @param dftValue the default value
+   * @return the System property or Env variable is true
    */
   public static String getSystemPropertyOrEnv(Map<String, String> environmentMap,
                                               String envKey,
@@ -274,10 +276,12 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   /**
-   * Helper method to get a booolean System Property or Env variable
+   * Helper method to get a boolean from a System Property or if not found, an Env
+   * variable or if not found a default value
+   *
    * @param environmentMap the environment
-   * @param envKey The name of the environment variable and System Property
-   * @param dftValue The default value
+   * @param envKey the name of the environment variable and System Property
+   * @param dftValue the default value
    * @return true if the System property or Env variable is true
    */
   public static boolean getSystemPropertyOrEnvBoolean(Map<String, String> environmentMap,
