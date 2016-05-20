@@ -299,21 +299,11 @@ class AppEngineAuthentication {
   private static class AppEngineLoginService implements LoginService {
     private IdentityService identityService;
 
-    /**
-     * @return Get the name of the login service (aka Realm name)
-     */
     @Override
     public String getName() {
       return REALM_NAME;
     }
 
-    /**
-     * Login a user.
-     *
-     * @param unusedUsername Not used, the username is fetched using the UserService.
-     * @param unusedCredentials Not used, the credentials are verified before the request gets here.
-     * @return A UserIdentity if the user is logged in, otherwise null
-     */
     @Override
     public UserIdentity login(String unusedUsername, Object unusedCredentials,
             ServletRequest request) {
@@ -353,12 +343,6 @@ class AppEngineAuthentication {
       this.identityService = identityService;
     }
 
-    /**
-     * Validate a user identity. Validate that a UserIdentity is still valid.
-     *
-     * @param user The user to validate
-     * @return true if authentication has not been revoked for the user.
-     */
     @Override
     public boolean validate(UserIdentity user) {
       log.warning("validate(" + user + ") throwing UnsupportedOperationException.");

@@ -161,11 +161,13 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     try {
       byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
-      logger.log(Level.FINE, String.format(
+      if (logger.isLoggable(Level.FINE)) {
+        logger.log(Level.FINE, String.format(
           "Service bridge API call to package: %s, call: %s, of size: %s " +
-          "complete. Service bridge status code: %s; response " +
-          "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
+            "complete. Service bridge status code: %s; response " +
+            "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
           responseData.length, (end - start)));
+      }
       
       // TODO Remove HACK TO FIX USER_SERVICE ISSUE #164
       // Disable with -DUserServiceLocalSchemeHost=false
