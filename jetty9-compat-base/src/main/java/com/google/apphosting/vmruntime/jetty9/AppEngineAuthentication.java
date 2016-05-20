@@ -57,7 +57,7 @@ import javax.servlet.http.HttpSession;
  * configure a Jetty {@link SecurityHandler} to integrate with the App
  * Engine authentication model.
  *
- * <p>Specifically, it registers a custom {@link Authenticator}
+ * <p>Specifically, it registers a custom {@link LoginAuthenticator}
  * instance that knows how to redirect users to a login URL using the
  * {@link UserService}, and a custom {@link UserIdentity} that is aware
  * of the custom roles provided by the App Engine.
@@ -91,7 +91,7 @@ class AppEngineAuthentication {
   private static final String ADMIN_ROLE = "admin";
 
   /**
-   * Inject custom {@link LoginService} and {@link Authenticator}
+   * Inject custom {@link LoginService} and {@link LoginAuthenticator}
    * implementations into the specified {@link ConstraintSecurityHandler}.
    */
   public static void configureSecurityHandler(
@@ -110,7 +110,7 @@ class AppEngineAuthentication {
   }
 
   /**
-   * {@code AppEngineAuthenticator} is a custom {@link Authenticator}
+   * {@code AppEngineAuthenticator} is a custom {@link LoginAuthenticator}
    * that knows how to redirect the current request to a login URL in
    * order to authenticate the user.
    */
@@ -299,21 +299,11 @@ class AppEngineAuthentication {
   private static class AppEngineLoginService implements LoginService {
     private IdentityService identityService;
 
-    /**
-     * @return Get the name of the login service (aka Realm name)
-     */
     @Override
     public String getName() {
       return REALM_NAME;
     }
 
-    /**
-     * Login a user.
-     *
-     * @param unusedUsername Not used, the username is fetched using the UserService.
-     * @param unusedCredentials Not used, the credentials are verified before the request gets here.
-     * @return A UserIdentity if the user is logged in, otherwise null
-     */
     @Override
     public UserIdentity login(String unusedUsername, Object unusedCredentials,
             ServletRequest request) {
@@ -353,16 +343,9 @@ class AppEngineAuthentication {
       this.identityService = identityService;
     }
 
-    /**
-     * Validate a user identity. Validate that a UserIdentity previously created by a call to
-     * {@link #login(String, Object)} is still valid.
-     *
-     * @param user The user to validate
-     * @return true if authentication has not been revoked for the user.
-     */
     @Override
     public boolean validate(UserIdentity user) {
-      log.info("validate(" + user + ") throwing UnsupportedOperationException.");
+      log.warning("validate(" + user + ") throwing UnsupportedOperationException.");
       throw new UnsupportedOperationException();
     }
   }
@@ -429,7 +412,7 @@ class AppEngineAuthentication {
      */
     @Override
     public Subject getSubject() {
-      log.info("getSubject() throwing UnsupportedOperationException.");
+      log.warning("getSubject() throwing UnsupportedOperationException.");
       throw new UnsupportedOperationException();
     }
 
@@ -443,7 +426,7 @@ class AppEngineAuthentication {
       UserService userService = UserServiceFactory.getUserService();
       log.fine("Checking if principal " + userPrincipal + " is in role " + role);
       if (userPrincipal == null) {
-        log.info("isUserInRole() called with null principal.");
+        log.fine("isUserInRole() called with null principal.");
         return false;
       }
 
