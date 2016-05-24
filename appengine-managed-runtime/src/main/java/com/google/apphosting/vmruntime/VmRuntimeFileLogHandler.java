@@ -15,7 +15,6 @@
  */
 package com.google.apphosting.vmruntime;
 
-import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.logging.JsonFormatter;
 
 import java.io.IOException;

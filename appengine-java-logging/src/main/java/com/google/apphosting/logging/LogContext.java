@@ -16,9 +16,7 @@
 package com.google.apphosting.logging;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 /**

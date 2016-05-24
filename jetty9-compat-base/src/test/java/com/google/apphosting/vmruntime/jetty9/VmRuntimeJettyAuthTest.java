@@ -19,8 +19,6 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 
-import java.net.InetAddress;
-
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;

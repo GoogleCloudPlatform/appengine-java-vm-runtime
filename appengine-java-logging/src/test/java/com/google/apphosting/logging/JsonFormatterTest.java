@@ -17,7 +17,6 @@ package com.google.apphosting.logging;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
