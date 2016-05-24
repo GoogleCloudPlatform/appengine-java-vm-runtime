@@ -57,6 +57,7 @@ import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
+import com.google.apphosting.runtime.jetty9.NoOpSessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import com.google.apphosting.runtime.timer.Timer;
@@ -325,12 +326,14 @@ public class VmRuntimeWebAppContext extends WebAppContext
       // No need to configure the session manager.
       return;
     }
-    AbstractSessionManager sessionManager;
-    if (appEngineWebXml.getSessionsEnabled()) {
+    org.eclipse.jetty.server.SessionManager sessionManager;
+    if (appEngineWebXml.getSessionsEnabled())
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-      getSessionHandler().setSessionManager(sessionManager);
-    }
+    else
+      sessionManager = new NoOpSessionManager();
+    getSessionHandler().setSessionManager(sessionManager);
   }
+
 
   @Override
   public boolean isTrustedRemoteAddr(String remoteAddr) {
