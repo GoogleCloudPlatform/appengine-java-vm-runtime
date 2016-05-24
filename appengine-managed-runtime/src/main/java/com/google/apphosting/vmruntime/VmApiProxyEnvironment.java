@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.google.apphosting.vmruntime;
 
 import com.google.apphosting.api.ApiProxy;
@@ -22,7 +20,6 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.runtime.timer.Timer;
 import com.google.apphosting.utils.http.HttpRequest;
-
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -95,26 +92,23 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   public static final String BACKEND_ID_KEY = "com.google.appengine.backend.id";
 
-
   public static final String INSTANCE_ID_KEY = "com.google.appengine.instance.id";
 
   public static final String AFFINITY_KEY = "com.google.appengine.affinity";
 
   public static final String REQUEST_THREAD_FACTORY_ATTR =
-    "com.google.appengine.api.ThreadManager.REQUEST_THREAD_FACTORY";
+      "com.google.appengine.api.ThreadManager.REQUEST_THREAD_FACTORY";
   public static final String BACKGROUND_THREAD_FACTORY_ATTR =
-    "com.google.appengine.api.ThreadManager.BACKGROUND_THREAD_FACTORY";
+      "com.google.appengine.api.ThreadManager.BACKGROUND_THREAD_FACTORY";
 
   // If the "X-AppEngine-Federated-Identity" header is included in the request this attribute
   // should be set to the boolean true, otherwise it should be set to false.
 
-
   public static final String IS_FEDERATED_USER_KEY =
-    "com.google.appengine.api.users.UserService.is_federated_user";
+      "com.google.appengine.api.users.UserService.is_federated_user";
 
   // If the app is trusted AND the "X-AppEngine-Trusted-IP-Request" header is "1" this attribute
   // should be set the the boolean true, otherwise it should be set to false.
-
 
   public static final String IS_TRUSTED_IP_KEY = "com.google.appengine.runtime.is_trusted_ip";
 
@@ -142,84 +136,69 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    */
   enum AttributeMapping {
     USER_ID(
-      "X-AppEngine-User-Id",
-      "com.google.appengine.api.users.UserService.user_id_key",
-      "", false),
+        "X-AppEngine-User-Id", "com.google.appengine.api.users.UserService.user_id_key", "", false),
     USER_ORGANIZATION(
-      "X-AppEngine-User-Organization",
-      "com.google.appengine.api.users.UserService.user_organization",
-      "", false),
+        "X-AppEngine-User-Organization",
+        "com.google.appengine.api.users.UserService.user_organization",
+        "",
+        false),
     FEDERATED_IDENTITY(
-      "X-AppEngine-Federated-Identity",
-      "com.google.appengine.api.users.UserService.federated_identity",
-      "", false),
+        "X-AppEngine-Federated-Identity",
+        "com.google.appengine.api.users.UserService.federated_identity",
+        "",
+        false),
     FEDERATED_PROVIDER(
-      "X-AppEngine-Federated-Provider",
-      "com.google.appengine.api.users.UserService.federated_authority",
-      "", false),
+        "X-AppEngine-Federated-Provider",
+        "com.google.appengine.api.users.UserService.federated_authority",
+        "",
+        false),
     DATACENTER(
-      "X-AppEngine-Datacenter",
-      "com.google.apphosting.api.ApiProxy.datacenter",
-      "", false),
+        "X-AppEngine-Datacenter", "com.google.apphosting.api.ApiProxy.datacenter", "", false),
     REQUEST_ID_HASH(
-      "X-AppEngine-Request-Id-Hash",
-      "com.google.apphosting.api.ApiProxy.request_id_hash",
-      null, false),
+        "X-AppEngine-Request-Id-Hash",
+        "com.google.apphosting.api.ApiProxy.request_id_hash",
+        null,
+        false),
     REQUEST_LOG_ID(
-      "X-AppEngine-Request-Log-Id",
-      "com.google.appengine.runtime.request_log_id",
-      null, false),
-    DAPPER_ID("X-Google-DapperTraceInfo",
-      "com.google.appengine.runtime.dapper_id",
-      null, false),
-    CLOUD_TRACE_CONTEXT("X-Cloud-Trace-Context",
-      "com.google.appengine.runtime.cloud_trace_context",
-      null, false),
+        "X-AppEngine-Request-Log-Id", "com.google.appengine.runtime.request_log_id", null, false),
+    DAPPER_ID("X-Google-DapperTraceInfo", "com.google.appengine.runtime.dapper_id", null, false),
+    CLOUD_TRACE_CONTEXT(
+        "X-Cloud-Trace-Context", "com.google.appengine.runtime.cloud_trace_context", null, false),
     DEFAULT_VERSION_HOSTNAME(
-      "X-AppEngine-Default-Version-Hostname",
-      "com.google.appengine.runtime.default_version_hostname",
-      null, false),
+        "X-AppEngine-Default-Version-Hostname",
+        "com.google.appengine.runtime.default_version_hostname",
+        null,
+        false),
     DEFAULT_NAMESPACE_HEADER(
-      "X-AppEngine-Default-Namespace",
-      "com.google.appengine.api.NamespaceManager.appsNamespace",
-      null, false),
+        "X-AppEngine-Default-Namespace",
+        "com.google.appengine.api.NamespaceManager.appsNamespace",
+        null,
+        false),
     CURRENT_NAMESPACE_HEADER(
-      "X-AppEngine-Current-Namespace",
-      "com.google.appengine.api.NamespaceManager.currentNamespace",
-      null, false),
+        "X-AppEngine-Current-Namespace",
+        "com.google.appengine.api.NamespaceManager.currentNamespace",
+        null,
+        false),
     // ########## Trusted app attributes below. ##############
     LOAS_PEER_USERNAME(
-      "X-AppEngine-LOAS-Peer-Username",
-      "com.google.net.base.peer.loas_peer_username",
-      "", true),
-    GAIA_ID(
-      "X-AppEngine-Gaia-Id",
-      "com.google.appengine.runtime.gaia_id",
-      "", true),
+        "X-AppEngine-LOAS-Peer-Username", "com.google.net.base.peer.loas_peer_username", "", true),
+    GAIA_ID("X-AppEngine-Gaia-Id", "com.google.appengine.runtime.gaia_id", "", true),
     GAIA_AUTHUSER(
-      "X-AppEngine-Gaia-Authuser",
-      "com.google.appengine.runtime.gaia_authuser",
-      "", true),
-    GAIA_SESSION(
-      "X-AppEngine-Gaia-Session",
-      "com.google.appengine.runtime.gaia_session",
-      "", true),
+        "X-AppEngine-Gaia-Authuser", "com.google.appengine.runtime.gaia_authuser", "", true),
+    GAIA_SESSION("X-AppEngine-Gaia-Session", "com.google.appengine.runtime.gaia_session", "", true),
     APPSERVER_DATACENTER(
-      "X-AppEngine-Appserver-Datacenter",
-      "com.google.appengine.runtime.appserver_datacenter",
-      "", true),
+        "X-AppEngine-Appserver-Datacenter",
+        "com.google.appengine.runtime.appserver_datacenter",
+        "",
+        true),
     APPSERVER_TASK_BNS(
-      "X-AppEngine-Appserver-Task-Bns",
-      "com.google.appengine.runtime.appserver_task_bns",
-      "", true),
-    HTTPS(
-      HTTPS_HEADER,
-      "com.google.appengine.runtime.https",
-      "off", false),
-    HOST(
-      "Host",
-      "com.google.appengine.runtime.host",
-      null, false),;
+        "X-AppEngine-Appserver-Task-Bns",
+        "com.google.appengine.runtime.appserver_task_bns",
+        "",
+        true),
+    HTTPS(HTTPS_HEADER, "com.google.appengine.runtime.https", "off", false),
+    HOST("Host", "com.google.appengine.runtime.host", null, false),
+    ;
 
     String headerKey;
     String attributeKey;
@@ -237,7 +216,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
      * @param trustedAppOnly If true the attribute should only be set for trusted apps.
      */
     AttributeMapping(
-      String headerKey, String attributeKey, Object defaultValue, boolean trustedAppOnly) {
+        String headerKey, String attributeKey, Object defaultValue, boolean trustedAppOnly) {
       this.headerKey = headerKey;
       this.attributeKey = attributeKey;
       this.defaultValue = defaultValue;
@@ -254,8 +233,11 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param cache the metadata server cache.
    * @return If set the environment variable corresponding to envKey, the metadata entry otherwise.
    */
-  public static String getEnvOrMetadata(Map<String, String> environmentMap, VmMetadataCache cache,
-                                         String envKey, String metadataPath) {
+  public static String getEnvOrMetadata(
+      Map<String, String> environmentMap,
+      VmMetadataCache cache,
+      String envKey,
+      String metadataPath) {
     String envValue = environmentMap.get(envKey);
     return envValue != null ? envValue : cache.getMetadata(metadataPath);
   }
@@ -269,9 +251,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param dftValue the default value
    * @return the System property or Env variable is true
    */
-  public static String getSystemPropertyOrEnv(Map<String, String> environmentMap,
-                                              String envKey,
-                                              String dftValue) {
+  public static String getSystemPropertyOrEnv(
+      Map<String, String> environmentMap, String envKey, String dftValue) {
     return System.getProperty(envKey, environmentMap.getOrDefault(envKey, dftValue));
   }
 
@@ -284,9 +265,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param dftValue the default value
    * @return true if the System property or Env variable is true
    */
-  public static boolean getSystemPropertyOrEnvBoolean(Map<String, String> environmentMap,
-                                                      String envKey,
-                                                      boolean dftValue) {
+  public static boolean getSystemPropertyOrEnvBoolean(
+      Map<String, String> environmentMap, String envKey, boolean dftValue) {
     return Boolean.valueOf(getSystemPropertyOrEnv(environmentMap, envKey, valueOf(dftValue)));
   }
 
@@ -301,12 +281,13 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param appDir the canonical folder of the application.
    * @return the created Environment object which can be registered with the ApiProxy.
    */
-  public static VmApiProxyEnvironment createDefaultContext(Map<String, String> envMap,
-                                                           VmMetadataCache cache,
-                                                           String server,
-                                                           Timer wallTimer,
-                                                           Long millisUntilSoftDeadline,
-                                                           String appDir) {
+  public static VmApiProxyEnvironment createDefaultContext(
+      Map<String, String> envMap,
+      VmMetadataCache cache,
+      String server,
+      Timer wallTimer,
+      Long millisUntilSoftDeadline,
+      String appDir) {
     final String longAppId = getEnvOrMetadata(envMap, cache, LONG_APP_ID_KEY, PROJECT_ATTRIBUTE);
     final String partition = getEnvOrMetadata(envMap, cache, PARTITION_KEY, PARTITION_ATTRIBUTE);
     final String module = getEnvOrMetadata(envMap, cache, MODULE_NAME_KEY, BACKEND_ATTRIBUTE);
@@ -317,14 +298,15 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     }
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
-    final String appengineHostname = getEnvOrMetadata(
-      envMap, cache, APPENGINE_HOSTNAME_KEY, APPENGINE_HOSTNAME_ATTRIBUTE);
+    final String appengineHostname =
+        getEnvOrMetadata(envMap, cache, APPENGINE_HOSTNAME_KEY, APPENGINE_HOSTNAME_ATTRIBUTE);
     final String ticket = null;
     final String email = null;
     final boolean admin = false;
     final String authDomain = null;
-    final boolean useMvmAgent = Boolean.parseBoolean(getEnvOrMetadata(
-      envMap, cache, USE_MVM_AGENT_KEY, USE_MVM_AGENT_ATTRIBUTE));
+    final boolean useMvmAgent =
+        Boolean.parseBoolean(
+            getEnvOrMetadata(envMap, cache, USE_MVM_AGENT_KEY, USE_MVM_AGENT_ATTRIBUTE));
 
     Map<String, Object> attributes = new HashMap<>();
     // Fill in default attributes values.
@@ -341,9 +323,24 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     attributes.put(BACKEND_ID_KEY, module);
     attributes.put(INSTANCE_ID_KEY, instance);
     attributes.put(AFFINITY_KEY, affinity);
-    VmApiProxyEnvironment defaultEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
-      partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
-      authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
+    VmApiProxyEnvironment defaultEnvironment =
+        new VmApiProxyEnvironment(
+            server,
+            ticket,
+            longAppId,
+            partition,
+            module,
+            majorVersion,
+            minorVersion,
+            instance,
+            appengineHostname,
+            email,
+            admin,
+            authDomain,
+            useMvmAgent,
+            wallTimer,
+            millisUntilSoftDeadline,
+            attributes);
     // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(null));
     // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
@@ -363,13 +360,14 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param millisUntilSoftDeadline optional soft deadline in milliseconds relative to 'wallTimer'.
    * @return the created Environment object which can be registered with the ApiProxy.
    */
-  public static VmApiProxyEnvironment createFromHeaders(Map<String, String> envMap,
-                                                        VmMetadataCache cache,
-                                                        HttpRequest request,
-                                                        String server,
-                                                        Timer wallTimer,
-                                                        Long millisUntilSoftDeadline,
-                                                        VmApiProxyEnvironment defaultEnvironment) {
+  public static VmApiProxyEnvironment createFromHeaders(
+      Map<String, String> envMap,
+      VmMetadataCache cache,
+      HttpRequest request,
+      String server,
+      Timer wallTimer,
+      Long millisUntilSoftDeadline,
+      VmApiProxyEnvironment defaultEnvironment) {
     final String longAppId = getEnvOrMetadata(envMap, cache, LONG_APP_ID_KEY, PROJECT_ATTRIBUTE);
     final String partition = getEnvOrMetadata(envMap, cache, PARTITION_KEY, PARTITION_ATTRIBUTE);
     final String module = getEnvOrMetadata(envMap, cache, MODULE_NAME_KEY, BACKEND_ATTRIBUTE);
@@ -379,9 +377,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final boolean useMvmAgent = defaultEnvironment.getUseMvmAgent();
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
-    final String ticket = getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, false)
-      ? null
-      : request.getHeader(TICKET_HEADER);
+    final String ticket =
+        getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, false)
+            ? null
+            : request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
     boolean admin = false;
     String value = request.getHeader(IS_ADMIN_HEADER);
@@ -407,7 +406,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
         attributes.put(mapping.attributeKey, headerValue);
       } else if (mapping.defaultValue != null) {
         attributes.put(mapping.attributeKey, mapping.defaultValue);
-      }  // else: The attribute is expected to be missing if the header is not set.
+      } // else: The attribute is expected to be missing if the header is not set.
     }
 
     // Fill in the special attributes that do not fit the simple mapping model.
@@ -424,9 +423,24 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       attributes.put(IS_TRUSTED_IP_KEY, trustedIp);
     }
 
-    VmApiProxyEnvironment requestEnvironment = new VmApiProxyEnvironment(server, ticket, longAppId,
-      partition, module, majorVersion, minorVersion, instance, appengineHostname, email, admin,
-      authDomain, useMvmAgent, wallTimer, millisUntilSoftDeadline, attributes);
+    VmApiProxyEnvironment requestEnvironment =
+        new VmApiProxyEnvironment(
+            server,
+            ticket,
+            longAppId,
+            partition,
+            module,
+            majorVersion,
+            minorVersion,
+            instance,
+            appengineHostname,
+            email,
+            admin,
+            authDomain,
+            useMvmAgent,
+            wallTimer,
+            millisUntilSoftDeadline,
+            attributes);
     // Add the thread factories required by the threading API.
     attributes.put(REQUEST_THREAD_FACTORY_ATTR, new VmRequestThreadFactory(requestEnvironment));
     // Since we register VmEnvironmentFactory with ApiProxy in VmRuntimeWebAppContext,
@@ -437,7 +451,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   private final String server;
-  private volatile String ticket;       // request ticket is only valid until response is committed.
+  private volatile String ticket; // request ticket is only valid until response is committed.
   private volatile String globalTicket; // global ticket is always valid
   private final int serverPort;
   private final String partition;
@@ -454,8 +468,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final boolean useMvmAgent;
   private final Map<String, Object> attributes;
   private ThreadLocal<Map<String, Object>> threadLocalAttributes;
-  private final Timer wallTimer;  // may be null if millisUntilSoftDeadline is null.
-  private final Long millisUntilSoftDeadline;  // may be null (no deadline).
+  private final Timer wallTimer; // may be null if millisUntilSoftDeadline is null.
+  private final Long millisUntilSoftDeadline; // may be null (no deadline).
 
   final Semaphore pendingApiCallSemaphore;
 
@@ -482,10 +496,22 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    * @param attributes map containing any attributes set on this environment.
    */
   private VmApiProxyEnvironment(
-    String server, String ticket, String appId, String partition, String module,
-    String majorVersion, String minorVersion, String instance, String appengineHostname,
-    String email, boolean admin, String authDomain, boolean useMvmAgent, Timer wallTimer,
-    Long millisUntilSoftDeadline, Map<String, Object> attributes) {
+      String server,
+      String ticket,
+      String appId,
+      String partition,
+      String module,
+      String majorVersion,
+      String minorVersion,
+      String instance,
+      String appengineHostname,
+      String email,
+      boolean admin,
+      String authDomain,
+      boolean useMvmAgent,
+      Timer wallTimer,
+      Long millisUntilSoftDeadline,
+      Map<String, Object> attributes) {
     if (server == null || server.isEmpty()) {
       throw new IllegalArgumentException("proxy server host:port must be specified");
     }
@@ -494,13 +520,19 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     }
 
     this.ticket = ticket;
-    if ((appId == null || appId.isEmpty()) ||
-      (module == null || module.isEmpty()) ||
-      (majorVersion == null || majorVersion.isEmpty()) ||
-      (instance == null || instance.isEmpty())) {
+    if ((appId == null || appId.isEmpty())
+        || (module == null || module.isEmpty())
+        || (majorVersion == null || majorVersion.isEmpty())
+        || (instance == null || instance.isEmpty())) {
       throw new IllegalArgumentException(
-        "When ticket == null, the following must be specified: appId=" + appId
-          + ", module=" + module + ", version=" + majorVersion + ", instance=" + instance);
+          "When ticket == null, the following must be specified: appId="
+              + appId
+              + ", module="
+              + module
+              + ", version="
+              + majorVersion
+              + ", instance="
+              + instance);
     }
 
     String escapedAppId = appId.replace(':', '_').replace('.', '_');
@@ -508,8 +540,10 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     this.server = server;
     this.partition = partition;
-    String port = System.getenv(GAE_SERVER_PORT) == null ?
-      System.getProperty("GAE_SERVER_PORT", "80") : System.getenv(GAE_SERVER_PORT);
+    String port =
+        System.getenv(GAE_SERVER_PORT) == null
+            ? System.getProperty("GAE_SERVER_PORT", "80")
+            : System.getenv(GAE_SERVER_PORT);
     this.serverPort = Integer.decode(port);
     this.appId = partition + "~" + appId;
     this.module = module == null ? "default" : module;
@@ -517,8 +551,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     this.minorVersion = minorVersion == null ? "" : minorVersion;
     this.versionId = String.format("%s.%s", this.majorVersion, this.minorVersion);
     this.appengineHostname = appengineHostname;
-    this.l7UnsafeRedirectUrl = String.format("https://%s-dot-%s-dot-%s",
-      this.majorVersion, this.module, this.appengineHostname);
+    this.l7UnsafeRedirectUrl =
+        String.format(
+            "https://%s-dot-%s-dot-%s", this.majorVersion, this.module, this.appengineHostname);
     this.email = email == null ? "" : email;
     this.admin = admin;
     this.authDomain = authDomain == null ? "" : authDomain;
@@ -537,8 +572,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   @Deprecated
-  public void addLogRecord(LogRecord record) {
-  }
+  public void addLogRecord(LogRecord record) {}
 
   @Deprecated
   public int flushLogs() {
@@ -630,7 +664,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   @Override
   public String getRequestNamespace() {
     Object currentNamespace =
-      attributes.get(AttributeMapping.CURRENT_NAMESPACE_HEADER.attributeKey);
+        attributes.get(AttributeMapping.CURRENT_NAMESPACE_HEADER.attributeKey);
     if (currentNamespace instanceof String) {
       return (String) currentNamespace;
     }
@@ -682,7 +716,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
       throw new ApiProxyException("Timed out while acquiring a pending API call semaphore.");
     } catch (InterruptedException e) {
       throw new ApiProxyException(
-        "Thread interrupted while acquiring a pending API call semaphore.");
+          "Thread interrupted while acquiring a pending API call semaphore.");
     }
   }
 
@@ -727,12 +761,12 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     try {
       long startTime = System.currentTimeMillis();
       if (pendingApiCallSemaphore.tryAcquire(
-        MAX_PENDING_API_CALLS, maxWaitMs, TimeUnit.MILLISECONDS)) {
+          MAX_PENDING_API_CALLS, maxWaitMs, TimeUnit.MILLISECONDS)) {
         // Release the acquired semaphores in finally {} to guarantee that they are returned.
         try {
           long remaining = maxWaitMs - (System.currentTimeMillis() - startTime);
           if (runningApiCallSemaphore.tryAcquire(
-            MAX_CONCURRENT_API_CALLS, remaining, TimeUnit.MILLISECONDS)) {
+              MAX_CONCURRENT_API_CALLS, remaining, TimeUnit.MILLISECONDS)) {
             runningApiCallSemaphore.release(MAX_CONCURRENT_API_CALLS);
             return true;
           }
@@ -747,7 +781,9 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   public String getTraceId() {
-    Object value = getAttributes().get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
+    Object value =
+        getAttributes()
+            .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
     if (!(value instanceof String)) {
       return null;
     }

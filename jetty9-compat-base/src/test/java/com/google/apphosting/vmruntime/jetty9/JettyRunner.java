@@ -64,14 +64,14 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   public JettyRunner() {
     this(-1);
- }
+  }
 
   public JettyRunner(int port) {
-    this("webapps/testwebapp",port);
- }
+    this("webapps/testwebapp", port);
+  }
 
   public JettyRunner(String webapp, int port) {
-    this.webapp=webapp;
+    this.webapp = webapp;
     this.port = port;
   }
 
@@ -87,15 +87,14 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
     return server;
   }
 
-  public void setAppEngineWebXml (String appengineWebXml)
-  {
+  public void setAppEngineWebXml(String appengineWebXml) {
     this.appengineWebXml = appengineWebXml;
   }
-  
-  
-  public void waitForStarted(long timeout,TimeUnit units) throws InterruptedException {
-    if (!started.await(timeout, units) || !server.isStarted())
-      throw new IllegalStateException("server state="+server.getState());
+
+  public void waitForStarted(long timeout, TimeUnit units) throws InterruptedException {
+    if (!started.await(timeout, units) || !server.isStarted()) {
+      throw new IllegalStateException("server state=" + server.getState());
+    }
 
     Log.getLogger(Server.class).info("Waited!");
   }
@@ -104,8 +103,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
   public void doStart() throws Exception {
     try {
       // find projectDir
-      File project = new File(System.getProperty("user.dir", ".")).getAbsoluteFile()
-        .getCanonicalFile();
+      File project =
+          new File(System.getProperty("user.dir", ".")).getAbsoluteFile().getCanonicalFile();
       File target = new File(project, "jetty9-compat-base/target");
       while (!target.exists()) {
         project = project.getParentFile();
@@ -115,7 +114,9 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
         target = new File(project, "jetty9-compat-base/target");
       }
 
-      File jetty_base = new File(System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
+      File jetty_base =
+          new File(
+              System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
 
       Assert.assertTrue(target.isDirectory());
       Assert.assertTrue(jetty_base.isDirectory());
@@ -123,7 +124,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       logs.delete();
       logs.mkdirs();
       logs.deleteOnExit();
-
 
       // Set GAE SystemProperties
       setSystemProperties(logs);
@@ -133,7 +133,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       server = new Server(threadpool);
       HttpConfiguration httpConfig = new HttpConfiguration();
       if (port >= 0) {
-        ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+        ServerConnector connector =
+            new ServerConnector(server, new HttpConnectionFactory(httpConfig));
         connector.setPort(port);
         server.addConnector(connector);
       } else {
@@ -144,8 +145,9 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
       // Basic jetty.xml handler setup
       HandlerCollection handlers = new HandlerCollection();
-      ContextHandlerCollection contexts = new ContextHandlerCollection();  // TODO is a context handler collection needed for a single context?
-      handlers.setHandlers(new Handler[]{contexts, new DefaultHandler()});
+      ContextHandlerCollection contexts =
+          new ContextHandlerCollection(); // TODO is a context handler collection needed for a single context?
+      handlers.setHandlers(new Handler[] {contexts, new DefaultHandler()});
       server.setHandler(handlers);
 
       // Configuration as done by gae.mod/gae.ini
@@ -170,7 +172,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       RequestLogHandler requestLogHandler = new RequestLogHandler();
       handlers.addHandler(requestLogHandler);
 
-      NCSARequestLog requestLog = new NCSARequestLog(logs.getCanonicalPath() + "/request.yyyy_mm_dd.log");
+      NCSARequestLog requestLog =
+          new NCSARequestLog(logs.getCanonicalPath() + "/request.yyyy_mm_dd.log");
       requestLogHandler.setRequestLog(requestLog);
       requestLog.setRetainDays(2);
       requestLog.setAppend(true);
@@ -184,25 +187,27 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       context.setContextPath("/");
       context.setConfigurationClasses(preconfigurationClasses);
 
-
       // Needed to initialize JSP!
-      context.addBean(new AbstractLifeCycle() {
-        @Override
-        public void doStop() throws Exception {
-        }
+      context.addBean(
+          new AbstractLifeCycle() {
+            @Override
+            public void doStop() throws Exception {}
 
-        @Override
-        public void doStart() throws Exception {
-          JettyJasperInitializer jspInit = new JettyJasperInitializer();
-          jspInit.onStartup(Collections.emptySet(), context.getServletContext());
-        }
-      }, true);
+            @Override
+            public void doStart() throws Exception {
+              JettyJasperInitializer jspInit = new JettyJasperInitializer();
+              jspInit.onStartup(Collections.emptySet(), context.getServletContext());
+            }
+          },
+          true);
 
       // find the sibling testwebapp target
       File webAppLocation = new File(target, webapp);
 
-      File logging = new File(webAppLocation, "WEB-INF/logging.properties").getCanonicalFile()
-        .getAbsoluteFile();
+      File logging =
+          new File(webAppLocation, "WEB-INF/logging.properties")
+              .getCanonicalFile()
+              .getAbsoluteFile();
       System.setProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY, logging.toPath().toString());
 
       Assert.assertTrue(webAppLocation.toString(), webAppLocation.isDirectory());
@@ -233,9 +238,10 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
   public void run() {
     try {
       start();
-      if (Log.getLogger(Server.class).isDebugEnabled())
+      if (Log.getLogger(Server.class).isDebugEnabled()) {
         server.dumpStdErr();
-      server.join(); 
+      }
+      server.join();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -248,21 +254,22 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
    */
   protected void setSystemProperties(File logs) throws IOException {
 
-    String log_file_pattern = logs.getAbsolutePath()+"/log.%g";
-    
+    String log_file_pattern = logs.getAbsolutePath() + "/log.%g";
+
     System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, log_file_pattern);
-    System.setProperty("jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
+    System.setProperty(
+        "jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
-    System.setProperty("GAE_SERVER_PORT", ""+port);
+    System.setProperty("GAE_SERVER_PORT", "" + port);
   }
-  
+
   public static void main(String... args) throws Exception {
     TestMetadataServer meta = new TestMetadataServer();
     try {
       meta.start();
-      new JettyRunner(8080).run(); 
+      new JettyRunner(8080).run();
     } finally {
       meta.stop();
     }

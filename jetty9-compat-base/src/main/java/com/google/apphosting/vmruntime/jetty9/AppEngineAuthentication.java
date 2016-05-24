@@ -1,19 +1,18 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.api.users.User;
@@ -64,8 +63,7 @@ import javax.servlet.http.HttpSession;
  *
  */
 class AppEngineAuthentication {
-  private static final Logger log = Logger.getLogger(
-      AppEngineAuthentication.class.getName());
+  private static final Logger log = Logger.getLogger(AppEngineAuthentication.class.getName());
 
   /**
    * URLs that begin with this prefix are reserved for internal use by
@@ -177,8 +175,8 @@ class AppEngineAuthentication {
       }
       // Untrusted inbound ip for a login page, 307 the user to a server that we can trust.
       if (!checker.isTrustedRemoteAddr(remoteAddr)) {
-        String redirectUrl = getThreadLocalEnvironment().getL7UnsafeRedirectUrl()
-            + request.getRequestURI();
+        String redirectUrl =
+            getThreadLocalEnvironment().getL7UnsafeRedirectUrl() + request.getRequestURI();
         if (request.getQueryString() != null) {
           redirectUrl += "?" + request.getQueryString();
         }
@@ -196,8 +194,11 @@ class AppEngineAuthentication {
       // the case where the user logs in, but as a role that isn't
       // allowed to see /*.  They should still be able to log out.
       if (isLoginOrErrorPage(uri) && !DeferredAuthentication.isDeferred(response)) {
-        log.fine("Got " + uri + ", returning DeferredAuthentication to "
-            + "imply authentication is in progress.");
+        log.fine(
+            "Got "
+                + uri
+                + ", returning DeferredAuthentication to "
+                + "imply authentication is in progress.");
         return new DeferredAuthentication(this);
       }
 
@@ -258,8 +259,11 @@ class AppEngineAuthentication {
      * This seems to only be used by JaspiAuthenticator, all other Authenticators return true.
      */
     @Override
-    public boolean secureResponse(ServletRequest servletRequest, ServletResponse servletResponse,
-        boolean isAuthMandatory, Authentication.User user) {
+    public boolean secureResponse(
+        ServletRequest servletRequest,
+        ServletResponse servletResponse,
+        boolean isAuthMandatory,
+        Authentication.User user) {
       return true;
     }
 
@@ -275,7 +279,6 @@ class AppEngineAuthentication {
       }
       return null;
     }
-
   }
 
   /**
@@ -305,8 +308,8 @@ class AppEngineAuthentication {
     }
 
     @Override
-    public UserIdentity login(String unusedUsername, Object unusedCredentials,
-            ServletRequest request) {
+    public UserIdentity login(
+        String unusedUsername, Object unusedCredentials, ServletRequest request) {
       AppEngineUserIdentity appEngineUserIdentity = loadUser();
       return appEngineUserIdentity;
     }
@@ -319,7 +322,7 @@ class AppEngineAuthentication {
     private AppEngineUserIdentity loadUser() {
       UserService userService = UserServiceFactory.getUserService();
       User engineUser = userService.getCurrentUser();
-      if (engineUser == null){
+      if (engineUser == null) {
         return null;
       }
       return new AppEngineUserIdentity(new AppEnginePrincipal(engineUser));
@@ -374,7 +377,6 @@ class AppEngineAuthentication {
     }
 
     @Override
-
     public boolean equals(Object other) {
       if (other instanceof AppEnginePrincipal) {
         return user.equals(((AppEnginePrincipal) other).user);
@@ -384,7 +386,6 @@ class AppEngineAuthentication {
     }
 
     @Override
-
     public String toString() {
       return user.toString();
     }

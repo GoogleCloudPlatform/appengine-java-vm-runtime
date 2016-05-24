@@ -1,12 +1,12 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,8 @@ public class LoggingServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
-    getServletContext().log("LogTest Hello "+req.getQueryString());
-    
+    getServletContext().log("LogTest Hello " + req.getQueryString());
+
     resp.setContentType("text/plain");
     if (req.getParameter("printLogs") != null) {
       LogService ls = LogServiceFactory.getLogService();
@@ -60,7 +60,7 @@ public class LoggingServlet extends HttpServlet {
       resp.getWriter().println(logger2.getLevel());
       resp.getWriter().println(configRan);
       logger2.severe("not null");
-      logger2.severe((String)null);
+      logger2.severe((String) null);
     }
   }
 

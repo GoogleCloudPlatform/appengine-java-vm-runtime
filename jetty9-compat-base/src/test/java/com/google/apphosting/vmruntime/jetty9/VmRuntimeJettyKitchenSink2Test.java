@@ -87,14 +87,29 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
    * @throws Exception
    */
   public void testBlobUpload() throws Exception {
-    String postData = "--==boundary\r\n" + "Content-Type: message/external-body; "
-            + "charset=ISO-8859-1; blob-key=\"blobkey:blob-0\"\r\n" + "Content-Disposition: form-data; "
-            + "name=upload-0; filename=\"file-0.jpg\"\r\n" + "\r\n" + "Content-Type: image/jpeg\r\n"
-            + "Content-Length: 1024\r\n" + "X-AppEngine-Upload-Creation: 2009-04-30 17:12:51.675929\r\n"
-            + "Content-Disposition: form-data; " + "name=upload-0; filename=\"file-0.jpg\"\r\n" + "\r\n"
-            + "\r\n" + "--==boundary\r\n" + "Content-Type: text/plain; charset=ISO-8859-1\r\n"
-            + "Content-Disposition: form-data; name=text1\r\n" + "Content-Length: 10\r\n" + "\r\n"
-            + "Testing.\r\n" + "\r\n" + "\r\n" + "--==boundary--";
+    String postData =
+        "--==boundary\r\n"
+            + "Content-Type: message/external-body; "
+            + "charset=ISO-8859-1; blob-key=\"blobkey:blob-0\"\r\n"
+            + "Content-Disposition: form-data; "
+            + "name=upload-0; filename=\"file-0.jpg\"\r\n"
+            + "\r\n"
+            + "Content-Type: image/jpeg\r\n"
+            + "Content-Length: 1024\r\n"
+            + "X-AppEngine-Upload-Creation: 2009-04-30 17:12:51.675929\r\n"
+            + "Content-Disposition: form-data; "
+            + "name=upload-0; filename=\"file-0.jpg\"\r\n"
+            + "\r\n"
+            + "\r\n"
+            + "--==boundary\r\n"
+            + "Content-Type: text/plain; charset=ISO-8859-1\r\n"
+            + "Content-Disposition: form-data; name=text1\r\n"
+            + "Content-Length: 10\r\n"
+            + "\r\n"
+            + "Testing.\r\n"
+            + "\r\n"
+            + "\r\n"
+            + "--==boundary--";
 
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
@@ -106,8 +121,8 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
 
     assertEquals(302, httpCode);
     Header redirUrl = blobPost.getResponseHeader("Location");
-    assertEquals("http://" + getServerHost() + "/serve-blob?key=blobkey:blob-0",
-            redirUrl.getValue());
+    assertEquals(
+        "http://" + getServerHost() + "/serve-blob?key=blobkey:blob-0", redirUrl.getValue());
   }
 
   /**
@@ -122,8 +137,11 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
     ApiProxy.setDelegate(fakeApiProxy);
 
     for (int i = 1; i <= 5; i++) {
-      MemcacheIncrementResponse responsePb = MemcacheIncrementResponse.newBuilder()
-              .setIncrementStatus(IncrementStatusCode.OK).setNewValue(i).build();
+      MemcacheIncrementResponse responsePb =
+          MemcacheIncrementResponse.newBuilder()
+              .setIncrementStatus(IncrementStatusCode.OK)
+              .setNewValue(i)
+              .build();
       fakeApiProxy.addApiResponse(responsePb);
       String[] lines = fetchUrl(createUrl("/count?type=memcache"));
       assertEquals(1, lines.length);

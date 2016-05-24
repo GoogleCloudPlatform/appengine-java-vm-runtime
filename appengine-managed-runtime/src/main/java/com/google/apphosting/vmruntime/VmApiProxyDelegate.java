@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.google.apphosting.vmruntime;
 
 import com.google.appengine.api.appidentity.AppIdentityServiceFailureException;
@@ -36,7 +34,6 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.ApiProxy.RPCFailedException;
 import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
-import com.google.apphosting.api.UserServicePb.CreateLogoutURLRequest;
 import com.google.apphosting.api.UserServicePb.CreateLogoutURLResponse;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
 
@@ -117,7 +114,6 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     this(new DefaultHttpClient(createConnectionManager()));
   }
 
-
   VmApiProxyDelegate(HttpClient httpclient) {
     this.defaultTimeoutMs = DEFAULT_RPC_TIMEOUT_MS;
     this.executor = Executors.newCachedThreadPool();
@@ -128,99 +124,144 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
   @Override
   public byte[] makeSyncCall(
-        VmApiProxyEnvironment environment,
-        String packageName,
-        String methodName,
-        byte[] requestData)
+      VmApiProxyEnvironment environment, String packageName, String methodName, byte[] requestData)
       throws ApiProxyException {
-    return makeSyncCallWithTimeout(environment, packageName, methodName, requestData,
-        defaultTimeoutMs);
+    return makeSyncCallWithTimeout(
+        environment, packageName, methodName, requestData, defaultTimeoutMs);
   }
 
   private byte[] makeSyncCallWithTimeout(
-          VmApiProxyEnvironment environment,
-          String packageName,
-          String methodName,
-          byte[] requestData,
-          int timeoutMs)
-        throws ApiProxyException {
+      VmApiProxyEnvironment environment,
+      String packageName,
+      String methodName,
+      byte[] requestData,
+      int timeoutMs)
+      throws ApiProxyException {
     return makeApiCall(environment, packageName, methodName, requestData, timeoutMs, false);
   }
 
-  private byte[] makeApiCall(VmApiProxyEnvironment environment,
+  private byte[] makeApiCall(
+      VmApiProxyEnvironment environment,
       String packageName,
       String methodName,
       byte[] requestData,
       int timeoutMs,
       boolean wasAsync) {
-        
+
     // If this was caused by an async call we need to return the pending call semaphore.
     long start = System.currentTimeMillis();
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
-    
+
     try {
-      byte responseData[] = runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
+      byte responseData[] =
+          runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
       if (logger.isLoggable(Level.FINE)) {
-        logger.log(Level.FINE, String.format(
-          "Service bridge API call to package: %s, call: %s, of size: %s " +
-            "complete. Service bridge status code: %s; response " +
-            "content-length: %s. Took %s ms.", packageName, methodName, requestData.length, 200,
-          responseData.length, (end - start)));
+        logger.log(
+            Level.FINE,
+            String.format(
+                "Service bridge API call to package: %s, call: %s, of size: %s "
+                    + "complete. Service bridge status code: %s; response "
+                    + "content-length: %s. Took %s ms.",
+                packageName,
+                methodName,
+                requestData.length,
+                200,
+                responseData.length,
+                (end - start)));
       }
-      
+
       // TODO Remove HACK TO FIX USER_SERVICE ISSUE #164
       // Disable with -DUserServiceLocalSchemeHost=false
       if ("user".equals(packageName)) {
         String userservicelocal = System.getProperty("UserServiceLocalSchemeHost");
         String host = (String) environment.getAttributes().get("com.google.appengine.runtime.host");
-        String https = (String) environment.getAttributes().get("com.google.appengine.runtime.https");
-        if ((userservicelocal==null || Boolean.valueOf(userservicelocal)) 
-            && host != null && host.length() > 0
-            && https!=null && https.length() > 0) {
+        String https =
+            (String) environment.getAttributes().get("com.google.appengine.runtime.https");
+        if ((userservicelocal == null || Boolean.valueOf(userservicelocal))
+            && host != null
+            && host.length() > 0
+            && https != null
+            && https.length() > 0) {
           try {
             if ("CreateLogoutURL".equals(methodName)) {
               CreateLogoutURLResponse response = new CreateLogoutURLResponse();
               response.parseFrom(responseData);
               URI uri = new URI(response.getLogoutUrl());
-              String query=uri.getQuery().replaceAll("https?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
-              response.setLogoutUrl(new URI("on".equalsIgnoreCase(https) ? "https" : "http", uri.getUserInfo(), host,
-                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              String query =
+                  uri.getQuery()
+                      .replaceAll(
+                          "https?://[^/]*\\.appspot\\.com",
+                          ("on".equalsIgnoreCase(https) ? "https://" : "http://") + host);
+              response.setLogoutUrl(
+                  new URI(
+                          "on".equalsIgnoreCase(https) ? "https" : "http",
+                          uri.getUserInfo(),
+                          host,
+                          uri.getPort(),
+                          uri.getPath(),
+                          query,
+                          uri.getFragment())
+                      .toASCIIString());
               return response.toByteArray();
             }
             if ("CreateLoginURL".equals(methodName)) {
               CreateLoginURLResponse response = new CreateLoginURLResponse();
               response.parseFrom(responseData);
               URI uri = new URI(response.getLoginUrl());
-              String query=uri.getQuery().replaceAll("http?://[^/]*\\.appspot\\.com", ("on".equalsIgnoreCase(https) ? "https://" : "http://")+host);
-              response.setLoginUrl(new URI(uri.getScheme(),uri.getUserInfo(),uri.getHost(),
-                  uri.getPort(), uri.getPath(), query, uri.getFragment()).toASCIIString());
+              String query =
+                  uri.getQuery()
+                      .replaceAll(
+                          "http?://[^/]*\\.appspot\\.com",
+                          ("on".equalsIgnoreCase(https) ? "https://" : "http://") + host);
+              response.setLoginUrl(
+                  new URI(
+                          uri.getScheme(),
+                          uri.getUserInfo(),
+                          uri.getHost(),
+                          uri.getPort(),
+                          uri.getPath(),
+                          query,
+                          uri.getFragment())
+                      .toASCIIString());
               return response.toByteArray();
             }
           } catch (URISyntaxException e) {
-            logger.log(Level.WARNING,"Problem adjusting UserService URI",e);
+            logger.log(Level.WARNING, "Problem adjusting UserService URI", e);
           }
         }
       }
       return responseData;
-    } catch(Exception e) {
+    } catch (Exception e) {
       long end = System.currentTimeMillis();
       int statusCode = 200; // default
-      if (e instanceof RPCFailedStatusException)
+      if (e instanceof RPCFailedStatusException) {
         statusCode = ((RPCFailedStatusException) e).getStatusCode();
-      logger.log(Level.WARNING, String.format(
-          "Exception during service bridge API call to package: %s, call: %s, " +
-          "of size: %s bytes, status code: %d. Took %s ms. %s", packageName, methodName,
-          requestData.length, statusCode, (end - start), e.getClass().getSimpleName()), e);
+      }
+      logger.log(
+          Level.WARNING,
+          String.format(
+              "Exception during service bridge API call to package: %s, call: %s, "
+                  + "of size: %s bytes, status code: %d. Took %s ms. %s",
+              packageName,
+              methodName,
+              requestData.length,
+              statusCode,
+              (end - start),
+              e.getClass().getSimpleName()),
+          e);
       throw e;
     } finally {
       environment.apiCallCompleted();
     }
   }
 
-
-  protected byte[] runSyncCall(VmApiProxyEnvironment environment, String packageName,
-      String methodName, byte[] requestData, int timeoutMs) {
+  protected byte[] runSyncCall(
+      VmApiProxyEnvironment environment,
+      String packageName,
+      String methodName,
+      byte[] requestData,
+      int timeoutMs) {
     HttpPost request = createRequest(environment, packageName, methodName, requestData, timeoutMs);
     try {
       // Create a new http context for each call as the default context is not thread safe.
@@ -230,9 +271,10 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       // Check for HTTP error status and return early.
       if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
         try (Scanner errorStreamScanner =
-            new Scanner(new BufferedInputStream(response.getEntity().getContent()));) {
+            new Scanner(new BufferedInputStream(response.getEntity().getContent())); ) {
           logger.warning("Error body: " + errorStreamScanner.useDelimiter("\\Z").next());
-          throw new RPCFailedStatusException(packageName, methodName, response.getStatusLine().getStatusCode());
+          throw new RPCFailedStatusException(
+              packageName, methodName, response.getStatusLine().getStatusCode());
         }
       }
       try (BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent())) {
@@ -320,8 +362,12 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
    * @return an HttpPost object to send to the API.
    */
   //
-  static HttpPost createRequest(VmApiProxyEnvironment environment, String packageName,
-      String methodName, byte[] requestData, int timeoutMs) {
+  static HttpPost createRequest(
+      VmApiProxyEnvironment environment,
+      String packageName,
+      String methodName,
+      byte[] requestData,
+      int timeoutMs) {
     // Wrap the payload in a RemoteApi Request.
     RemoteApiPb.Request remoteRequest = new RemoteApiPb.Request();
     remoteRequest.setServiceName(packageName);
@@ -335,12 +381,12 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
     // Set TCP connection timeouts.
     HttpParams params = new BasicHttpParams();
-    params.setLongParameter(ConnManagerPNames.TIMEOUT,
-        timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
-    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,
-        timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
-    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,
-        timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
+    params.setLongParameter(
+        ConnManagerPNames.TIMEOUT, timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
+    params.setIntParameter(
+        CoreConnectionPNames.CONNECTION_TIMEOUT, timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
+    params.setIntParameter(
+        CoreConnectionPNames.SO_TIMEOUT, timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS);
 
     // Performance tweaks.
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, Boolean.TRUE);
@@ -350,7 +396,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     // The request deadline can be overwritten by the environment, read deadline if available.
     Double deadline = (Double) (environment.getAttributes().get(API_DEADLINE_KEY));
     if (deadline == null) {
-      request.setHeader(RPC_DEADLINE_HEADER,
+      request.setHeader(
+          RPC_DEADLINE_HEADER,
           Double.toString(TimeUnit.SECONDS.convert(timeoutMs, TimeUnit.MILLISECONDS)));
     } else {
       request.setHeader(RPC_DEADLINE_HEADER, Double.toString(deadline));
@@ -358,8 +405,10 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
     // If the incoming request has a dapper trace header: set it on outgoing API calls
     // so they are tied to the original request.
-    Object dapperHeader = environment.getAttributes()
-        .get(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.attributeKey);
+    Object dapperHeader =
+        environment
+            .getAttributes()
+            .get(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.attributeKey);
     if (dapperHeader instanceof String) {
       request.setHeader(
           VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey, (String) dapperHeader);
@@ -368,16 +417,18 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     // If the incoming request has a Cloud trace header: set it on outgoing API calls
     // so they are tied to the original request.
     // TODO(user): For now, this uses the incoming span id - use the one from the active span.
-    Object traceHeader = environment.getAttributes()
-        .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
+    Object traceHeader =
+        environment
+            .getAttributes()
+            .get(VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.attributeKey);
     if (traceHeader instanceof String) {
       request.setHeader(
           VmApiProxyEnvironment.AttributeMapping.CLOUD_TRACE_CONTEXT.headerKey,
           (String) traceHeader);
     }
 
-    ByteArrayEntity postPayload = new ByteArrayEntity(remoteRequest.toByteArray(),
-        ContentType.APPLICATION_OCTET_STREAM);
+    ByteArrayEntity postPayload =
+        new ByteArrayEntity(remoteRequest.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
     postPayload.setChunked(false);
     request.setEntity(postPayload);
 
@@ -395,14 +446,11 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
    * @param logger the Logger used to create log messages.
    * @return ApiProxyException
    */
-  private static ApiProxyException convertRemoteError(RemoteApiPb.Response remoteResponse,
-      String packageName, String methodName, Logger logger) {
+  private static ApiProxyException convertRemoteError(
+      RemoteApiPb.Response remoteResponse, String packageName, String methodName, Logger logger) {
     if (remoteResponse.hasRpcError()) {
       return convertApiResponseRpcErrorToException(
-            remoteResponse.getRpcError(),
-            packageName,
-            methodName,
-            logger);
+          remoteResponse.getRpcError(), packageName, methodName, logger);
     }
 
     // Otherwise it's an application error
@@ -425,14 +473,24 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     int rpcCode = rpcError.getCode();
     String errorDetail = rpcError.getDetail();
     if (rpcCode > RemoteApiPb.RpcError.ErrorCode.values().length) {
-      logger.severe("Received unrecognized error code from server: " + rpcError.getCode() +
-          " details: " + errorDetail);
+      logger.severe(
+          "Received unrecognized error code from server: "
+              + rpcError.getCode()
+              + " details: "
+              + errorDetail);
       return new ApiProxy.UnknownException(packageName, methodName);
     }
-    RemoteApiPb.RpcError.ErrorCode errorCode = RemoteApiPb.RpcError.ErrorCode.values()[
-        rpcError.getCode()];
-    logger.warning("RPC failed, API=" + packageName + "." + methodName + " : "
-                   + errorCode + " : " + errorDetail);
+    RemoteApiPb.RpcError.ErrorCode errorCode =
+        RemoteApiPb.RpcError.ErrorCode.values()[rpcError.getCode()];
+    logger.warning(
+        "RPC failed, API="
+            + packageName
+            + "."
+            + methodName
+            + " : "
+            + errorCode
+            + " : "
+            + errorDetail);
 
     // This is very similar to apphosting/utils/runtime/ApiProxyUtils.java#convertApiError,
     // which is for APIResponse. TODO(user): retire both in favor of gRPC.
@@ -445,8 +503,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
         logger.severe("Security violation: invalid request id used!");
         return new ApiProxy.UnknownException(packageName, methodName);
       case CAPABILITY_DISABLED:
-        return new ApiProxy.CapabilityDisabledException(
-            errorDetail, packageName, methodName);
+        return new ApiProxy.CapabilityDisabledException(errorDetail, packageName, methodName);
       case OVER_QUOTA:
         return new ApiProxy.OverQuotaException(packageName, methodName);
       case REQUEST_TOO_LARGE:
@@ -458,8 +515,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       case CANCELLED:
         return new ApiProxy.CancelledException(packageName, methodName);
       case FEATURE_DISABLED:
-        return new ApiProxy.FeatureNotEnabledException(
-            errorDetail, packageName, methodName);
+        return new ApiProxy.FeatureNotEnabledException(errorDetail, packageName, methodName);
       case DEADLINE_EXCEEDED:
         return new ApiProxy.ApiDeadlineExceededException(packageName, methodName);
       default:
@@ -475,7 +531,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     private final byte[] requestData;
     private final int timeoutMs;
 
-    public MakeSyncCall(VmApiProxyDelegate delegate,
+    public MakeSyncCall(
+        VmApiProxyDelegate delegate,
         VmApiProxyEnvironment environment,
         String packageName,
         String methodName,
@@ -491,29 +548,25 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
     @Override
     public byte[] call() throws Exception {
-      return delegate.makeApiCall(environment,
-          packageName,
-          methodName,
-          requestData,
-          timeoutMs,
-          true);
+      return delegate.makeApiCall(
+          environment, packageName, methodName, requestData, timeoutMs, true);
     }
   }
 
   @Override
   public Future<byte[]> makeAsyncCall(
-        VmApiProxyEnvironment environment,
-        String packageName,
-        String methodName,
-        byte[] request,
-        ApiConfig apiConfig) {
+      VmApiProxyEnvironment environment,
+      String packageName,
+      String methodName,
+      byte[] request,
+      ApiConfig apiConfig) {
     int timeoutMs = defaultTimeoutMs;
     if (apiConfig != null && apiConfig.getDeadlineInSeconds() != null) {
       timeoutMs = (int) (apiConfig.getDeadlineInSeconds() * 1000);
     }
     environment.aSyncApiCallAdded(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS);
-    return executor.submit(new MakeSyncCall(this, environment, packageName,
-        methodName, request, timeoutMs));
+    return executor.submit(
+        new MakeSyncCall(this, environment, packageName, methodName, request, timeoutMs));
   }
 
   @Override

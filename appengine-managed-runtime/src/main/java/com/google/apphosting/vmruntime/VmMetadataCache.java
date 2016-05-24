@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.google.apphosting.vmruntime;
 
 import java.io.BufferedReader;
@@ -129,8 +127,11 @@ public class VmMetadataCache {
       } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
         return null;
       }
-      throw new IOException("Meta-data request for '" + path + "' failed with error: "
-          + connection.getResponseMessage());
+      throw new IOException(
+          "Meta-data request for '"
+              + path
+              + "' failed with error: "
+              + connection.getResponseMessage());
     } finally {
       if (reader != null) {
         try {
