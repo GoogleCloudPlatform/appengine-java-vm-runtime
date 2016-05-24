@@ -28,6 +28,7 @@ import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.LocalConnector;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -42,11 +43,12 @@ import org.junit.Assert;
 
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 
-class JettyRunner implements Runnable {
+class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   private File logs;
   private Server server;
   private final int port;
+  private final String webapp;
   private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
   private static final String[] preconfigurationClasses = {
@@ -58,10 +60,32 @@ class JettyRunner implements Runnable {
     org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
     // next one is way too slow for unit testing:
     //org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
-  }; 
-  public JettyRunner(int port) {
-    this.port = port;
+  };
+
+  public JettyRunner() {
+    this(-1);
  }
+
+  public JettyRunner(int port) {
+    this("webapps/testwebapp",port);
+ }
+
+  public JettyRunner(String webapp, int port) {
+    this.webapp=webapp;
+    this.port = port;
+  }
+
+  public File getLogDir() {
+    return logs;
+  }
+
+  public void dump() {
+    server.dumpStdErr();
+  }
+
+  public Server getServer() {
+    return server;
+  }
 
   public void setAppEngineWebXml (String appengineWebXml)
   {
@@ -75,49 +99,55 @@ class JettyRunner implements Runnable {
 
     Log.getLogger(Server.class).info("Waited!");
   }
-  
+
   @Override
-  public void run() {
-    try
-    {
+  public void doStart() throws Exception {
+    try {
       // find projectDir
-      File project = new File(System.getProperty("user.dir",".")).getAbsoluteFile().getCanonicalFile();
-      File target = new File(project,"target");
-      while(!target.exists())
-      {
-        project=project.getParentFile();
-        target = new File(project,"target");
+      File project = new File(System.getProperty("user.dir", ".")).getAbsoluteFile()
+        .getCanonicalFile();
+      File target = new File(project, "jetty9-compat-base/target");
+      while (!target.exists()) {
+        project = project.getParentFile();
+        if (project == null) {
+          break;
+        }
+        target = new File(project, "jetty9-compat-base/target");
       }
 
-      File jetty_base = new File(System.getProperty("jetty.base",new File(target,"jetty-base").getAbsolutePath()));
-      
+      File jetty_base = new File(System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
+
       Assert.assertTrue(target.isDirectory());
       Assert.assertTrue(jetty_base.isDirectory());
-      logs=new File(target,"logs");
+      logs = new File(target, "logs");
       logs.delete();
       logs.mkdirs();
       logs.deleteOnExit();
-      
-      
+
+
       // Set GAE SystemProperties
       setSystemProperties(logs);
-      
+
       // Create the server, connector and associated instances
       QueuedThreadPool threadpool = new QueuedThreadPool();
       server = new Server(threadpool);
       HttpConfiguration httpConfig = new HttpConfiguration();
-      ServerConnector connector = new ServerConnector(server,new HttpConnectionFactory(httpConfig));
-      connector.setPort(port);
-      server.addConnector(connector);
+      if (port >= 0) {
+        ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+        connector.setPort(port);
+        server.addConnector(connector);
+      } else {
+        server.addConnector(new LocalConnector(server));
+      }
 
       MappedByteBufferPool bufferpool = new MappedByteBufferPool();
 
       // Basic jetty.xml handler setup
       HandlerCollection handlers = new HandlerCollection();
       ContextHandlerCollection contexts = new ContextHandlerCollection();  // TODO is a context handler collection needed for a single context?
-      handlers.setHandlers(new Handler[] {contexts,new DefaultHandler()});
+      handlers.setHandlers(new Handler[]{contexts, new DefaultHandler()});
       server.setHandler(handlers);
-      
+
       // Configuration as done by gae.mod/gae.ini
       httpConfig.setOutputAggregationSize(32768);
 
@@ -139,8 +169,8 @@ class JettyRunner implements Runnable {
 
       RequestLogHandler requestLogHandler = new RequestLogHandler();
       handlers.addHandler(requestLogHandler);
-      
-      NCSARequestLog requestLog=new NCSARequestLog(logs.getCanonicalPath()+"/request.yyyy_mm_dd.log");
+
+      NCSARequestLog requestLog = new NCSARequestLog(logs.getCanonicalPath() + "/request.yyyy_mm_dd.log");
       requestLogHandler.setRequestLog(requestLog);
       requestLog.setRetainDays(2);
       requestLog.setAppend(true);
@@ -148,13 +178,13 @@ class JettyRunner implements Runnable {
       requestLog.setLogTimeZone("GMT");
       requestLog.setLogLatency(true);
       requestLog.setPreferProxiedForAddress(true);
-    
+
       // configuration from root.xml
       final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
       context.setConfigurationClasses(preconfigurationClasses);
-      
-      
+
+
       // Needed to initialize JSP!
       context.addBean(new AbstractLifeCycle() {
         @Override
@@ -169,35 +199,40 @@ class JettyRunner implements Runnable {
       }, true);
 
       // find the sibling testwebapp target
-      File webAppLocation = new File(target, "webapps/testwebapp");
-      
-      File logging = new File(webAppLocation,"WEB-INF/logging.properties").getCanonicalFile().getAbsoluteFile();
-      System.setProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY,logging.toPath().toString());
+      File webAppLocation = new File(target, webapp);
 
-      Assert.assertTrue(webAppLocation.toString(),webAppLocation.isDirectory());
-      
+      File logging = new File(webAppLocation, "WEB-INF/logging.properties").getCanonicalFile()
+        .getAbsoluteFile();
+      System.setProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY, logging.toPath().toString());
+
+      Assert.assertTrue(webAppLocation.toString(), webAppLocation.isDirectory());
+
       context.setResourceBase(webAppLocation.getAbsolutePath());
-      context.init((appengineWebXml==null?"WEB-INF/appengine-web.xml":appengineWebXml));
+      context.init((appengineWebXml == null ? "WEB-INF/appengine-web.xml" : appengineWebXml));
       context.setParentLoaderPriority(true); // true in tests for easier mocking
-      
+
       // Hack to find the webdefault.xml
       File webDefault = new File(jetty_base, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
-     
+
       contexts.addHandler(context);
       // start and join
       server.start();
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-    }
-    finally
-    {
+    } finally {
       Log.getLogger(Server.class).info("Started!");
       started.countDown();
     }
+  }
 
+  @Override
+  public void doStop() throws Exception {
+    server.stop();
+  }
+
+  @Override
+  public void run() {
     try {
+      start();
       if (Log.getLogger(Server.class).isDebugEnabled())
         server.dumpStdErr();
       server.join(); 
@@ -223,10 +258,6 @@ class JettyRunner implements Runnable {
     System.setProperty("GAE_SERVER_PORT", ""+port);
   }
   
-  public void stop() throws Exception {
-    server.stop();
-  }
-  
   public static void main(String... args) throws Exception {
     TestMetadataServer meta = new TestMetadataServer();
     try {
@@ -235,13 +266,5 @@ class JettyRunner implements Runnable {
     } finally {
       meta.stop();
     }
-  }
-
-  public File getLogDir() {
-    return logs;
-  }
-
-  public void dump() {
-    server.dumpStdErr();
   }
 }
