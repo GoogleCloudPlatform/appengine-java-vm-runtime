@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.apphosting.utils.config.AppEngineWebXml;
@@ -34,7 +33,11 @@ import java.nio.ByteBuffer;
  */
 class VmRuntimeInterceptor implements HttpOutput.Interceptor {
 
-  public enum ClearTicket {NEVER, ON_COMMIT, ON_COMPLETE}
+  public enum ClearTicket {
+    NEVER,
+    ON_COMMIT,
+    ON_COMPLETE
+  }
 
   private static ClearTicket dftClearTicket = ClearTicket.ON_COMPLETE;
 
@@ -51,8 +54,11 @@ class VmRuntimeInterceptor implements HttpOutput.Interceptor {
   }
 
   public static void init(AppEngineWebXml appEngineWebXml) {
-    String clearTicket = VmApiProxyEnvironment.getSystemPropertyOrEnv(System.getenv(),
-      VmApiProxyEnvironment.CLEAR_REQUEST_TICKET_KEY, ClearTicket.ON_COMPLETE.name());
+    String clearTicket =
+        VmApiProxyEnvironment.getSystemPropertyOrEnv(
+            System.getenv(),
+            VmApiProxyEnvironment.CLEAR_REQUEST_TICKET_KEY,
+            ClearTicket.ON_COMPLETE.name());
     dftClearTicket = ClearTicket.valueOf(clearTicket.toUpperCase());
   }
 

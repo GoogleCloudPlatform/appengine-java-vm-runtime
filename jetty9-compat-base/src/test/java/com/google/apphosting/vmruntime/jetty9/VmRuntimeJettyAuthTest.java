@@ -151,24 +151,28 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth").toString());
-    get.addRequestHeader(VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
+    get.addRequestHeader(
+        VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
+        get.getResponseHeader("Location").getValue());
   }
 
   public void testAuth_UntrustedInboundIpWithQuery() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth?foo=bar").toString());
-    get.addRequestHeader(VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
+    get.addRequestHeader(
+        VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth?foo=bar",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth?foo=bar",
+        get.getResponseHeader("Location").getValue());
   }
 
   public void testAuth_TrustedRealIP() throws Exception {
@@ -193,7 +197,8 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
+        get.getResponseHeader("Location").getValue());
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.google.apphosting.vmruntime.jetty9;
 
-
 import java.util.Arrays;
 import static junit.framework.TestCase.assertTrue;
 

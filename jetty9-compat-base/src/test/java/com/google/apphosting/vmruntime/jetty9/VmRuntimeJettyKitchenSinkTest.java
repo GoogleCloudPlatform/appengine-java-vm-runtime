@@ -35,15 +35,13 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
-	
+  @Override
+  protected void setUp() throws Exception {
+    appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
+    super.setUp();
+  }
 
-	@Override
-	protected void setUp() throws Exception {
-		appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
-		super.setUp();
-	}
-
-	/**
+  /**
    * Test that non compiled jsp files can be served.
    *
    * @throws Exception
@@ -51,8 +49,8 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   public void testJspNotCompiled() throws Exception {
     int iter = 0;
     int end = 6;
-    String[] lines
-            = fetchUrl(createUrl(String.format("/hello_not_compiled.jsp?start=%d&end=%d", iter, end)));
+    String[] lines =
+        fetchUrl(createUrl(String.format("/hello_not_compiled.jsp?start=%d&end=%d", iter, end)));
     String iterationFormat = "<h2>Iteration %d</h2>";
     for (String line : lines) {
       System.out.println(line);
@@ -81,10 +79,11 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
    */
   public void testApiProxyInstall() throws Exception {
     assertNotNull(ApiProxy.getDelegate());
-    assertEquals(VmApiProxyDelegate.class.getCanonicalName(),
-            ApiProxy.getDelegate().getClass().getCanonicalName());
+    assertEquals(
+        VmApiProxyDelegate.class.getCanonicalName(),
+        ApiProxy.getDelegate().getClass().getCanonicalName());
   }
-  
+
   /**
    * Test that the thread local environment is set up on each request.
    *
@@ -92,10 +91,8 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
    */
   public void testEnvironmentInstall() throws Exception {
     String[] lines = fetchUrl(createUrl("/CurrentEnvironmentAccessor"));
-    List<String> expectedLines = Arrays.asList(
-            "testpartition~google.com:test-project",
-            "testbackend",
-            "testversion.0");
+    List<String> expectedLines =
+        Arrays.asList("testpartition~google.com:test-project", "testbackend", "testversion.0");
     assertEquals(expectedLines, Arrays.asList(lines));
   }
 
@@ -110,7 +107,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals(1, lines.length);
     assertEquals("ok", lines[0].trim());
   }
-  
+
   /**
    * Test that all AppEngine specific system properties are set up when the
    * VmRuntimeFilter is initialized.
@@ -136,9 +133,9 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     String[] lines = fetchUrl(createUrl("/_ah/warmup")); // fetchUrl() fails on non-OK return codes.
     assertEquals(0, lines.length);
   }
-  
+
   /**
-   * Test that sessions are disabled. Disabling sessions means that the default HashSessionManager 
+   * Test that sessions are disabled. Disabling sessions means that the default HashSessionManager
    * is being used, which keeps sessions in memory only. Enabling sessions uses the appengine SessionManager
    * which will use Datastore and memcache as persistent backing stores.
    *
@@ -148,7 +145,9 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     for (int i = 1; i <= 5; i++) {
       String[] lines = fetchUrl(createUrl("/count?type=session"));
       assertEquals(1, lines.length);
-      assertEquals("1", lines[0]); // We're not passing in any session cookie so each request is a fresh session.
+      assertEquals(
+          "1",
+          lines[0]); // We're not passing in any session cookie so each request is a fresh session.
     }
   }
 
@@ -158,7 +157,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
-    String expected = "false:http:http://localhost:"+port+"/test-ssl";
+    String expected = "false:http:http://localhost:" + port + "/test-ssl";
     assertEquals(expected, get.getResponseBodyAsString());
   }
 
@@ -179,13 +178,13 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
   }
-  
+
   protected int fetchResponseCode(URL url) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.connect();
     return connection.getResponseCode();
   }
-  
+
   public void testShutDown() throws Exception {
 
     int code = fetchResponseCode(createUrl("/_ah/health"));
@@ -198,5 +197,5 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
     code = fetchResponseCode(createUrl("/_ah/health"));
     assertEquals(HttpServletResponse.SC_BAD_GATEWAY, code);
-  } 
+  }
 }

@@ -1,5 +1,8 @@
 package com.google.apphosting.tests.usercode.testservlets;
 
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.Environment;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Queue;
@@ -21,164 +24,170 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
-
 public class AsyncServlet extends HttpServlet {
-  private enum Env {CONSTRUCT,INIT,REQUEST,ASYNC,TIMEOUT,ON_DATA_AVAILABLE,ON_ALL_DATA_READ,STARTED, ON_WRITE_POSSIBLE};
+  private enum Env {
+    CONSTRUCT,
+    INIT,
+    REQUEST,
+    ASYNC,
+    TIMEOUT,
+    ON_DATA_AVAILABLE,
+    ON_ALL_DATA_READ,
+    STARTED,
+    ON_WRITE_POSSIBLE
+  }
+
   private Queue<Env> order = new ConcurrentLinkedQueue<>();
   private ConcurrentMap<Env, Environment> environment = new ConcurrentHashMap<>();
 
   public AsyncServlet() {
-    environment.put(Env.CONSTRUCT,ApiProxy.getCurrentEnvironment());
+    environment.put(Env.CONSTRUCT, ApiProxy.getCurrentEnvironment());
   }
-  
-  
+
   @Override
   public void init(ServletConfig servletConfig) throws ServletException {
-    environment.put(Env.INIT,ApiProxy.getCurrentEnvironment());
+    environment.put(Env.INIT, ApiProxy.getCurrentEnvironment());
   }
 
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException {
 
-    if (req.getDispatcherType()==DispatcherType.REQUEST) {
+    if (req.getDispatcherType() == DispatcherType.REQUEST) {
       // #1A POST request dispatched
       order.clear();
       order.add(Env.CONSTRUCT);
       order.add(Env.INIT);
       order.add(Env.REQUEST);
-      environment.put(Env.REQUEST,ApiProxy.getCurrentEnvironment());
+      environment.put(Env.REQUEST, ApiProxy.getCurrentEnvironment());
 
-      final AsyncContext async = req.startAsync();    
+      final AsyncContext async = req.startAsync();
       final ServletInputStream in = req.getInputStream();
-      in.setReadListener(new ReadListener() {
+      in.setReadListener(
+          new ReadListener() {
 
-        @Override
-        public void onError(Throwable t) {
-          t.printStackTrace();
-        }
+            @Override
+            public void onError(Throwable t) {
+              t.printStackTrace();
+            }
 
-        @Override
-        public void onDataAvailable() throws IOException {
-          // #2A Read data available
-          if (!order.contains(Env.ON_DATA_AVAILABLE))
-            order.add(Env.ON_DATA_AVAILABLE);
-          environment.put(Env.ON_DATA_AVAILABLE,ApiProxy.getCurrentEnvironment());
-          while(in.isReady()) {
-            if (in.read()<0)
-              break;
-          }
-        }
+            @Override
+            public void onDataAvailable() throws IOException {
+              // #2A Read data available
+              if (!order.contains(Env.ON_DATA_AVAILABLE)) {
+                order.add(Env.ON_DATA_AVAILABLE);
+              }
+              environment.put(Env.ON_DATA_AVAILABLE, ApiProxy.getCurrentEnvironment());
+              while (in.isReady()) {
+                if (in.read() < 0) {
+                  break;
+                }
+              }
+            }
 
-        @Override
-        public void onAllDataRead() throws IOException {  
-          // #3B all data read
-          order.add(Env.ON_ALL_DATA_READ);
-          environment.put(Env.ON_ALL_DATA_READ,ApiProxy.getCurrentEnvironment());
-          async.dispatch(); // Dispatch back to servlet
-        }
-      });
-    }else {
-      doGet(req,resp);
+            @Override
+            public void onAllDataRead() throws IOException {
+              // #3B all data read
+              order.add(Env.ON_ALL_DATA_READ);
+              environment.put(Env.ON_ALL_DATA_READ, ApiProxy.getCurrentEnvironment());
+              async.dispatch(); // Dispatch back to servlet
+            }
+          });
+    } else {
+      doGet(req, resp);
     }
   }
-  
+
   @Override
-  protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+  protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
+      throws ServletException, IOException {
 
     final AsyncContext async = req.startAsync();
-    
-    if (req.getDispatcherType()==DispatcherType.REQUEST) {
+
+    if (req.getDispatcherType() == DispatcherType.REQUEST) {
       // #1A GET Request Dispatch
       order.clear();
       order.add(Env.CONSTRUCT);
       order.add(Env.INIT);
       order.add(Env.REQUEST);
-      environment.put(Env.REQUEST,ApiProxy.getCurrentEnvironment());
+      environment.put(Env.REQUEST, ApiProxy.getCurrentEnvironment());
       async.setTimeout(100);
-      async.addListener(new AsyncListener() {
-        @Override
-        public void onTimeout(AsyncEvent event) throws IOException {
-          // #2B #3B Timeout
-          order.add(Env.TIMEOUT);
-          environment.put(Env.TIMEOUT,ApiProxy.getCurrentEnvironment());
-          async.dispatch(); // Dispatch back to servlet
-        }
+      async.addListener(
+          new AsyncListener() {
+            @Override
+            public void onTimeout(AsyncEvent event) throws IOException {
+              // #2B #3B Timeout
+              order.add(Env.TIMEOUT);
+              environment.put(Env.TIMEOUT, ApiProxy.getCurrentEnvironment());
+              async.dispatch(); // Dispatch back to servlet
+            }
 
-        @Override
-        public void onStartAsync(AsyncEvent event) throws IOException {
-        }
+            @Override
+            public void onStartAsync(AsyncEvent event) throws IOException {}
 
-        @Override
-        public void onError(AsyncEvent event) throws IOException {
-          event.getThrowable().printStackTrace();
-        }
+            @Override
+            public void onError(AsyncEvent event) throws IOException {
+              event.getThrowable().printStackTrace();
+            }
 
-        @Override
-        public void onComplete(AsyncEvent event) throws IOException {        
-        }
-      });
-    } else if (req.getDispatcherType()==DispatcherType.ASYNC) {
+            @Override
+            public void onComplete(AsyncEvent event) throws IOException {}
+          });
+    } else if (req.getDispatcherType() == DispatcherType.ASYNC) {
       // #4 ASYNC dispatch to servlet
       order.add(Env.ASYNC);
-      environment.put(Env.ASYNC,ApiProxy.getCurrentEnvironment());
-      async.start(new Runnable(){
+      environment.put(Env.ASYNC, ApiProxy.getCurrentEnvironment());
+      async.start(
+          new Runnable() {
 
-        @Override
-        public void run() {
-          try
-          {
-            // #5 run started Thread
-            order.add(Env.STARTED);
-            environment.put(Env.STARTED,ApiProxy.getCurrentEnvironment());
-            final ServletOutputStream out = async.getResponse().getOutputStream();
-            out.setWriteListener(new WriteListener() {
-              
-              @Override
-              public void onWritePossible() throws IOException {
-                
-                while (out.isReady())
-                {
-                  if (order.contains(Env.ON_WRITE_POSSIBLE))
-                  {
-                    async.complete();
-                    return;
-                  }
-                  
-                  // #6 on Write Possible
-                  order.add(Env.ON_WRITE_POSSIBLE);
-                  environment.put(Env.ON_WRITE_POSSIBLE,ApiProxy.getCurrentEnvironment());
-                  StringBuilder b=new StringBuilder();
-                  for (Env e : order)
-                  {
-                    Environment env = environment.get(e);
-                    if (b.length()>0)
-                      b.append(',');
-                    b.append(e).append(':').append(env);
-                  }
-                  String o=b.toString();
-                  resp.setContentType("text/plain");
-                  resp.setStatus(200);
-                  out.write(o.getBytes(StandardCharsets.ISO_8859_1));
-                }
-              }
-              
-              @Override
-              public void onError(Throwable t) {
+            @Override
+            public void run() {
+              try {
+                // #5 run started Thread
+                order.add(Env.STARTED);
+                environment.put(Env.STARTED, ApiProxy.getCurrentEnvironment());
+                final ServletOutputStream out = async.getResponse().getOutputStream();
+                out.setWriteListener(
+                    new WriteListener() {
+
+                      @Override
+                      public void onWritePossible() throws IOException {
+
+                        while (out.isReady()) {
+                          if (order.contains(Env.ON_WRITE_POSSIBLE)) {
+                            async.complete();
+                            return;
+                          }
+
+                          // #6 on Write Possible
+                          order.add(Env.ON_WRITE_POSSIBLE);
+                          environment.put(Env.ON_WRITE_POSSIBLE, ApiProxy.getCurrentEnvironment());
+                          StringBuilder b = new StringBuilder();
+                          for (Env e : order) {
+                            Environment env = environment.get(e);
+                            if (b.length() > 0) {
+                              b.append(',');
+                            }
+                            b.append(e).append(':').append(env);
+                          }
+                          String o = b.toString();
+                          resp.setContentType("text/plain");
+                          resp.setStatus(200);
+                          out.write(o.getBytes(StandardCharsets.ISO_8859_1));
+                        }
+                      }
+
+                      @Override
+                      public void onError(Throwable t) {
+                        t.printStackTrace();
+                      }
+                    });
+
+              } catch (Exception t) {
                 t.printStackTrace();
               }
-            });
-            
-          }catch(Exception t){
-            t.printStackTrace();
-          }
-          
-        }
-      });
-    }  
+            }
+          });
+    }
   }
-
-
-  
 }

@@ -28,95 +28,99 @@ import com.google.gson.stream.JsonWriter;
  * properties that App Engine expects.
  */
 public class JsonFormatter extends Formatter {
-    @Override
-    public String format(LogRecord record) {
-        Instant timestamp = Instant.ofEpochMilli(record.getMillis());
-        StringWriter out = new StringWriter();
+  @Override
+  public String format(LogRecord record) {
+    Instant timestamp = Instant.ofEpochMilli(record.getMillis());
+    StringWriter out = new StringWriter();
 
-        // Write using a simple JsonWriter rather than the more sophisticated Gson as we generally
-        // will not need to serialize complex objects that require introspection and reflection.
-        try (JsonWriter writer = new JsonWriter(out)) {
-            writer.setSerializeNulls(false);
-            writer.setHtmlSafe(false);
+    // Write using a simple JsonWriter rather than the more sophisticated Gson as we generally
+    // will not need to serialize complex objects that require introspection and reflection.
+    try (JsonWriter writer = new JsonWriter(out)) {
+      writer.setSerializeNulls(false);
+      writer.setHtmlSafe(false);
 
-            writer.beginObject();
-            writer.name("timestamp")
-                    .beginObject()
-                    .name("seconds").value(timestamp.getEpochSecond())
-                    .name("nanos").value(timestamp.getNano())
-                    .endObject();
-            writer.name("severity").value(severity(record.getLevel()));
-            writer.name("thread").value(Thread.currentThread().getName());
-            writer.name("message").value(formatMessage(record));
+      writer.beginObject();
+      writer
+          .name("timestamp")
+          .beginObject()
+          .name("seconds")
+          .value(timestamp.getEpochSecond())
+          .name("nanos")
+          .value(timestamp.getNano())
+          .endObject();
+      writer.name("severity").value(severity(record.getLevel()));
+      writer.name("thread").value(Thread.currentThread().getName());
+      writer.name("message").value(formatMessage(record));
 
-            // If there is a LogContext associated with this thread then add its properties.
-            LogContext logContext = LogContext.current();
-            if (logContext != null) {
-                logContext.forEach((name, value) -> {
-                    try {
-                        writer.name(name);
-                        if (value == null) {
-                            writer.nullValue();
-                        } else if (value instanceof Boolean) {
-                            writer.value((boolean) value);
-                        } else if (value instanceof Number) {
-                            writer.value((Number) value);
-                        } else {
-                            writer.value(value.toString());
-                        }
-                    } catch (IOException e) {
-                        // Should not happen as StringWriter does not throw IOException
-                        throw new AssertionError(e);
-                    }
-                });
-            }
-            writer.endObject();
-        } catch (IOException e) {
-            // Should not happen as StringWriter does not throw IOException
-            throw new AssertionError(e);
-        }
-        out.append(System.lineSeparator());
-        return out.toString();
+      // If there is a LogContext associated with this thread then add its properties.
+      LogContext logContext = LogContext.current();
+      if (logContext != null) {
+        logContext.forEach(
+            (name, value) -> {
+              try {
+                writer.name(name);
+                if (value == null) {
+                  writer.nullValue();
+                } else if (value instanceof Boolean) {
+                  writer.value((boolean) value);
+                } else if (value instanceof Number) {
+                  writer.value((Number) value);
+                } else {
+                  writer.value(value.toString());
+                }
+              } catch (IOException e) {
+                // Should not happen as StringWriter does not throw IOException
+                throw new AssertionError(e);
+              }
+            });
+      }
+      writer.endObject();
+    } catch (IOException e) {
+      // Should not happen as StringWriter does not throw IOException
+      throw new AssertionError(e);
     }
+    out.append(System.lineSeparator());
+    return out.toString();
+  }
 
-    @Override
-    public synchronized String formatMessage(LogRecord record) {
-        StringBuilder sb = new StringBuilder();
-        if (record.getSourceClassName() != null) {
-            sb.append(record.getSourceClassName());
-        } else {
-            sb.append(record.getLoggerName());
-        }
-        if (record.getSourceMethodName() != null) {
-            sb.append(' ');
-            sb.append(record.getSourceMethodName());
-        }
-        sb.append(": ");
-        sb.append(super.formatMessage(record));
-        Throwable thrown = record.getThrown();
-        if (thrown != null) {
-            StringWriter sw = new StringWriter();
-            try (PrintWriter pw = new PrintWriter(sw);) {
-                sb.append("\n");
-                thrown.printStackTrace(pw);
-            }
-            sb.append(sw.getBuffer());
-        }
-        return sb.toString();
+  @Override
+  public synchronized String formatMessage(LogRecord record) {
+    StringBuilder sb = new StringBuilder();
+    if (record.getSourceClassName() != null) {
+      sb.append(record.getSourceClassName());
+    } else {
+      sb.append(record.getLoggerName());
     }
-
-    private static String severity(Level level) {
-        int intLevel = level.intValue();
-
-        if (intLevel >= Level.SEVERE.intValue()) {
-            return "ERROR";
-        } else if (intLevel >= Level.WARNING.intValue()) {
-            return "WARNING";
-        } else if (intLevel >= Level.INFO.intValue()) {
-            return "INFO";
-        } else {
-            // There's no trace, so we'll map everything below this to debug.
-            return "DEBUG";
-        }
+    if (record.getSourceMethodName() != null) {
+      sb.append(' ');
+      sb.append(record.getSourceMethodName());
     }
+    sb.append(": ");
+    sb.append(super.formatMessage(record));
+    Throwable thrown = record.getThrown();
+    if (thrown != null) {
+      StringWriter sw = new StringWriter();
+      try (PrintWriter pw = new PrintWriter(sw); ) {
+        sb.append("\n");
+        thrown.printStackTrace(pw);
+      }
+      sb.append(sw.getBuffer());
+    }
+    return sb.toString();
+  }
+
+  private static String severity(Level level) {
+    int intLevel = level.intValue();
+
+    if (intLevel >= Level.SEVERE.intValue()) {
+      return "ERROR";
+    } else if (intLevel >= Level.WARNING.intValue()) {
+      return "WARNING";
+    } else if (intLevel >= Level.INFO.intValue()) {
+      return "INFO";
+    } else {
+      // There's no trace, so we'll map everything below this to debug.
+      return "DEBUG";
+    }
+  }
 }

@@ -1,19 +1,18 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.utils.config;
 
 import com.google.appengine.repackaged.com.google.common.io.Files;
@@ -73,8 +72,9 @@ public class XmlUtils {
       String msg = "Received SAXException parsing the input stream" + maybeFilename(filename);
       throw new AppEngineConfigException(msg, e);
     } catch (ParserConfigurationException e) {
-      String msg = "Received ParserConfigurationException parsing the input stream"
-          + maybeFilename(filename);
+      String msg =
+          "Received ParserConfigurationException parsing the input stream"
+              + maybeFilename(filename);
       throw new AppEngineConfigException(msg, e);
     }
   }
@@ -129,8 +129,9 @@ public class XmlUtils {
         factory
             .newSchema(schema)
             .newValidator()
-            .validate(new StreamSource(new ByteArrayInputStream(
-                content.getBytes(StandardCharsets.UTF_8))));
+            .validate(
+                new StreamSource(
+                    new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
       } catch (SAXException ex) {
         throw new AppEngineConfigException(
             "XML error validating " + content + " against " + schema.getPath(), ex);

@@ -25,20 +25,19 @@ import java.util.stream.Stream;
  * <p>This is an implementation of a Mapped Diagnostic Context for use with the java.util.logging
  * framework.
  */
-public class LogContext extends ConcurrentHashMap<String, Object>{
+public class LogContext extends ConcurrentHashMap<String, Object> {
 
-  private static final ThreadLocal<LogContext> threadContext = new ThreadLocal<LogContext>()
-  {
-    @Override
-    protected LogContext initialValue() {
-      return new LogContext();
-    }
-  };
+  private static final ThreadLocal<LogContext> threadContext =
+      new ThreadLocal<LogContext>() {
+        @Override
+        protected LogContext initialValue() {
+          return new LogContext();
+        }
+      };
 
   private final Map<String, Object> values = new ConcurrentHashMap<>();
 
-  private LogContext() {
-  }
+  private LogContext() {}
 
   /**
    * Returns the log context associated with the current Thread.
@@ -79,5 +78,4 @@ public class LogContext extends ConcurrentHashMap<String, Object>{
   public Stream<Map.Entry<String, Object>> stream() {
     return values.entrySet().stream();
   }
-
 }
