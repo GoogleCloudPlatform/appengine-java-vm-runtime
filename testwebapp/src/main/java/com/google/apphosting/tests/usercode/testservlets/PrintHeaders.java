@@ -16,10 +16,10 @@
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

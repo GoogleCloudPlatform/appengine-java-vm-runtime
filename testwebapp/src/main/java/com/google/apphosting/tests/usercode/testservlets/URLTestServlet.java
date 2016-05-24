@@ -16,9 +16,9 @@
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

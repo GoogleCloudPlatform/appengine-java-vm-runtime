@@ -19,15 +19,17 @@ import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import java.util.Arrays;
 import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Misc individual Jetty9 vmengines tests.

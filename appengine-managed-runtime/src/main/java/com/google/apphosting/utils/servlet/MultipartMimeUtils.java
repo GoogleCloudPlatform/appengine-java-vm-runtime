@@ -24,14 +24,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import javax.servlet.http.HttpServletRequest;
-
 import javax.activation.DataSource;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.ContentDisposition;
-import javax.mail.internet.ContentType;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.internet.ContentDisposition;
+import javax.mail.internet.ContentType;
+import javax.mail.internet.MimeMultipart;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * {@code MultipartMimeUtils} is a collection of static utility clases

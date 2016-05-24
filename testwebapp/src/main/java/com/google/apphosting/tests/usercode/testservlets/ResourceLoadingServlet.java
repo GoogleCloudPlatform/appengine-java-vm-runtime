@@ -17,14 +17,14 @@ package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.net.URL;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
 
 /**
  */

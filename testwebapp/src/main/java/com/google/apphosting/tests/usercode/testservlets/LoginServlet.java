@@ -15,15 +15,15 @@
  */
 package com.google.apphosting.tests.usercode.testservlets;
 
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.appengine.api.users.UserServiceFactory;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.User;
 
 public class LoginServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {

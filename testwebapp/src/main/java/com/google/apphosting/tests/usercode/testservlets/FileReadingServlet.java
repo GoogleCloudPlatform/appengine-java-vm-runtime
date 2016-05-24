@@ -15,16 +15,16 @@
  */
 package com.google.apphosting.tests.usercode.testservlets;
 
-import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
 
 /**
  * Demonstrates use of {@link File}, {@link FileInputStream}, and

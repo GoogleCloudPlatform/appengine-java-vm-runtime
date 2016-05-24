@@ -18,9 +18,9 @@ package com.google.apphosting.tests.usercode.testservlets;
 import com.google.appengine.api.search.Document;
 import com.google.appengine.api.search.Field;
 import com.google.appengine.api.search.Index;
+import com.google.appengine.api.search.IndexSpec;
 import com.google.appengine.api.search.SearchService;
 import com.google.appengine.api.search.SearchServiceFactory;
-import com.google.appengine.api.search.IndexSpec;
 
 import java.io.IOException;
 import java.util.Date;

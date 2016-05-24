@@ -23,11 +23,11 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.log.LogServiceException;
 import com.google.appengine.api.modules.ModulesException;
+import com.google.appengine.repackaged.com.google.common.collect.ImmutableMap;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
-import com.google.appengine.repackaged.com.google.common.collect.ImmutableMap;
 
 import junit.framework.TestCase;
 

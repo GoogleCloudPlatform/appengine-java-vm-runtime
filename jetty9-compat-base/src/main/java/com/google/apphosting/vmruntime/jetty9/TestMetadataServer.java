@@ -25,6 +25,9 @@ import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.USE_MVM_AGEN
 import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.VERSION_ATTRIBUTE;
 import static com.google.apphosting.vmruntime.VmMetadataCache.DEFAULT_META_DATA_SERVER;
 import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -37,8 +40,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 /**
  * Minimal implementation of the metadata server running inside each VM.

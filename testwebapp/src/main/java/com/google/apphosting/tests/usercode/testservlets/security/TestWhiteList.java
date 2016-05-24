@@ -17,8 +17,8 @@ package com.google.apphosting.tests.usercode.testservlets.security;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 
 /**
  * Tests enforcement of the WhiteList.
