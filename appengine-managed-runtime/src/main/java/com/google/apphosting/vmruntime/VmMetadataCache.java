@@ -1,12 +1,12 @@
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,9 +44,10 @@ public class VmMetadataCache {
 
   /** Timeout in milliseconds to retrieve data from the server. */
   private static final int TIMEOUT_MILLIS = 120 * 1000;
+  private static final String NO_VALUE = new String();
 
   public VmMetadataCache() {
-    cache = Collections.synchronizedMap(new HashMap<String, String>());
+    cache = Collections.synchronizedMap(new HashMap<>());
   }
 
   public String putMetadata(String path, String value) {
@@ -60,29 +61,29 @@ public class VmMetadataCache {
    * @return the attribute's string value or null if retrieval has failed.
    */
   public String getMetadata(String path) {
-    if (cache.containsKey(path)) {
-      return cache.get(path);
+    String cached = cache.getOrDefault(path, NO_VALUE);
+    if (cached != NO_VALUE) {
+      return cached;
     }
-
-    String value = null;
     try {
       // It is safe to concurrently retrieve the same server path.
-      value = getMetadataFromServer(path);
+      String value = getMetadataFromServer(path);
 
       // We cache missing attributes (404) as null values.
       cache.put(path, value);
-
+      return value;
     } catch (IOException e) {
       // Don't cache the value if we have failed to connect or transfer.
       logger.info("Meta-data '" + path + "' path retrieval error: " + e.getMessage());
     }
-    return value;
+    return null;
   }
 
   /**
    * Clears all cached meta-data values.
    */
-  public void clear() {cache.clear();
+  public void clear() {
+    cache.clear();
   }
 
   /**
