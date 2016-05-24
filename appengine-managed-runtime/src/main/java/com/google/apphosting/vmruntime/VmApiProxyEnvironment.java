@@ -277,7 +277,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   /**
    * Helper method to get a boolean from a System Property or if not found, an Env
-   * variable or if not found a default value
+   * variable or if not found a default value.
    *
    * @param environmentMap the environment
    * @param envKey the name of the environment variable and System Property
@@ -570,7 +570,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   public boolean isRequestTicket() {
-    return ticket != null;
+    String t = ticket;
+    return t != null && !t.isEmpty();
   }
 
   public String getTicket() {

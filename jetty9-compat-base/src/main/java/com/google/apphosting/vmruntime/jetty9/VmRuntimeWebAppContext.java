@@ -142,7 +142,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
   }
 
   /**
-   * Set the quickstart WebXml <p> If set, this context will not start, rather it will generate the
+   * Set the quickstart WebXml.
+   *
+   * <p> If set, this context will not start, rather it will generate the
    * quickstart-web.xml file and then stop the server. If not set, the context will start normally
    * </p>
    *

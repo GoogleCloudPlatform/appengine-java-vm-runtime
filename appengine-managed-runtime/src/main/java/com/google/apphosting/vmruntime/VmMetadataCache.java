@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -45,13 +46,11 @@ public class VmMetadataCache {
   private static final int TIMEOUT_MILLIS = 120 * 1000;
 
   public VmMetadataCache() {
-    cache = new HashMap<String, String>();
+    cache = Collections.synchronizedMap(new HashMap<String, String>());
   }
 
-  public String putMetadata(String path,String value) {
-    synchronized (cache) {
-      return cache.put(path,value);
-    }
+  public String putMetadata(String path, String value) {
+    return cache.put(path, value);
   }
 
   /**
@@ -61,10 +60,8 @@ public class VmMetadataCache {
    * @return the attribute's string value or null if retrieval has failed.
    */
   public String getMetadata(String path) {
-    synchronized (cache) {
-      if (cache.containsKey(path)) {
-        return cache.get(path);
-      }
+    if (cache.containsKey(path)) {
+      return cache.get(path);
     }
 
     String value = null;
@@ -73,9 +70,8 @@ public class VmMetadataCache {
       value = getMetadataFromServer(path);
 
       // We cache missing attributes (404) as null values.
-      synchronized (cache) {
-        cache.put(path, value);
-      }
+      cache.put(path, value);
+
     } catch (IOException e) {
       // Don't cache the value if we have failed to connect or transfer.
       logger.info("Meta-data '" + path + "' path retrieval error: " + e.getMessage());
@@ -86,10 +82,7 @@ public class VmMetadataCache {
   /**
    * Clears all cached meta-data values.
    */
-  public void clear() {
-    synchronized (cache) {
-      cache.clear();
-    }
+  public void clear() {cache.clear();
   }
 
   /**

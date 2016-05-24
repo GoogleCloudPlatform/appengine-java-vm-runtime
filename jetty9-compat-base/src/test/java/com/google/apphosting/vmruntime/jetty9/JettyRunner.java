@@ -99,17 +99,19 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
     Log.getLogger(Server.class).info("Waited!");
   }
-  
+
   @Override
   public void doStart() throws Exception {
     try {
       // find projectDir
-      File project = new File(System.getProperty("user.dir", ".")).getAbsoluteFile().getCanonicalFile();
+      File project = new File(System.getProperty("user.dir", ".")).getAbsoluteFile()
+        .getCanonicalFile();
       File target = new File(project, "jetty9-compat-base/target");
       while (!target.exists()) {
         project = project.getParentFile();
-        if (project == null)
+        if (project == null) {
           break;
+        }
         target = new File(project, "jetty9-compat-base/target");
       }
 
@@ -199,7 +201,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       // find the sibling testwebapp target
       File webAppLocation = new File(target, webapp);
 
-      File logging = new File(webAppLocation, "WEB-INF/logging.properties").getCanonicalFile().getAbsoluteFile();
+      File logging = new File(webAppLocation, "WEB-INF/logging.properties").getCanonicalFile()
+        .getAbsoluteFile();
       System.setProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY, logging.toPath().toString());
 
       Assert.assertTrue(webAppLocation.toString(), webAppLocation.isDirectory());

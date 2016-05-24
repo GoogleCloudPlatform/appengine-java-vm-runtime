@@ -1,15 +1,17 @@
 /**
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.google.apphosting.vmruntime.jetty9;
@@ -50,23 +52,8 @@ class VmRuntimeInterceptor implements HttpOutput.Interceptor {
 
   public static void init(AppEngineWebXml appEngineWebXml) {
     String clearTicket = VmApiProxyEnvironment.getSystemPropertyOrEnv(System.getenv(),
-      VmApiProxyEnvironment.CLEAR_REQUEST_TICKET_KEY, ClearTicket.ON_COMPLETE.toString());
-
-    switch (clearTicket.toLowerCase()) {
-      case "commit":
-      case "on_commit":
-        dftClearTicket = ClearTicket.ON_COMMIT;
-        break;
-      case "complete":
-      case "on_complete":
-        dftClearTicket = ClearTicket.ON_COMPLETE;
-        break;
-      case "never":
-        dftClearTicket = ClearTicket.NEVER;
-        break;
-      default:
-        throw new IllegalArgumentException("unknown " + VmApiProxyEnvironment.CLEAR_REQUEST_TICKET_KEY + " = " + clearTicket);
-    }
+      VmApiProxyEnvironment.CLEAR_REQUEST_TICKET_KEY, ClearTicket.ON_COMPLETE.name());
+    dftClearTicket = ClearTicket.valueOf(clearTicket.toUpperCase());
   }
 
   public VmRuntimeInterceptor(VmApiProxyEnvironment environment, HttpOutput.Interceptor next) {
@@ -77,13 +64,15 @@ class VmRuntimeInterceptor implements HttpOutput.Interceptor {
 
   @Override
   public void write(ByteBuffer content, boolean last, Callback callback) {
-    if (clearTicket == ClearTicket.ON_COMMIT)
+    if (clearTicket == ClearTicket.ON_COMMIT) {
       environment.clearTicket();
+    }
 
     next.write(content, last, callback);
 
-    if (clearTicket == ClearTicket.ON_COMPLETE && last)
+    if (clearTicket == ClearTicket.ON_COMPLETE && last) {
       environment.clearTicket();
+    }
   }
 
   @Override
