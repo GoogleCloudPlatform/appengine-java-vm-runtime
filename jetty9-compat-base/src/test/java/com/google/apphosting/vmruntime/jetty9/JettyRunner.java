@@ -18,11 +18,8 @@ package com.google.apphosting.vmruntime.jetty9;
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
@@ -41,7 +38,11 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 class JettyRunner extends AbstractLifeCycle implements Runnable {
 

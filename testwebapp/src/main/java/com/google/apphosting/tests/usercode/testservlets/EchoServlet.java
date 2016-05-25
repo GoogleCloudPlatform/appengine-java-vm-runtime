@@ -15,10 +15,10 @@
  */
 package com.google.apphosting.tests.usercode.testservlets;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServlet;

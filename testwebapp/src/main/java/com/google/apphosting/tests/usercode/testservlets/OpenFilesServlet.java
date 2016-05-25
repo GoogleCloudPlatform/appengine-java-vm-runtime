@@ -15,20 +15,20 @@
  */
 package com.google.apphosting.tests.usercode.testservlets;
 
-import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.ServletException;
 
 public class OpenFilesServlet extends HttpServlet {
   private static final Logger logger = Logger.getLogger(OpenFilesServlet.class.getName());

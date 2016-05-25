@@ -26,12 +26,12 @@ import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.storage.onestore.v3.OnestoreEntity.Path;
 import com.google.storage.onestore.v3.OnestoreEntity.Path.Element;
 import com.google.storage.onestore.v3.OnestoreEntity.Reference;
-import java.io.IOException;
-import java.net.HttpURLConnection;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 

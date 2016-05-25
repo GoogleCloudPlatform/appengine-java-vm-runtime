@@ -19,10 +19,10 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 
 import java.io.IOException;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
 
 /**
  * A servlet that prints out the default datastore config currently

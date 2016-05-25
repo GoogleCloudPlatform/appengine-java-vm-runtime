@@ -18,10 +18,10 @@ package com.google.apphosting.vmruntime;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkArgument;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkState;
 
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
 import com.google.appengine.repackaged.com.google.common.collect.Lists;
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.Environment;
 
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
