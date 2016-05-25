@@ -18,6 +18,11 @@ FROM openjdk8:${docker.label.prefix}8-jre
 RUN groupadd -r jetty \
  && useradd -r -g jetty jetty
 
+# Create env vars to identify image
+ENV GAE_IMAGE_NAME ${project.artifactId}
+ENV GAE_IMAGE_LABEL ${docker.label.prefix}${jetty.version}
+ENV GAE_IMAGE_VERSION ${project.version}
+
 # Create log directory
 RUN mkdir /var/log/app_engine \
  && chgrp jetty /var/log/app_engine \

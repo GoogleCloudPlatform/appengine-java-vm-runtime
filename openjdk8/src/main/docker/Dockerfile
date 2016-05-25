@@ -15,6 +15,11 @@
 FROM gcr.io/google_appengine/base
 ENV DEBIAN_FRONTEND noninteractive
 
+# Create env vars to identify image
+ENV GAE_IMAGE_NAME ${project.artifactId}
+ENV GAE_IMAGE_LABEL ${docker.label.prefix}8-jre
+ENV GAE_IMAGE_VERSION ${project.version}
+
 # Update debian 
 RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
  && apt-get -q update \
@@ -47,7 +52,7 @@ RUN apt-get -y update \
 ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/
 ADD https://storage.googleapis.com/cloud-profiler/appengine-java/current/cloud_profiler_java_agent.tar.gz /opt/cprof/
 ADD ./alpn /opt/alpn
-ADD http://central.maven.org/maven2/org/mortbay/jetty/alpn/alpn-boot/@@alpn.version@@/alpn-boot-@@alpn.version@@.jar /opt/alpn/
+ADD http://central.maven.org/maven2/org/mortbay/jetty/alpn/alpn-boot/${alpn.version}/alpn-boot-${alpn.version}.jar /opt/alpn/
 COPY docker-entrypoint.bash /
 COPY setup-env.bash /
 RUN tar Cxfvz /opt/cdbg /opt/cdbg/cdbg_java_agent.tar.gz --no-same-owner \
