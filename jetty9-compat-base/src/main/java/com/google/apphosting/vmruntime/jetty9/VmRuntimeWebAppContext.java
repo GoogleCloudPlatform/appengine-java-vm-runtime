@@ -343,14 +343,17 @@ public class VmRuntimeWebAppContext extends WebAppContext
       return;
     }
     org.eclipse.jetty.server.SessionManager sessionManager;
-    if (appEngineWebXml.getSessionsEnabled())
+    if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-    else
+    } else {
       sessionManager = new NoOpSessionManager();
+    }
     getSessionHandler().setSessionManager(sessionManager);
-  }
 
     VmRuntimeInterceptor.init(appEngineWebXml);
+  }
+
+
 
   @Override
   public boolean isTrustedRemoteAddr(String remoteAddr) {
