@@ -48,6 +48,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Tests the delegate for making AppEngine API calls in a Google Compute Engine VM.
@@ -194,6 +196,11 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
+    Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
+    Level level = logger.getLevel();
+    if (!logger.isLoggable(Level.FINE)) {
+      logger.setLevel(Level.SEVERE);
+    }
     if (sync) {
       try {
         environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -202,6 +209,8 @@ public class VmApiProxyDelegateTest extends TestCase {
         fail();
       } catch (ApiProxyException exception) {
         assertEquals(expectedException.getClass(), exception.getClass());
+      } finally {
+        logger.setLevel(level);
       }
     } else {
       try {
@@ -216,6 +225,8 @@ public class VmApiProxyDelegateTest extends TestCase {
       } catch (ExecutionException exception) {
         // ExecutionException is expected, and make sure the cause is expected as well.
         assertEquals(expectedException.getClass(), exception.getCause().getClass());
+      } finally {
+        logger.setLevel(level);
       }
     }
     assertNull(result);
@@ -237,6 +248,12 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
+    Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
+    Level level = logger.getLevel();
+    if (!logger.isLoggable(Level.FINE)) {
+      logger.setLevel(Level.SEVERE);
+    }
+    
     if (sync) {
       try {
         environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -245,6 +262,8 @@ public class VmApiProxyDelegateTest extends TestCase {
         fail();
       } catch (ApiProxyException exception) {
         assertThat(exception, instanceOf(expectedException.getClass()));
+      } finally {
+        logger.setLevel(level);
       }
     } else {
       try {
@@ -259,6 +278,8 @@ public class VmApiProxyDelegateTest extends TestCase {
       } catch (ExecutionException exception) {
         // ExecutionException is expected, and make sure the cause is expected as well.
         assertThat(exception.getCause(), instanceOf(expectedException.getClass()));
+      } finally {
+        logger.setLevel(level);
       }
     }
     assertNull(result);
@@ -278,6 +299,12 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
+    Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
+    Level level = logger.getLevel();
+    if (!logger.isLoggable(Level.FINE)) {
+      logger.setLevel(Level.SEVERE);
+    }
+
     if (sync) {
       try {
         environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -286,6 +313,8 @@ public class VmApiProxyDelegateTest extends TestCase {
         fail();
       } catch (ApiProxyException exception) {
         assertEquals(expectedException.getClass(), exception.getClass());
+      } finally {
+        logger.setLevel(level);
       }
     } else {
       try {
@@ -300,6 +329,8 @@ public class VmApiProxyDelegateTest extends TestCase {
       } catch (ExecutionException exception) {
         // ExecutionException is expected, and make sure the cause is expected as well.
         assertEquals(expectedException.getClass(), exception.getCause().getClass());
+      } finally {
+        logger.setLevel(level);
       }
     }
     assertNull(result);
@@ -321,6 +352,12 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] requestData = new byte[] {0, 1, 2, 3, 4, 5};
     byte[] result = null;
 
+    Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
+    Level level = logger.getLevel();
+    if (!logger.isLoggable(Level.FINE)) {
+      logger.setLevel(Level.SEVERE);
+    }
+    
     if (sync) {
       try {
         result =
@@ -328,6 +365,8 @@ public class VmApiProxyDelegateTest extends TestCase {
         fail();
       } catch (ApiProxyException exception) {
         assertEquals(expectedException.getClass(), exception.getClass());
+      } finally {
+        logger.setLevel(level);
       }
     } else {
       try {
@@ -340,6 +379,8 @@ public class VmApiProxyDelegateTest extends TestCase {
       } catch (ExecutionException exception) {
         // ExecutionException is expected, and make sure the cause is expected as well.
         assertEquals(expectedException.getClass(), exception.getCause().getClass());
+      } finally {
+        logger.setLevel(level);
       }
     }
     assertNull(result);
