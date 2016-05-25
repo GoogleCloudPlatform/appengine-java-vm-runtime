@@ -1,17 +1,18 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -49,26 +50,33 @@ public class DumpServlet extends HttpServlet {
     out.printf("getServletContextName=%s%n", getServletContext().getServletContextName());
     out.printf("virtualServerName=%s%n", getServletContext().getVirtualServerName());
     out.printf("contextPath=%s%n", getServletContext().getContextPath());
-    out.printf("version=%d.%d%n", getServletContext().getMajorVersion(),
-        getServletContext().getMinorVersion());
-    out.printf("effectiveVersion=%d.%d%n", getServletContext().getEffectiveMajorVersion(),
+    out.printf(
+        "version=%d.%d%n",
+        getServletContext().getMajorVersion(), getServletContext().getMinorVersion());
+    out.printf(
+        "effectiveVersion=%d.%d%n",
+        getServletContext().getEffectiveMajorVersion(),
         getServletContext().getEffectiveMinorVersion());
     out.println("</pre>");
     out.println("<h2>Request Fields:</h2>");
     out.println("<pre>");
-    out.printf("remoteHost/Addr:port=%s/%s:%d%n", request.getRemoteHost(), request.getRemoteAddr(),
-        request.getRemotePort());
-    out.printf("localName/Addr:port=%s/%s:%d%n", request.getLocalName(), request.getLocalAddr(),
-        request.getLocalPort());
-    out.printf("scheme=%s method=%s protocol=%s%n", request.getScheme(), request.getMethod(),
-        request.getProtocol());
+    out.printf(
+        "remoteHost/Addr:port=%s/%s:%d%n",
+        request.getRemoteHost(), request.getRemoteAddr(), request.getRemotePort());
+    out.printf(
+        "localName/Addr:port=%s/%s:%d%n",
+        request.getLocalName(), request.getLocalAddr(), request.getLocalPort());
+    out.printf(
+        "scheme=%s method=%s protocol=%s%n",
+        request.getScheme(), request.getMethod(), request.getProtocol());
     out.printf("serverName:serverPort=%s:%d%n", request.getServerName(), request.getServerPort());
     out.printf("requestURI=%s%n", request.getRequestURI());
     out.printf("requestURL=%s%n", request.getRequestURL().toString());
-    out.printf("contextPath|servletPath|pathInfo=%s|%s|%s%n", request.getContextPath(),
-        request.getServletPath(), request.getPathInfo());
-    out.printf("session/new=%s/%b%n", request.getSession(true).getId(),
-        request.getSession().isNew());
+    out.printf(
+        "contextPath|servletPath|pathInfo=%s|%s|%s%n",
+        request.getContextPath(), request.getServletPath(), request.getPathInfo());
+    out.printf(
+        "session/new=%s/%b%n", request.getSession(true).getId(), request.getSession().isNew());
     out.println("</pre>");
     out.println("<h2>Request Headers:</h2>");
     out.println("<pre>");
@@ -86,12 +94,12 @@ public class DumpServlet extends HttpServlet {
       out.printf("s.id()=%s%n", session.getId());
       out.printf("s.new()=%b%n", session.isNew());
       out.printf("s.last()=%b%n", session.getLastAccessedTime());
-      for (Enumeration<String> e = session.getAttributeNames(); e.hasMoreElements();) {
+      for (Enumeration<String> e = session.getAttributeNames(); e.hasMoreElements(); ) {
         String n = e.nextElement();
         out.printf("%s=%s%n", n, session.getAttribute(n));
       }
 
-      for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements();) {
+      for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
         String n = e.nextElement();
         session.setAttribute(n, request.getParameter(n));
       }

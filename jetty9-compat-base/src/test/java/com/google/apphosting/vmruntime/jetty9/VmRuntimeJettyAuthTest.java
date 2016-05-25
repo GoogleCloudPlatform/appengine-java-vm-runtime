@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -18,8 +18,6 @@ package com.google.apphosting.vmruntime.jetty9;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.UserServicePb.CreateLoginURLResponse;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
-
-import java.net.InetAddress;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -151,24 +149,28 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth").toString());
-    get.addRequestHeader(VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
+    get.addRequestHeader(
+        VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
+        get.getResponseHeader("Location").getValue());
   }
 
   public void testAuth_UntrustedInboundIpWithQuery() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth?foo=bar").toString());
-    get.addRequestHeader(VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
+    get.addRequestHeader(
+        VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth?foo=bar",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth?foo=bar",
+        get.getResponseHeader("Location").getValue());
   }
 
   public void testAuth_TrustedRealIP() throws Exception {
@@ -193,7 +195,8 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
     get.setFollowRedirects(false);
     int httpCode = httpClient.executeMethod(get);
     assertEquals(307, httpCode);
-    assertEquals("https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
-            get.getResponseHeader("Location").getValue());
+    assertEquals(
+        "https://testversion-dot-testbackend-dot-testhostname/admin/test-auth",
+        get.getResponseHeader("Location").getValue());
   }
 }

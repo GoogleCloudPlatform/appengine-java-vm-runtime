@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
  * during initialization as it does when servicing a request.  Exceptions are
  * allowed since some attributes only make sense in the context of a user
  * request.  This is an attempt to avoid future incidences of
- * bugs 
+ * bugs
  *
  */
 public class LoadOnStartupServlet extends HttpServlet {
@@ -49,7 +49,8 @@ public class LoadOnStartupServlet extends HttpServlet {
 
   private static final ApiProxy.Environment INIT_ENV = ApiProxy.getCurrentEnvironment();
   public static final String HTTP_SERVLET_REQUEST = "com.google.appengine.http_servlet_request";
-  public static final String MODULES_CONTROLLER_ATTRIBUTE_KEY = "com.google.appengine.dev.modules_controller";
+  public static final String MODULES_CONTROLLER_ATTRIBUTE_KEY =
+      "com.google.appengine.dev.modules_controller";
 
   /**
    * Attributes that don't need to be present in the init environment

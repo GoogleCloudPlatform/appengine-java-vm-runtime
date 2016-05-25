@@ -1,19 +1,18 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.api.users.User;
@@ -57,15 +56,14 @@ import javax.servlet.http.HttpSession;
  * configure a Jetty {@link SecurityHandler} to integrate with the App
  * Engine authentication model.
  *
- * <p>Specifically, it registers a custom {@link Authenticator}
+ * <p>Specifically, it registers a custom {@link LoginAuthenticator}
  * instance that knows how to redirect users to a login URL using the
  * {@link UserService}, and a custom {@link UserIdentity} that is aware
  * of the custom roles provided by the App Engine.
  *
  */
 class AppEngineAuthentication {
-  private static final Logger log = Logger.getLogger(
-      AppEngineAuthentication.class.getName());
+  private static final Logger log = Logger.getLogger(AppEngineAuthentication.class.getName());
 
   /**
    * URLs that begin with this prefix are reserved for internal use by
@@ -91,7 +89,7 @@ class AppEngineAuthentication {
   private static final String ADMIN_ROLE = "admin";
 
   /**
-   * Inject custom {@link LoginService} and {@link Authenticator}
+   * Inject custom {@link LoginService} and {@link LoginAuthenticator}
    * implementations into the specified {@link ConstraintSecurityHandler}.
    */
   public static void configureSecurityHandler(
@@ -110,7 +108,7 @@ class AppEngineAuthentication {
   }
 
   /**
-   * {@code AppEngineAuthenticator} is a custom {@link Authenticator}
+   * {@code AppEngineAuthenticator} is a custom {@link LoginAuthenticator}
    * that knows how to redirect the current request to a login URL in
    * order to authenticate the user.
    */
@@ -177,8 +175,8 @@ class AppEngineAuthentication {
       }
       // Untrusted inbound ip for a login page, 307 the user to a server that we can trust.
       if (!checker.isTrustedRemoteAddr(remoteAddr)) {
-        String redirectUrl = getThreadLocalEnvironment().getL7UnsafeRedirectUrl()
-            + request.getRequestURI();
+        String redirectUrl =
+            getThreadLocalEnvironment().getL7UnsafeRedirectUrl() + request.getRequestURI();
         if (request.getQueryString() != null) {
           redirectUrl += "?" + request.getQueryString();
         }
@@ -196,8 +194,11 @@ class AppEngineAuthentication {
       // the case where the user logs in, but as a role that isn't
       // allowed to see /*.  They should still be able to log out.
       if (isLoginOrErrorPage(uri) && !DeferredAuthentication.isDeferred(response)) {
-        log.fine("Got " + uri + ", returning DeferredAuthentication to "
-            + "imply authentication is in progress.");
+        log.fine(
+            "Got "
+                + uri
+                + ", returning DeferredAuthentication to "
+                + "imply authentication is in progress.");
         return new DeferredAuthentication(this);
       }
 
@@ -258,8 +259,11 @@ class AppEngineAuthentication {
      * This seems to only be used by JaspiAuthenticator, all other Authenticators return true.
      */
     @Override
-    public boolean secureResponse(ServletRequest servletRequest, ServletResponse servletResponse,
-        boolean isAuthMandatory, Authentication.User user) {
+    public boolean secureResponse(
+        ServletRequest servletRequest,
+        ServletResponse servletResponse,
+        boolean isAuthMandatory,
+        Authentication.User user) {
       return true;
     }
 
@@ -275,7 +279,6 @@ class AppEngineAuthentication {
       }
       return null;
     }
-
   }
 
   /**
@@ -299,24 +302,14 @@ class AppEngineAuthentication {
   private static class AppEngineLoginService implements LoginService {
     private IdentityService identityService;
 
-    /**
-     * @return Get the name of the login service (aka Realm name)
-     */
     @Override
     public String getName() {
       return REALM_NAME;
     }
 
-    /**
-     * Login a user.
-     *
-     * @param unusedUsername Not used, the username is fetched using the UserService.
-     * @param unusedCredentials Not used, the credentials are verified before the request gets here.
-     * @return A UserIdentity if the user is logged in, otherwise null
-     */
     @Override
-    public UserIdentity login(String unusedUsername, Object unusedCredentials,
-            ServletRequest request) {
+    public UserIdentity login(
+        String unusedUsername, Object unusedCredentials, ServletRequest request) {
       AppEngineUserIdentity appEngineUserIdentity = loadUser();
       return appEngineUserIdentity;
     }
@@ -329,7 +322,7 @@ class AppEngineAuthentication {
     private AppEngineUserIdentity loadUser() {
       UserService userService = UserServiceFactory.getUserService();
       User engineUser = userService.getCurrentUser();
-      if (engineUser == null){
+      if (engineUser == null) {
         return null;
       }
       return new AppEngineUserIdentity(new AppEnginePrincipal(engineUser));
@@ -353,16 +346,9 @@ class AppEngineAuthentication {
       this.identityService = identityService;
     }
 
-    /**
-     * Validate a user identity. Validate that a UserIdentity previously created by a call to
-     * {@link #login(String, Object)} is still valid.
-     *
-     * @param user The user to validate
-     * @return true if authentication has not been revoked for the user.
-     */
     @Override
     public boolean validate(UserIdentity user) {
-      log.info("validate(" + user + ") throwing UnsupportedOperationException.");
+      log.warning("validate(" + user + ") throwing UnsupportedOperationException.");
       throw new UnsupportedOperationException();
     }
   }
@@ -391,7 +377,6 @@ class AppEngineAuthentication {
     }
 
     @Override
-
     public boolean equals(Object other) {
       if (other instanceof AppEnginePrincipal) {
         return user.equals(((AppEnginePrincipal) other).user);
@@ -401,7 +386,6 @@ class AppEngineAuthentication {
     }
 
     @Override
-
     public String toString() {
       return user.toString();
     }
@@ -429,7 +413,7 @@ class AppEngineAuthentication {
      */
     @Override
     public Subject getSubject() {
-      log.info("getSubject() throwing UnsupportedOperationException.");
+      log.warning("getSubject() throwing UnsupportedOperationException.");
       throw new UnsupportedOperationException();
     }
 
@@ -443,7 +427,7 @@ class AppEngineAuthentication {
       UserService userService = UserServiceFactory.getUserService();
       log.fine("Checking if principal " + userPrincipal + " is in role " + role);
       if (userPrincipal == null) {
-        log.info("isUserInRole() called with null principal.");
+        log.fine("isUserInRole() called with null principal.");
         return false;
       }
 

@@ -1,25 +1,26 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmMetadataCache.DEFAULT_META_DATA_SERVER;
 import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
 
 import junit.framework.TestCase;
+
+import org.junit.Ignore;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,21 +36,20 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Ignore;
-
 /**
  * Base test class for the Java VmRuntime.
  *
  * Test methods that are Jetty version independent should be implemented in this class.
  */
 @Ignore
-public  class VmRuntimeTestBase extends TestCase {
+public class VmRuntimeTestBase extends TestCase {
 
   protected static final Logger logger = Logger.getLogger(VmRuntimeTestBase.class.getName());
   private static final String HOME_FOLDER = System.getProperty("HOME_FOLDER", "jetty_home");
-  public static final String JETTY_HOME_PATTERN = ""//TestUtil.getRunfilesDir()
-      + "com/google/apphosting/vmruntime/jetty9/" + HOME_FOLDER;
-
+  public static final String JETTY_HOME_PATTERN =
+      "" //TestUtil.getRunfilesDir()
+          + "com/google/apphosting/vmruntime/jetty9/"
+          + HOME_FOLDER;
 
   // Wait at the most 30 seconds for Jetty to come up.
   private static final int JETTY_START_DELAY = 45;
@@ -81,7 +81,6 @@ public  class VmRuntimeTestBase extends TestCase {
   protected URL createUrl(String servletPath) throws MalformedURLException {
     return new URL("http://localhost:" + port + servletPath);
   }
-
 
   /**
    * Creates a URL for accessing the Jetty instance under test, accessed by host ip.
@@ -139,10 +138,10 @@ public  class VmRuntimeTestBase extends TestCase {
     metadataServer = new TestMetadataServer();
     metadataServer.setUseMVM(Boolean.valueOf(getUseMvmAgent()));
     metadataServer.start();
-    
+
     // Start jetty using the Runnable configured by the sub class.
     runner = new JettyRunner(port);
-    
+
     runner.setAppEngineWebXml(appengineWebXml);
     Thread jettyRunnerThread = new Thread(runner);
     jettyRunnerThread.setName("JettyRunnerThread");
@@ -159,17 +158,17 @@ public  class VmRuntimeTestBase extends TestCase {
     Thread.sleep(50);
   }
 
-   protected HttpURLConnection openConnection(String path) throws IOException {
+  protected HttpURLConnection openConnection(String path) throws IOException {
     String server = System.getProperty("metadata_server", DEFAULT_META_DATA_SERVER);
     URL url = new URL(String.format(META_DATA_PATTERN, server, path));
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty("Metadata-Flavor", "Google");
     return conn;
   }
-    /** Timeout in milliseconds to retrieve data from the server. */
+  /** Timeout in milliseconds to retrieve data from the server. */
   private static final int TIMEOUT_MILLIS = 120 * 1000;
-  
-   protected String getMetadataFromServer(String path) throws IOException {
+
+  protected String getMetadataFromServer(String path) throws IOException {
     BufferedReader reader = null;
     HttpURLConnection connection = null;
     try {
@@ -188,8 +187,11 @@ public  class VmRuntimeTestBase extends TestCase {
       } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
         return null;
       }
-      throw new IOException("Meta-data request for '" + path + "' failed with error: "
-          + connection.getResponseMessage());
+      throw new IOException(
+          "Meta-data request for '"
+              + path
+              + "' failed with error: "
+              + connection.getResponseMessage());
     } finally {
       if (reader != null) {
         try {
@@ -203,5 +205,4 @@ public  class VmRuntimeTestBase extends TestCase {
       }
     }
   }
-
 }

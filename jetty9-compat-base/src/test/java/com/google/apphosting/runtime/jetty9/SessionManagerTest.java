@@ -1,20 +1,18 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.google.apphosting.runtime.jetty9;
 
 import static org.easymock.EasyMock.createMock;
@@ -68,7 +66,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
 
 /**
  * Tests for SessionManager and its inner classes.
@@ -269,50 +266,48 @@ public class SessionManagerTest extends TestCase {
     assertEquals(session.getId(), session2.getId());
     assertEquals("bar", session2.getAttribute("foo"));
   }
-  
-  
+
   public void testRenewSessionId() throws Exception {
     HttpServletRequest request = makeMockRequest(true);
     replay(request);
     AppEngineSession session = manager.newSession(request);
     session.setAttribute("foo", "bar");
     session.save();
-    String oldId = session.getId();   
-    byte[] bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + oldId);
+    String oldId = session.getId();
+    byte[] bytes = (byte[]) memcache.get(SessionManager.SESSION_PREFIX + oldId);
     assertNotNull(bytes);
-    SessionData data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    SessionData data = (SessionData) SessionManagerUtil.deserialize(bytes);
     assertEquals("bar", data.getValueMap().get("foo"));
-    
-    //renew session id 
+
+    //renew session id
     session.renewId(request);
 
     //Ensure we deleted the session with the old id
     AppEngineSession sessionx = manager.getSession(oldId);
     assertNull(sessionx);
     assertNull(memcache.get(SessionManager.SESSION_PREFIX + oldId));
-    
+
     //Ensure we changed the id
-    String newId = session.getId(); 
+    String newId = session.getId();
     assertNotSame(oldId, newId);
-    
+
     //Ensure we stored the session with the new id
     AppEngineSession session2 = manager.getSession(newId);
     assertNotSame(session, session2);
-    assertEquals("bar", session2.getAttribute("foo"));   
-    bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + newId);
+    assertEquals("bar", session2.getAttribute("foo"));
+    bytes = (byte[]) memcache.get(SessionManager.SESSION_PREFIX + newId);
     assertNotNull(bytes);
-    data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    data = (SessionData) SessionManagerUtil.deserialize(bytes);
     assertEquals("bar", data.getValueMap().get("foo"));
-    
+
     //Test we can store attributes
     session2.setAttribute("one", "two");
     session2.save();
-    bytes = (byte[])memcache.get(SessionManager.SESSION_PREFIX + newId);
+    bytes = (byte[]) memcache.get(SessionManager.SESSION_PREFIX + newId);
     assertNotNull(bytes);
-    data = (SessionData)SessionManagerUtil.deserialize(bytes);
+    data = (SessionData) SessionManagerUtil.deserialize(bytes);
     assertEquals("two", data.getValueMap().get("one"));
   }
-  
 
   private AppEngineSession createSession() {
     NamespaceManager.set(startNamespace());
@@ -321,14 +316,14 @@ public class SessionManagerTest extends TestCase {
     NamespaceManager.set(testNamespace());
     HttpServletRequest request = makeMockRequest(true);
 
-  return localManager.newSession(request);
+    return localManager.newSession(request);
   }
 
   private HttpSession retrieveSession(AppEngineSession session) {
     NamespaceManager.set(startNamespace());
     SessionManager manager =
         new SessionManager(Arrays.asList(new DatastoreSessionStore(), new MemcacheSessionStore()));
-   try {
+    try {
       return manager.getSession(session.getId());
     } finally {
       NamespaceManager.set(testNamespace());
@@ -477,8 +472,8 @@ public class SessionManagerTest extends TestCase {
       ApiProxy.setDelegate(newDelegate);
 
       HttpServletRequest request = makeMockRequest(true);
-         replay(request);
- AppEngineSession session = manager.newSession(request);
+      replay(request);
+      AppEngineSession session = manager.newSession(request);
       session.setAttribute("foo", "bar");
       newDelegate.setTimeouts(3);
       session.save();
@@ -499,8 +494,8 @@ public class SessionManagerTest extends TestCase {
     manager =
         new SessionManager(Collections.<SessionStore>singletonList(new MemcacheSessionStore()));
     HttpServletRequest request = makeMockRequest(true);
-       replay(request);
-AppEngineSession session = manager.newSession(request);
+    replay(request);
+    AppEngineSession session = manager.newSession(request);
     session.setAttribute("foo", "bar");
     session.save();
     assertNotNull(memcache.get(SessionManager.SESSION_PREFIX + session.getId()));
@@ -510,23 +505,22 @@ AppEngineSession session = manager.newSession(request);
   }
 
   /** TODO Debug this
-  public void testDatastoreOnlyLifecycle() throws EntityNotFoundException {
-    manager =
-        new SessionManager(Collections.<SessionStore>singletonList(new DatastoreSessionStore()));
-    HttpServletRequest request = makeMockRequest(true);
-        replay(request);
-
-    AppEngineSession session = manager.newSession(request);
-    session.setAttribute("foo", "bar");
-    session.save();
-    Key key = KeyFactory.createKey("_ah_SESSION", SessionManager.SESSION_PREFIX + session.getId());
-    datastore.get(key);
-    HttpSession session2 = manager.getSession(session.getId());
-    assertEquals(session.getId(), session2.getId());
-    assertEquals("bar", session2.getAttribute("foo"));
-  }
-  */
-
+   * public void testDatastoreOnlyLifecycle() throws EntityNotFoundException {
+   * manager =
+   * new SessionManager(Collections.<SessionStore>singletonList(new DatastoreSessionStore()));
+   * HttpServletRequest request = makeMockRequest(true);
+   * replay(request);
+   *
+   * AppEngineSession session = manager.newSession(request);
+   * session.setAttribute("foo", "bar");
+   * session.save();
+   * Key key = KeyFactory.createKey("_ah_SESSION", SessionManager.SESSION_PREFIX + session.getId());
+   * datastore.get(key);
+   * HttpSession session2 = manager.getSession(session.getId());
+   * assertEquals(session.getId(), session2.getId());
+   * assertEquals("bar", session2.getAttribute("foo"));
+   * }
+   */
   public void testDeferredDatastoreSessionStore()
       throws InterruptedException, IOException, ClassNotFoundException, EntityNotFoundException {
     helper.tearDown();
@@ -543,8 +537,8 @@ AppEngineSession session = manager.newSession(request);
         new SessionManager(
             Collections.<SessionStore>singletonList(new DeferredDatastoreSessionStore(null)));
     HttpServletRequest request = makeMockRequest(true);
-       replay(request);
- AppEngineSession session = manager.newSession(request);
+    replay(request);
+    AppEngineSession session = manager.newSession(request);
     // Wait for the session creation task.
     assertTrue(latch.awaitAndReset(10, TimeUnit.SECONDS));
     session.setAttribute("foo", "bar");

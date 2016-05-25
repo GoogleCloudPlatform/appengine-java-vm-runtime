@@ -1,19 +1,18 @@
-/**
- * Copyright 2008 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.utils.config;
 
 import java.io.File;
@@ -32,8 +31,7 @@ import java.util.logging.Logger;
  *
  */
 public class AppEngineWebXmlReader {
-  private static final Logger logger =
-      Logger.getLogger(AppEngineWebXmlReader.class.getName());
+  private static final Logger logger = Logger.getLogger(AppEngineWebXmlReader.class.getName());
 
   private static final String CONCURRENT_REQUESTS_URL =
       "http://code.google.com/appengine/docs/java/config/appconfig.html#Using_Concurrent_Requests";
@@ -92,21 +90,30 @@ public class AppEngineWebXmlReader {
       if (!appEngineWebXml.getThreadsafeValueProvided()) {
         if (allowMissingThreadsafeElement()) {
           // make some noise if there is no <threadsafe> element.
-          logger.warning("appengine-web.xml does not contain a <threadsafe> element. This will "
-              + "be treated as an error the next time you deploy.\nSee " + CONCURRENT_REQUESTS_URL
-              + " for more information.\nYou probably want to enable concurrent requests.");
+          logger.warning(
+              "appengine-web.xml does not contain a <threadsafe> element. This will "
+                  + "be treated as an error the next time you deploy.\nSee "
+                  + CONCURRENT_REQUESTS_URL
+                  + " for more information.\nYou probably want to enable concurrent requests.");
         } else {
-          throw new AppEngineConfigException("appengine-web.xml does not contain a <threadsafe> "
-              + "element.\nSee " + CONCURRENT_REQUESTS_URL + " for more information.\nYou probably "
-              + "want to enable concurrent requests.");
+          throw new AppEngineConfigException(
+              "appengine-web.xml does not contain a <threadsafe> "
+                  + "element.\nSee "
+                  + CONCURRENT_REQUESTS_URL
+                  + " for more information.\nYou probably "
+                  + "want to enable concurrent requests.");
         }
       }
       if ("legacy".equals(appEngineWebXml.getAutoIdPolicy())) {
-        logger.warning("You have set the datastore auto id policy to 'legacy'. It is recommended "
-            + "that you select 'default' instead.\nLegacy auto ids are deprecated. You can "
-            + "continue to allocate legacy ids manually using the allocateIds() API functions.\n"
-            + "For more information see:\n"
-            + APPCFG_AUTO_IDS_URL + "\n" + DATASTORE_AUTO_IDS_URL + "\n");
+        logger.warning(
+            "You have set the datastore auto id policy to 'legacy'. It is recommended "
+                + "that you select 'default' instead.\nLegacy auto ids are deprecated. You can "
+                + "continue to allocate legacy ids manually using the allocateIds() API functions.\n"
+                + "For more information see:\n"
+                + APPCFG_AUTO_IDS_URL
+                + "\n"
+                + DATASTORE_AUTO_IDS_URL
+                + "\n");
       }
     } catch (Exception e) {
       String msg = "Received exception processing " + getFilename();

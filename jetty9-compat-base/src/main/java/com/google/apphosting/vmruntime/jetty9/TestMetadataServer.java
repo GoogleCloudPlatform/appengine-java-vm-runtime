@@ -1,19 +1,18 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.AFFINITY_ATTRIBUTE;
@@ -26,6 +25,9 @@ import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.USE_MVM_AGEN
 import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.VERSION_ATTRIBUTE;
 import static com.google.apphosting.vmruntime.VmMetadataCache.DEFAULT_META_DATA_SERVER;
 import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -38,8 +40,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 /**
  * Minimal implementation of the metadata server running inside each VM.
@@ -58,9 +58,7 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
   public static final String AFFINITY = "true";
   public static final String APPENGINE_HOSTNAME = "testhostname";
 
-
-  public static void main(String... args) throws Exception
-  {
+  public static void main(String... args) throws Exception {
     TestMetadataServer test = new TestMetadataServer();
     test.start();
     Thread.sleep(5000);
@@ -71,7 +69,7 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
   private HashMap<String, String> responses = new HashMap<String, String>();
   private boolean run = true;
 
-  public TestMetadataServer() {    
+  public TestMetadataServer() {
     addMetadata("STOP", "STOP");
     addMetadata(PROJECT_ATTRIBUTE, PROJECT);
     addMetadata(PARTITION_ATTRIBUTE, PARTITION);
@@ -83,19 +81,17 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
     addMetadata(USE_MVM_AGENT_ATTRIBUTE, Boolean.toString(false));
   }
 
-  public void setUseMVM(boolean useMVM)
-  {
+  public void setUseMVM(boolean useMVM) {
     addMetadata(USE_MVM_AGENT_ATTRIBUTE, Boolean.toString(useMVM));
   }
-  
+
   @Override
-  public void doStart() throws Exception
-  {
+  public void doStart() throws Exception {
     serverSocket = new ServerSocket(0);
     int metadataPort = serverSocket.getLocalPort();
     System.setProperty("metadata_server", "127.0.0.1:" + metadataPort);
     logger.fine("Listening for metadata requests at port: " + metadataPort);
-    
+
     Thread metadataThread = new Thread(this);
     metadataThread.setName("Metadata server");
     metadataThread.setDaemon(true);
@@ -104,7 +100,7 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
 
   @Override
   public void doStop() throws IOException {
-    String path="STOP";
+    String path = "STOP";
     BufferedReader reader = null;
     HttpURLConnection connection = null;
     try {
@@ -124,9 +120,14 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
       }
       if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
         return;
-      } 
-      throw new IOException("Meta-data request for '" + path + "' failed with error: "
-          + connection.getResponseCode()+" "+connection.getResponseMessage());
+      }
+      throw new IOException(
+          "Meta-data request for '"
+              + path
+              + "' failed with error: "
+              + connection.getResponseCode()
+              + " "
+              + connection.getResponseMessage());
     } finally {
       if (reader != null) {
         try {
@@ -150,9 +151,7 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
   public void addMetadata(String path, String value) {
     responses.put(PATH_PREFIX + path, value);
   }
-  
-  
- 
+
   /**
    * Starts a single threaded metadata server.
    */
@@ -163,10 +162,10 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
         final Socket clientSocket = serverSocket.accept();
         BufferedWriter responseWriter = null;
         try {
-          BufferedReader requestDataReader
-                  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-          responseWriter
-                  = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+          BufferedReader requestDataReader =
+              new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+          responseWriter =
+              new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
           String httpGetLine = requestDataReader.readLine();
           String[] getLineSplit = httpGetLine.split(" ");
           if (getLineSplit.length < 2) {
@@ -205,7 +204,6 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
         if (serverSocket != null) {
           serverSocket.close();
           logger.fine("CLOSING metadata requests at port: " + serverSocket.getLocalPort());
-
         }
       } catch (IOException e) {
         logger.log(Level.WARNING, "got Exception when closing the server socket.", e);
