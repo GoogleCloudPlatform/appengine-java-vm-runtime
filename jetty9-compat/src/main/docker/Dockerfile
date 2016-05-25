@@ -16,7 +16,7 @@ FROM jetty9:${docker.label.prefix}${jetty.version}
 
 # Create env vars to identify image
 ENV GAE_IMAGE_NAME ${project.artifactId}
-ENV GAE_IMAGE_LABEL ${docker.label.prefix}8-jre
+ENV GAE_IMAGE_LABEL ${docker.label.prefix}${project.version}
 ENV GAE_IMAGE_VERSION ${project.version}
 
 # Remove stock Jetty Base
