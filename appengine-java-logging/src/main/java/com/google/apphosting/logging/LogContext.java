@@ -1,22 +1,22 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2016 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.google.apphosting.logging;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -25,20 +25,19 @@ import java.util.stream.Stream;
  * <p>This is an implementation of a Mapped Diagnostic Context for use with the java.util.logging
  * framework.
  */
-public class LogContext extends ConcurrentHashMap<String, Object>{
+public class LogContext extends ConcurrentHashMap<String, Object> {
 
-  private static final ThreadLocal<LogContext> threadContext = new ThreadLocal<LogContext>()
-  {
-    @Override
-    protected LogContext initialValue() {
-      return new LogContext();
-    }
-  };
+  private static final ThreadLocal<LogContext> threadContext =
+      new ThreadLocal<LogContext>() {
+        @Override
+        protected LogContext initialValue() {
+          return new LogContext();
+        }
+      };
 
   private final Map<String, Object> values = new ConcurrentHashMap<>();
 
-  private LogContext() {
-  }
+  private LogContext() {}
 
   /**
    * Returns the log context associated with the current Thread.
@@ -79,5 +78,4 @@ public class LogContext extends ConcurrentHashMap<String, Object>{
   public Stream<Map.Entry<String, Object>> stream() {
     return values.entrySet().stream();
   }
-
 }

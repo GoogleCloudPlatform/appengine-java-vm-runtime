@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -47,7 +47,7 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {
-  	appengineWebXml = "WEB-INF/sessions-enabled-appengine-web.xml";
+    appengineWebXml = "WEB-INF/sessions-enabled-appengine-web.xml";
     super.setUp();
   }
 
@@ -57,15 +57,13 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     return connection.getResponseCode();
   }
 
- 
-
   public void testSsl_NoSSL() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
-    String expected = "false:http:http://localhost:"+port+"/test-ssl";
+    String expected = "false:http:http://localhost:" + port + "/test-ssl";
     assertEquals(expected, get.getResponseBodyAsString());
   }
 
@@ -98,33 +96,33 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     assertTrue(Arrays.asList(lines).contains("Hello, World!"));
   }
 
-//  public void testHealthCheckInterval() throws Exception {
-//    // Test that it was not healthy without IsLastSuccessful query string.
-//    int code = fetchResponseCode(createUrl("/_ah/health"));
-//    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
-//
-//    // Test that it will be healthy if the last IsLastSuccessful query string was less than
-//    // VmRuntimeWebAppContext.checkIntervalSec ago.
-//    String[] lines = fetchUrl(createUrl("/_ah/health?IsLastSuccessful=yes"));
-//    assertEquals(1, lines.length);
-//    assertEquals("ok", lines[0].trim());
-//
-//    Thread.sleep((VmRuntimeWebAppContext.checkIntervalSec - 1) * 1000);
-//
-//    code = fetchResponseCode(createUrl("/_ah/health"));
-//    assertEquals(HttpServletResponse.SC_OK, code);
-//
-//    // Test that it will be unhealthy if the last IsLastSuccessful query string was more than
-//    // VmRuntimeWebAppContext.checkIntervalSec ago.
-//    lines = fetchUrl(createUrl("/_ah/health?IsLastSuccessful=yes"));
-//    assertEquals(1, lines.length);
-//    assertEquals("ok", lines[0].trim());
-//
-//    Thread.sleep(VmRuntimeWebAppContext.checkIntervalSec * 1000);
-//
-//    code = fetchResponseCode(createUrl("/_ah/health"));
-//    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
-//  }
+  //  public void testHealthCheckInterval() throws Exception {
+  //    // Test that it was not healthy without IsLastSuccessful query string.
+  //    int code = fetchResponseCode(createUrl("/_ah/health"));
+  //    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
+  //
+  //    // Test that it will be healthy if the last IsLastSuccessful query string was less than
+  //    // VmRuntimeWebAppContext.checkIntervalSec ago.
+  //    String[] lines = fetchUrl(createUrl("/_ah/health?IsLastSuccessful=yes"));
+  //    assertEquals(1, lines.length);
+  //    assertEquals("ok", lines[0].trim());
+  //
+  //    Thread.sleep((VmRuntimeWebAppContext.checkIntervalSec - 1) * 1000);
+  //
+  //    code = fetchResponseCode(createUrl("/_ah/health"));
+  //    assertEquals(HttpServletResponse.SC_OK, code);
+  //
+  //    // Test that it will be unhealthy if the last IsLastSuccessful query string was more than
+  //    // VmRuntimeWebAppContext.checkIntervalSec ago.
+  //    lines = fetchUrl(createUrl("/_ah/health?IsLastSuccessful=yes"));
+  //    assertEquals(1, lines.length);
+  //    assertEquals("ok", lines[0].trim());
+  //
+  //    Thread.sleep(VmRuntimeWebAppContext.checkIntervalSec * 1000);
+  //
+  //    code = fetchResponseCode(createUrl("/_ah/health"));
+  //    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
+  //  }
   /**
    * Create a datastore put response with the minimal fields required to make
    * the put succeed.
@@ -157,11 +155,11 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     // Add responses for session create.
     fakeApiProxy.addApiResponse(createDatastorePutResponse());
     fakeApiProxy.addApiResponse(
-            MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
+        MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
     // Add responses for session save.
     fakeApiProxy.addApiResponse(createDatastorePutResponse());
     fakeApiProxy.addApiResponse(
-            MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
+        MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
 
     // Make a call to count and save the session cookie.
     HttpClient httpClient = new HttpClient();
@@ -173,19 +171,22 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     assertEquals("1", firstGet.getResponseBodyAsString().trim());
 
     // Parse the memcache put request so we can respond to the next get request.
-    MemcacheSetRequest setRequest
-            = MemcacheSetRequest.parseFrom(fakeApiProxy.getLastRequest().getRequestData());
+    MemcacheSetRequest setRequest =
+        MemcacheSetRequest.parseFrom(fakeApiProxy.getLastRequest().getRequestData());
     assertEquals(1, setRequest.getItemCount());
-    Item responsePayload = Item.newBuilder()
-            .setKey(setRequest.getItem(0).getKey()).setValue(setRequest.getItem(0).getValue()).build();
-    MemcacheGetResponse getResponse
-            = MemcacheGetResponse.newBuilder().addItem(responsePayload).build();
+    Item responsePayload =
+        Item.newBuilder()
+            .setKey(setRequest.getItem(0).getKey())
+            .setValue(setRequest.getItem(0).getValue())
+            .build();
+    MemcacheGetResponse getResponse =
+        MemcacheGetResponse.newBuilder().addItem(responsePayload).build();
     fakeApiProxy.addApiResponse(getResponse);
 
     // Add responses for session save.
     fakeApiProxy.addApiResponse(createDatastorePutResponse());
     fakeApiProxy.addApiResponse(
-            MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
+        MemcacheSetResponse.newBuilder().addSetStatus(SetStatusCode.STORED).build());
 
     // Make a call to count with the session cookie.
     GetMethod secondGet = new GetMethod(url.toString());
@@ -194,5 +195,4 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
     // Check the count, should be "2" for the second request.
     assertEquals("2", secondGet.getResponseBodyAsString().trim());
   }
-
 }

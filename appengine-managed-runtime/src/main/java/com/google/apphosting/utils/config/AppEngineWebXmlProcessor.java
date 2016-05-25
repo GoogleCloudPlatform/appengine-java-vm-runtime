@@ -1,19 +1,18 @@
-/**
- * Copyright 2008 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.apphosting.utils.config;
 
 import com.google.apphosting.utils.config.AppEngineWebXml.AdminConsolePage;
@@ -46,7 +45,10 @@ import java.util.Map;
  */
 class AppEngineWebXmlProcessor {
 
-  enum FileType { STATIC, RESOURCE }
+  enum FileType {
+    STATIC,
+    RESOURCE
+  }
 
   // Error handling to disallow having both module and service entries.
   private boolean moduleNodeFound;
@@ -95,8 +97,8 @@ class AppEngineWebXmlProcessor {
     count += appEngineWebXml.getAutomaticScaling().isEmpty() ? 0 : 1;
     if (count > 1) {
       throw new AppEngineConfigException(
-          "There may be only one of 'automatic-scaling', 'manual-scaling' or " +
-          "'basic-scaling' elements.");
+          "There may be only one of 'automatic-scaling', 'manual-scaling' or "
+              + "'basic-scaling' elements.");
     }
   }
 
@@ -253,7 +255,7 @@ class AppEngineWebXmlProcessor {
   private void processServiceNode(Element node, AppEngineWebXml appEngineWebXml) {
     appEngineWebXml.setService(getTextNode(node));
   }
-  
+
   private void processInstanceClassNode(Element node, AppEngineWebXml appEngineWebXml) {
 
     appEngineWebXml.setInstanceClass(getTextNode(node));
@@ -307,6 +309,7 @@ class AppEngineWebXmlProcessor {
     }
     return result;
   }
+
   private void processAutomaticScalingNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     AutomaticScaling automaticScaling = appEngineWebXml.getAutomaticScaling();
     automaticScaling.setMinPendingLatency(getChildNodeText(settingsNode, "min-pending-latency"));
@@ -492,10 +495,8 @@ class AppEngineWebXmlProcessor {
     healthCheck.setTimeoutSec(getChildNodePositiveInteger(settingsNode, "timeout-sec"));
     healthCheck.setUnhealthyThreshold(
         getChildNodePositiveInteger(settingsNode, "unhealthy-threshold"));
-    healthCheck.setHealthyThreshold(
-        getChildNodePositiveInteger(settingsNode, "healthy-threshold"));
-    healthCheck.setRestartThreshold(
-        getChildNodePositiveInteger(settingsNode, "restart-threshold"));
+    healthCheck.setHealthyThreshold(getChildNodePositiveInteger(settingsNode, "healthy-threshold"));
+    healthCheck.setRestartThreshold(getChildNodePositiveInteger(settingsNode, "restart-threshold"));
     healthCheck.setHost(getChildNodeText(settingsNode, "host"));
   }
 
@@ -598,6 +599,7 @@ class AppEngineWebXmlProcessor {
       }
     }
   }
+
   private void processClassLoaderConfig(Element node, AppEngineWebXml appEngineWebXml) {
     ClassLoaderConfig config = new ClassLoaderConfig();
     appEngineWebXml.setClassLoaderConfig(config);

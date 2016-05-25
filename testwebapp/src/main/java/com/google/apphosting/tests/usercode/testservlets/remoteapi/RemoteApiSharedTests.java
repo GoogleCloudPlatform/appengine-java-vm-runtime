@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -176,10 +176,11 @@ public class RemoteApiSharedTests {
    * cases passed.
    */
   public void runTests() throws IOException {
-    RemoteApiOptions options = new RemoteApiOptions()
-        .server(server, port)
-        .credentials(username, password)
-        .remoteApiPath(remoteApiPath);
+    RemoteApiOptions options =
+        new RemoteApiOptions()
+            .server(server, port)
+            .credentials(username, password)
+            .remoteApiPath(remoteApiPath);
 
     // Once we install the RemoteApi, all keys will start using the remote app id.  We'll store some
     // keys with the local app id first.
@@ -222,12 +223,13 @@ public class RemoteApiSharedTests {
   private void doTest(LocalKeysHolder localKeysHolder, LocalEntitiesHolder localEntitiesHolder) {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
-    List<RemoteApiUnitTest> tests = Lists.newLinkedList(
-        new PutAndGetTester(),
-        new PutAndGetInTransactionTester(),
-        new QueryTester(),
-        new DeleteTester(),
-        new XgTransactionTester());
+    List<RemoteApiUnitTest> tests =
+        Lists.newLinkedList(
+            new PutAndGetTester(),
+            new PutAndGetInTransactionTester(),
+            new QueryTester(),
+            new DeleteTester(),
+            new XgTransactionTester());
 
     // Run each test once with local keys and once with remote keys.
     for (RemoteApiUnitTest test : tests) {
