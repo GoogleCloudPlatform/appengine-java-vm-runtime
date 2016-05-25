@@ -35,29 +35,28 @@ import org.eclipse.jetty.util.component.ContainerLifeCycle;
 /**
  * NoOpSessionManager
  *
- * Does the bare minimum to create a NoOpSession. This session manager should be used
- * only when app-cfg.xml has disabled sessions. The purpose of it is to provide an
- * implementation with just enough compliance with the servlet session api so that 
- * frameworks that require the session api will still work, albeit without the 
- * costs associated with distributed persistent sessions (ie sessions enabled in
- * app-cfg.xml).
+ * Does the bare minimum to create a NoOpSession. This session manager should be used only when
+ * app-cfg.xml has disabled sessions. The purpose of it is to provide an implementation with just
+ * enough compliance with the servlet session api so that frameworks that require the session api
+ * will still work, albeit without the costs associated with distributed persistent sessions (ie
+ * sessions enabled in app-cfg.xml).
  */
-public class NoOpSessionManager  extends ContainerLifeCycle implements SessionManager {
+public class NoOpSessionManager extends ContainerLifeCycle implements SessionManager {
 
   private SessionIdManager _idManager;
   private SessionHandler _handler;
   private ServletContext _context;
 
   /**
-   * 
+   *
    */
-  public NoOpSessionManager () {
+  public NoOpSessionManager() {
   }
 
 
   @Override
   protected void doStart() throws Exception {
-    _context=ContextHandler.getCurrentContext();
+    _context = ContextHandler.getCurrentContext();
     final Server server = _handler.getServer();
 
     synchronized (server) {
@@ -97,8 +96,8 @@ public class NoOpSessionManager  extends ContainerLifeCycle implements SessionMa
   @Override
   public HttpSession newHttpSession(HttpServletRequest request) {
 
-    String id =_idManager.newSessionId(request,System.currentTimeMillis());
-    String nodeId =_idManager.getNodeId(id,request);
+    String id = _idManager.newSessionId(request, System.currentTimeMillis());
+    String nodeId = _idManager.getNodeId(id, request);
     return new NoOpSession(id, nodeId, _context);
   }
 
@@ -136,7 +135,7 @@ public class NoOpSessionManager  extends ContainerLifeCycle implements SessionMa
 
   @Override
   public HttpCookie getSessionCookie(HttpSession session, String contextPath,
-      boolean requestIsSecure) {
+                                     boolean requestIsSecure) {
     return null;
   }
 
@@ -157,17 +156,17 @@ public class NoOpSessionManager  extends ContainerLifeCycle implements SessionMa
 
   @Override
   public boolean isValid(HttpSession session) {
-    return ((NoOpSession)session).isValid();
+    return ((NoOpSession) session).isValid();
   }
 
   @Override
   public String getNodeId(HttpSession session) {
-    return ((NoOpSession)session).getNodeId();
+    return ((NoOpSession) session).getNodeId();
   }
 
   @Override
   public String getClusterId(HttpSession session) {
-    return ((NoOpSession)session).getId();
+    return ((NoOpSession) session).getId();
   }
 
   @Override
@@ -177,7 +176,7 @@ public class NoOpSessionManager  extends ContainerLifeCycle implements SessionMa
 
   @Override
   public void complete(HttpSession session) {
-    ((NoOpSession)session).complete();
+    ((NoOpSession) session).complete();
   }
 
   @Override
@@ -234,7 +233,7 @@ public class NoOpSessionManager  extends ContainerLifeCycle implements SessionMa
 
   @Override
   public void renewSessionId(String oldClusterId, String oldNodeId, String newClusterId,
-      String newNodeId) {
+                             String newNodeId) {
   }
 
 }

@@ -12,7 +12,6 @@
  * the License.
  */
 
-
 package com.google.apphosting.runtime.jetty9;
 
 import java.util.ArrayList;
@@ -30,9 +29,8 @@ import javax.servlet.http.HttpSessionContext;
 /**
  * NoOpSession
  *
- * A minimal implementation of HttpSession, just sufficient to keep and id
- * attributes within a single request.
- * 
+ * A minimal implementation of HttpSession, just sufficient to keep and id attributes within a
+ * single request.
  */
 public class NoOpSession implements HttpSession {
 
@@ -40,8 +38,7 @@ public class NoOpSession implements HttpSession {
   protected String _clusterId;
   protected String _nodeId;
   protected boolean _valid = true;
-  private final Map<String,Object> _attributes=new HashMap<String, Object>();
-
+  private final Map<String, Object> _attributes = new HashMap<String, Object>();
 
   /**
    * @param id
@@ -49,39 +46,38 @@ public class NoOpSession implements HttpSession {
    * @param context
    */
   protected NoOpSession(String id, String nodeId, ServletContext context) {
-      _clusterId = id;
-      _nodeId = nodeId;
-      _context = context;
+    _clusterId = id;
+    _nodeId = nodeId;
+    _context = context;
   }
-
 
   /**
    * Finish a request
    */
-  public void complete () {
-      _attributes.clear();
+  public void complete() {
+    _attributes.clear();
   }
 
 
-  /** 
+  /**
    * @see javax.servlet.http.HttpSession#getCreationTime()
    */
   @Override
   public long getCreationTime() {
-      return 0;
+    return 0;
   }
 
 
   @Override
   public String getId() {
-      return _clusterId;
+    return _clusterId;
   }
 
   /**
    * @return the session id with worker suffix
    */
   public String getNodeId() {
-      return _nodeId;
+    return _nodeId;
   }
 
 
@@ -128,35 +124,40 @@ public class NoOpSession implements HttpSession {
 
   @Override
   public Enumeration<String> getAttributeNames() {
-    List<String> names=_attributes==null?Collections.EMPTY_LIST:new ArrayList<String>(_attributes.keySet());
+    List<String> names = _attributes == null
+      ? Collections.EMPTY_LIST
+      : new ArrayList<String>(_attributes.keySet());
     return Collections.enumeration(names);
   }
 
 
   @Override
   public String[] getValueNames() {
-    List<String> names=_attributes==null?Collections.EMPTY_LIST:new ArrayList<String>(_attributes.keySet());
-    if (names.isEmpty())
+    List<String> names = _attributes == null
+      ? Collections.EMPTY_LIST
+      : new ArrayList<String>(_attributes.keySet());
+    if (names.isEmpty()) {
       return null;
+    }
     return names.toArray(new String[names.size()]);
   }
 
 
   @Override
   public void setAttribute(String name, Object value) {
-   _attributes.put(name, value);
+    _attributes.put(name, value);
   }
 
 
   @Override
   public void putValue(String name, Object value) {
-    setAttribute(name,value);
+    setAttribute(name, value);
   }
 
 
   @Override
   public void removeAttribute(String name) {
-   _attributes.remove(name);
+    _attributes.remove(name);
   }
 
 
@@ -168,15 +169,15 @@ public class NoOpSession implements HttpSession {
 
   @Override
   public void invalidate() {
-      _valid = false;
-      _attributes.clear();
+    _valid = false;
+    _attributes.clear();
   }
 
   /**
    * @return true if the session has not been invalidated
    */
-  public boolean isValid () {
-      return _valid;
+  public boolean isValid() {
+    return _valid;
   }
 
   @Override

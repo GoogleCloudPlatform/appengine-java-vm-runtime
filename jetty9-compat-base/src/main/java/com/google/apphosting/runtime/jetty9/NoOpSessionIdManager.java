@@ -22,8 +22,7 @@ import org.eclipse.jetty.server.session.AbstractSessionIdManager;
 /**
  * NoOpSessionIdManager
  *
- * Minimal implementation of the SessionIdManager, just enough
- * to generate new session ids.
+ * Minimal implementation of the SessionIdManager, just enough to generate new session ids.
  */
 public class NoOpSessionIdManager extends AbstractSessionIdManager {
 
@@ -39,23 +38,26 @@ public class NoOpSessionIdManager extends AbstractSessionIdManager {
    * @see org.eclipse.jetty.server.SessionIdManager#addSession(javax.servlet.http.HttpSession)
    */
   @Override
-  public void addSession(HttpSession session) {}
+  public void addSession(HttpSession session) {
+  }
 
-  /** 
+  /**
    * @see org.eclipse.jetty.server.SessionIdManager#removeSession(javax.servlet.http.HttpSession)
    */
   @Override
-  public void removeSession(HttpSession session) {}
+  public void removeSession(HttpSession session) {
+  }
 
-  /** 
+  /**
    * @see org.eclipse.jetty.server.SessionIdManager#invalidateAll(java.lang.String)
    */
   @Override
   public void invalidateAll(String id) {
   }
 
-  /** 
-   * @see org.eclipse.jetty.server.session.AbstractSessionIdManager#renewSessionId(java.lang.String, java.lang.String, javax.servlet.http.HttpServletRequest)
+  /**
+   * @see org.eclipse.jetty.server.session.AbstractSessionIdManager#renewSessionId(java.lang.String,
+   * java.lang.String, javax.servlet.http.HttpServletRequest)
    */
   @Override
   public void renewSessionId(String oldClusterId, String oldNodeId, HttpServletRequest request) {

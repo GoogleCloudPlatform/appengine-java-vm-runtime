@@ -137,7 +137,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   /**
    * Test that sessions are disabled. Disabling sessions means that the NoOpSessionManager
    * is being used, which keeps sessions in memory only for the duration of a single request.
-   * Enabling sessions uses the appengine SessionManager which will use Datastore and memcache 
+   * Enabling sessions uses the appengine SessionManager which will use Datastore and memcache
    * as persistent backing stores.
    *
    * @throws Exception
