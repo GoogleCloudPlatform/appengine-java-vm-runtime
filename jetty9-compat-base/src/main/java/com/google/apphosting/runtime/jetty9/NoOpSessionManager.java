@@ -33,8 +33,6 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.component.ContainerLifeCycle;
 
 /**
- * NoOpSessionManager
- *
  * Does the bare minimum to create a NoOpSession. This session manager should be used only when
  * app-cfg.xml has disabled sessions. The purpose of it is to provide an implementation with just
  * enough compliance with the servlet session api so that frameworks that require the session api

@@ -20,8 +20,6 @@ import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.server.session.AbstractSessionIdManager;
 
 /**
- * NoOpSessionIdManager
- *
  * Minimal implementation of the SessionIdManager, just enough to generate new session ids.
  */
 public class NoOpSessionIdManager extends AbstractSessionIdManager {

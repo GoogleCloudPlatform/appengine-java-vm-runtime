@@ -27,8 +27,6 @@ import javax.servlet.http.HttpSessionContext;
 
 
 /**
- * NoOpSession
- *
  * A minimal implementation of HttpSession, just sufficient to keep and id attributes within a
  * single request.
  */
