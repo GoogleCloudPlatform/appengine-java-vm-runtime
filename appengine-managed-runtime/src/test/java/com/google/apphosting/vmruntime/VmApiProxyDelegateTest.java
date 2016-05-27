@@ -197,7 +197,7 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    try (SuppressedLogging l=new SuppressedLogging()) {
+    try (SuppressedLogging l = new SuppressedLogging()) {
       if (sync) {
         try {
           environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -242,7 +242,7 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    try (SuppressedLogging l=new SuppressedLogging()) {
+    try (SuppressedLogging l = new SuppressedLogging()) {
       if (sync) {
         try {
           environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -285,7 +285,7 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    try (SuppressedLogging l=new SuppressedLogging()) {
+    try (SuppressedLogging l = new SuppressedLogging()) {
       if (sync) {
         try {
           environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
@@ -330,7 +330,7 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] requestData = new byte[] {0, 1, 2, 3, 4, 5};
     byte[] result = null;
 
-    try (SuppressedLogging l=new SuppressedLogging()) {
+    try (SuppressedLogging l = new SuppressedLogging()) {
       if (sync) {
         try {
           result =
@@ -542,6 +542,10 @@ public class VmApiProxyDelegateTest extends TestCase {
     Level level = logger.getLevel();
     
     SuppressedLogging() {
+      // If the logger is not configured to log debug level
+      // logs (FINE, FINER, FINEST), then set the logger
+      // to SEVERE, so that the expected WARNING messages
+      // from these tests are suppressed.
       if (!logger.isLoggable(Level.FINE)) {
         logger.setLevel(Level.SEVERE);
       }
