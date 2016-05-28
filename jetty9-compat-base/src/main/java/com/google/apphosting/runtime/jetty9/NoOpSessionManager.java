@@ -1,17 +1,18 @@
-/**
+/*
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 
 package com.google.apphosting.runtime.jetty9;
 
@@ -34,33 +35,26 @@ import org.eclipse.jetty.util.component.ContainerLifeCycle;
 
 /**
  * Does the bare minimum to create a NoOpSession. This session manager should be used only when
- * app-cfg.xml has disabled sessions. The purpose of it is to provide an implementation with just
+ * appengine-web.xml has disabled sessions. The purpose of it is to provide an implementation with just
  * enough compliance with the servlet session api so that frameworks that require the session api
  * will still work, albeit without the costs associated with distributed persistent sessions (ie
- * sessions enabled in app-cfg.xml).
+ * sessions enabled in appengine-web.xml).
  */
 public class NoOpSessionManager extends ContainerLifeCycle implements SessionManager {
 
-  private SessionIdManager _idManager;
-  private SessionHandler _handler;
-  private ServletContext _context;
-
-  /**
-   *
-   */
-  public NoOpSessionManager() {
-  }
-
+  private SessionIdManager idManager;
+  private SessionHandler handler;
+  private ServletContext context;
 
   @Override
   protected void doStart() throws Exception {
-    _context = ContextHandler.getCurrentContext();
-    final Server server = _handler.getServer();
+    context = ContextHandler.getCurrentContext();
+    Server server = handler.getServer();
 
     synchronized (server) {
-      if (_idManager == null) {
-        _idManager = server.getSessionIdManager();
-        if (_idManager == null) {
+      if (idManager == null) {
+        idManager = server.getSessionIdManager();
+        if (idManager == null) {
           // Create the NoOpSessionIdManager and set it as the shared
           // SessionIdManager for the Server, being careful NOT to use
           // the webapp context's classloader, otherwise if the context
@@ -69,17 +63,17 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
           ClassLoader serverLoader = server.getClass().getClassLoader();
           try {
             Thread.currentThread().setContextClassLoader(serverLoader);
-            _idManager = new NoOpSessionIdManager();
-            server.setSessionIdManager(_idManager);
-            server.manage(_idManager);
-            _idManager.start();
+            idManager = new NoOpSessionIdManager();
+            server.setSessionIdManager(idManager);
+            server.manage(idManager);
+            idManager.start();
           } finally {
             Thread.currentThread().setContextClassLoader(oldLoader);
           }
         }
 
         // server session id is never managed by this manager
-        addBean(_idManager, false);
+        addBean(idManager, false);
       }
     }
     super.doStart();
@@ -93,10 +87,9 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
 
   @Override
   public HttpSession newHttpSession(HttpServletRequest request) {
-
-    String id = _idManager.newSessionId(request, System.currentTimeMillis());
-    String nodeId = _idManager.getNodeId(id, request);
-    return new NoOpSession(id, nodeId, _context);
+    String id = idManager.newSessionId(request, System.currentTimeMillis());
+    String nodeId = idManager.getNodeId(id, request);
+    return new NoOpSession(id, nodeId, context);
   }
 
   @Override
@@ -115,7 +108,7 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
 
   @Override
   public void setSessionHandler(SessionHandler handler) {
-    _handler = handler;
+    this.handler = handler;
   }
 
   @Override
@@ -124,7 +117,6 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
 
   @Override
   public void removeEventListener(EventListener listener) {
-
   }
 
   @Override
@@ -132,14 +124,14 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public HttpCookie getSessionCookie(HttpSession session, String contextPath,
-                                     boolean requestIsSecure) {
+  public HttpCookie getSessionCookie(
+      HttpSession session, String contextPath, boolean requestIsSecure) {
     return null;
   }
 
   @Override
   public SessionIdManager getSessionIdManager() {
-    return _idManager;
+    return idManager;
   }
 
   @Override
@@ -149,7 +141,7 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
 
   @Override
   public void setSessionIdManager(SessionIdManager idManager) {
-    _idManager = idManager;
+    this.idManager = idManager;
   }
 
   @Override
@@ -230,8 +222,10 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void renewSessionId(String oldClusterId, String oldNodeId, String newClusterId,
-                             String newNodeId) {
+  public void renewSessionId(
+      String oldClusterId,
+      String oldNodeId,
+      String newClusterId,
+      String newNodeId) {
   }
-
 }
