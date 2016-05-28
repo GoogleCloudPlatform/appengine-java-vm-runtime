@@ -46,9 +46,9 @@ import com.google.apphosting.runtime.SessionData;
 import com.google.apphosting.runtime.SessionStore;
 
 /**
- * Implements the Jetty {@link AbstractSessionManager} and, as an inner class, {@link
- * HashSessionIdManager} for our context. The session manager has to check the provided {@link
- * SessionStore SessionStores} to find sessions.
+ * Implements the Jetty {@link AbstractSessionManager} and, as an inner class,
+ * {@link HashSessionIdManager} for our context. The session manager has to check the provided
+ * {@link SessionStore SessionStores} to find sessions.
  */
 public class SessionManager extends AbstractSessionManager {
   private static final Logger logger = Logger.getLogger(SessionManager.class.getName());
@@ -132,7 +132,7 @@ public class SessionManager extends AbstractSessionManager {
      * Create an object for an existing session
      */
     public AppEngineSession(
-      long created, long accessed, String sessionId, SessionData sessionData) {
+        long created, long accessed, String sessionId, SessionData sessionData) {
       super(SessionManager.this, created, accessed, sessionId);
       this.sessionData = sessionData;
       key = SESSION_PREFIX + sessionId;
@@ -153,11 +153,11 @@ public class SessionManager extends AbstractSessionManager {
 
       // generate a new id
       String newClusterId =
-        ((SessionIdManager) getSessionManager().getSessionIdManager())
-          .newSessionId(request.hashCode());
+          ((SessionIdManager) getSessionManager().getSessionIdManager())
+              .newSessionId(request.hashCode());
       String newNodeId =
-        ((SessionIdManager) getSessionManager().getSessionIdManager())
-          .getNodeId(newClusterId, request);
+          ((SessionIdManager) getSessionManager().getSessionIdManager())
+              .getNodeId(newClusterId, request);
 
       // change the ids and recreate the key
       setClusterId(newClusterId);
@@ -217,10 +217,10 @@ public class SessionManager extends AbstractSessionManager {
             delay *= 2;
           }
           logger.log(
-            Level.SEVERE, String.format("Session %s not saved: too many attempts", getId()));
+              Level.SEVERE, String.format("Session %s not saved: too many attempts", getId()));
         } catch (DeadlineExceededException e) {
           logger.log(
-            Level.SEVERE, String.format("Session %s not saved: too many timeouts", getId()), e);
+              Level.SEVERE, String.format("Session %s not saved: too many timeouts", getId()), e);
         }
       }
     }
@@ -244,8 +244,8 @@ public class SessionManager extends AbstractSessionManager {
     @Override
     public Object doPutOrRemove(String name, Object value) {
       return value == null
-        ? sessionData.getValueMap().remove(name)
-        : sessionData.getValueMap().put(name, value);
+          ? sessionData.getValueMap().remove(name)
+          : sessionData.getValueMap().put(name, value);
     }
 
     @Override
@@ -273,7 +273,7 @@ public class SessionManager extends AbstractSessionManager {
           unbindValue(key, value);
 
           ((SessionManager) getSessionManager())
-            .doSessionAttributeListeners(this, key, value, null);
+              .doSessionAttributeListeners(this, key, value, null);
         }
       }
       if (sessionData.getValueMap() != null) {
@@ -303,13 +303,13 @@ public class SessionManager extends AbstractSessionManager {
         dirty = true;
         if (logger.isLoggable(Level.FINE)) {
           logger.fine(
-            String.format("Session %s accessed while near expiration, marking dirty.", getId()));
+              String.format("Session %s accessed while near expiration, marking dirty.", getId()));
         }
       } else if (logger.isLoggable(Level.FINE)) {
         logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
       }
       sessionData.setExpirationTime(
-        System.currentTimeMillis() + getSessionExpirationInMilliseconds());
+          System.currentTimeMillis() + getSessionExpirationInMilliseconds());
       // Handle session being invalid, update number of requests inside session.
       return super.access(accessTime);
     }
@@ -426,9 +426,10 @@ public class SessionManager extends AbstractSessionManager {
       if (System.currentTimeMillis() > data.getExpirationTime()) {
         if (logger.isLoggable(Level.FINE)) {
           logger.fine(
-            String.format(
-              "Session %s expired %d seconds ago, ignoring",
-              sessionId, (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+              String.format(
+                  "Session %s expired %d seconds ago, ignoring",
+                  sessionId,
+                  (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
         }
         return null;
       }
@@ -472,7 +473,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     return new LogRecord(
-      LogRecord.Level.warn, System.currentTimeMillis() * 1000, stringWriter.toString());
+        LogRecord.Level.warn, System.currentTimeMillis() * 1000, stringWriter.toString());
   }
 
   @Override
@@ -509,7 +510,7 @@ public class SessionManager extends AbstractSessionManager {
    */
   @Override
   public void renewSessionId(
-    String oldClusterId, String oldNodeId, String newClusterId, String newNodeId) {
+      String oldClusterId, String oldNodeId, String newClusterId, String newNodeId) {
 
     // Not used. See instead AppEngineSession.renewId
 
