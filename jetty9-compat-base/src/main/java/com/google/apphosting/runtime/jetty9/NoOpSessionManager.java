@@ -79,7 +79,6 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
     super.doStart();
   }
 
-
   @Override
   public HttpSession getHttpSession(String id) {
     return null;
@@ -103,8 +102,7 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void setMaxInactiveInterval(int seconds) {
-  }
+  public void setMaxInactiveInterval(int seconds) {}
 
   @Override
   public void setSessionHandler(SessionHandler handler) {
@@ -112,16 +110,13 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void addEventListener(EventListener listener) {
-  }
+  public void addEventListener(EventListener listener) {}
 
   @Override
-  public void removeEventListener(EventListener listener) {
-  }
+  public void removeEventListener(EventListener listener) {}
 
   @Override
-  public void clearEventListeners() {
-  }
+  public void clearEventListeners() {}
 
   @Override
   public HttpCookie getSessionCookie(
@@ -170,8 +165,7 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void setSessionIdPathParameterName(String parameterName) {
-  }
+  public void setSessionIdPathParameterName(String parameterName) {}
 
   @Override
   public String getSessionIdPathParameterName() {
@@ -204,8 +198,7 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void setSessionTrackingModes(Set<SessionTrackingMode> sessionTrackingModes) {
-  }
+  public void setSessionTrackingModes(Set<SessionTrackingMode> sessionTrackingModes) {}
 
   @Override
   public SessionCookieConfig getSessionCookieConfig() {
@@ -218,14 +211,9 @@ public class NoOpSessionManager extends ContainerLifeCycle implements SessionMan
   }
 
   @Override
-  public void setCheckingRemoteSessionIdEncoding(boolean remote) {
-  }
+  public void setCheckingRemoteSessionIdEncoding(boolean remote) {}
 
   @Override
   public void renewSessionId(
-      String oldClusterId,
-      String oldNodeId,
-      String newClusterId,
-      String newNodeId) {
-  }
+      String oldClusterId, String oldNodeId, String newClusterId, String newNodeId) {}
 }

@@ -32,16 +32,13 @@ public class NoOpSessionIdManager extends AbstractSessionIdManager {
   }
 
   @Override
-  public void addSession(HttpSession session) {
-  }
+  public void addSession(HttpSession session) {}
 
   @Override
-  public void removeSession(HttpSession session) {
-  }
+  public void removeSession(HttpSession session) {}
 
   @Override
-  public void invalidateAll(String id) {
-  }
+  public void invalidateAll(String id) {}
 
   @Override
   public void renewSessionId(String oldClusterId, String oldNodeId, HttpServletRequest request) {

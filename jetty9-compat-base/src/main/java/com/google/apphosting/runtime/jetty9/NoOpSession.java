@@ -27,7 +27,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
-
 /**
  * A minimal implementation of HttpSession, just sufficient to use attributes within a
  * single request.
@@ -57,7 +56,6 @@ public class NoOpSession implements HttpSession {
   protected void complete() {
     attributes.clear();
   }
-
 
   @Override
   public long getCreationTime() {
@@ -89,8 +87,7 @@ public class NoOpSession implements HttpSession {
   }
 
   @Override
-  public void setMaxInactiveInterval(int interval) {
-  }
+  public void setMaxInactiveInterval(int interval) {}
 
   @Override
   public int getMaxInactiveInterval() {
@@ -187,9 +184,8 @@ public class NoOpSession implements HttpSession {
     checkValid();
     return true;
   }
-  
-  private void checkValid () throws IllegalStateException {
-    if (!isValid())
-      throw new IllegalStateException("Session "+clusterId+" invalid");
+
+  private void checkValid() throws IllegalStateException {
+    if (!isValid()) throw new IllegalStateException("Session " + clusterId + " invalid");
   }
 }
