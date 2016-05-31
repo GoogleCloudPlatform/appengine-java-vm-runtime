@@ -36,12 +36,9 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * Constructs an {@link AppEngineWebXml} from an xml document corresponding to
- * appengine-web.xsd.
+ * Constructs an {@link AppEngineWebXml} from an xml document corresponding to appengine-web.xsd.
  *
- * TODO(user): Add a real link to the xsd once it exists and do schema
- * validation.
- *
+ * TODO(user): Add a real link to the xsd once it exists and do schema validation.
  */
 class AppEngineWebXmlProcessor {
 
@@ -506,21 +503,21 @@ class AppEngineWebXmlProcessor {
     if (cpu != null) {
       resources.setCpu(cpu);
     }
-    Double memory_gb = getChildNodeDouble(settingsNode, "memory-gb");
-    if (memory_gb != null) {
-      resources.setMemoryGb(memory_gb);
+    Double memoryGb = getChildNodeDouble(settingsNode, "memory-gb");
+    if (memoryGb != null) {
+      resources.setMemoryGb(memoryGb);
     }
-    Integer disk_size_gb = getChildNodePositiveInteger(settingsNode, "disk-size-gb");
-    if (disk_size_gb != null) {
-      resources.setDiskSizeGb(disk_size_gb);
+    Integer diskSizeGb = getChildNodePositiveInteger(settingsNode, "disk-size-gb");
+    if (diskSizeGb != null) {
+      resources.setDiskSizeGb(diskSizeGb);
     }
   }
 
   private void processNetworkNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     Network network = appEngineWebXml.getNetwork();
-    String instance_tag = trim(getChildNodeText(settingsNode, "instance-tag"));
-    if (instance_tag != null && !instance_tag.isEmpty()) {
-      network.setInstanceTag(instance_tag);
+    String instanceTag = trim(getChildNodeText(settingsNode, "instance-tag"));
+    if (instanceTag != null && !instanceTag.isEmpty()) {
+      network.setInstanceTag(instanceTag);
     }
     for (Element subNode : getNodeIterable(settingsNode, "forwarded-port")) {
       String forwardedPort = getTextNode(subNode);

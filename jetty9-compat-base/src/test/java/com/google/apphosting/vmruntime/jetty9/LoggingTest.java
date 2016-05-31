@@ -54,7 +54,7 @@ public class LoggingTest extends VmRuntimeTestBase {
     // Look for the log entry with our query string
     try (BufferedReader in =
         new BufferedReader(
-            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1)); ) {
+            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1))) {
       String line;
       while ((line = in.readLine()) != null) {
         if (line.contains(query)) {

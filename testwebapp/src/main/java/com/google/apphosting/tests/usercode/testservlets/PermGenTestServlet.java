@@ -44,10 +44,10 @@ public class PermGenTestServlet extends HttpServlet {
     for (int i = 0; i < ONE_K; i++) {
       builder.append('x');
     }
-    String one_k_string = builder.toString();
+    String oneKbString = builder.toString();
     builder = new StringBuilder();
     for (int i = 0; i < ONE_HALF_K; i++) {
-      builder.append(one_k_string);
+      builder.append(oneKbString);
     }
     ONE_MEG_STRING = builder.toString();
     if (ONE_MEG_STRING.length() != ONE_HALF_MEG) {
