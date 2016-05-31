@@ -111,12 +111,12 @@ public class TestReflection implements Runnable {
     private static Class<?> getMethodLocalClass() {
       class MethodNestedLocal {}
       return MethodNestedLocal.class;
-    };
+    }
 
     @SuppressWarnings({"InstantiatingObjectToGetClassObject"})
     private static Class<?> getMethodAnonymousClass() {
       return new Object() {}.getClass();
-    };
+    }
   }
 
   public void run() {

@@ -38,8 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Tests the InetAddress, Inet4Address and Inet6Address mirrors.
  * Also tests the NetworkInterface mirror.
- *
- *
  */
 public class TestInetAddressServlet extends HttpServletTest {
   /**
@@ -558,7 +556,7 @@ public class TestInetAddressServlet extends HttpServletTest {
    * A mock ApiProxy.Delegate specifically for handling resolve calls.
    */
   private static class MockDelegate implements ApiProxy.Delegate<ApiProxy.Environment> {
-    static byte[] MOCK_IPV4_ADDR = {10, 1, 1, 1};
+    static final byte[] MOCK_IPV4_ADDR = {10, 1, 1, 1};
     static final InetAddress MOCK_RESPONSE = makeMockResponseAddress();
 
     private static final InetAddress makeMockResponseAddress() {

@@ -271,7 +271,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
       // Check for HTTP error status and return early.
       if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
         try (Scanner errorStreamScanner =
-            new Scanner(new BufferedInputStream(response.getEntity().getContent())); ) {
+            new Scanner(new BufferedInputStream(response.getEntity().getContent()))) {
           logger.warning("Error body: " + errorStreamScanner.useDelimiter("\\Z").next());
           throw new RPCFailedStatusException(
               packageName, methodName, response.getStatusLine().getStatusCode());
@@ -564,7 +564,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     if (apiConfig != null && apiConfig.getDeadlineInSeconds() != null) {
       timeoutMs = (int) (apiConfig.getDeadlineInSeconds() * 1000);
     }
-    environment.aSyncApiCallAdded(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS);
+    environment.asyncApiCallAdded(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS);
     return executor.submit(
         new MakeSyncCall(this, environment, packageName, methodName, request, timeoutMs));
   }
