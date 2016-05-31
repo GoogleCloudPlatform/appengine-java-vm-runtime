@@ -77,7 +77,6 @@ public class VmRuntimeTestBase extends TestCase {
    *
    * @param servletPath The path to request, for example "/test".
    * @return An URL object pointing at the local Jetty instance.
-   * @throws MalformedURLException
    */
   protected URL createUrl(String servletPath) throws MalformedURLException {
     return new URL("http://localhost:" + port + servletPath);
@@ -88,10 +87,8 @@ public class VmRuntimeTestBase extends TestCase {
    *
    * @param servletPath The path to request, for example "/test".
    * @return An URL object pointing at the local Jetty instance.
-   * @throws MalformedURLException
-   * @throws UnknownHostException
    */
-  protected URL createUrlForHostIP(String servletPath)
+  protected URL createUrlForHostIp(String servletPath)
       throws MalformedURLException, UnknownHostException {
     return new URL(
         "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + port + servletPath);
@@ -102,7 +99,6 @@ public class VmRuntimeTestBase extends TestCase {
    *
    * @param url The URL to fetch.
    * @return A string array of the lines in the response.
-   * @throws IOException
    */
   protected String[] fetchUrl(URL url) throws IOException {
     return fetchUrlConnection((HttpURLConnection) url.openConnection());
@@ -112,7 +108,6 @@ public class VmRuntimeTestBase extends TestCase {
    * Convenience method for fetching from a HttpURLConnection. This allows headers to be set.
    * @param connection the connection to use
    * @return A string array of the lines in the response.
-   * @throws IOException
    */
   protected String[] fetchUrlConnection(HttpURLConnection connection) throws IOException {
     connection.connect();
@@ -137,7 +132,7 @@ public class VmRuntimeTestBase extends TestCase {
     port = me.alexpanov.net.FreePortFinder.findFreeLocalPort();
     externalPort = port;
     metadataServer = new TestMetadataServer();
-    metadataServer.setUseMVM(Boolean.valueOf(getUseMvmAgent()));
+    metadataServer.setUseMvm(Boolean.valueOf(getUseMvmAgent()));
     metadataServer.start();
 
     // Start jetty using the Runnable configured by the sub class.

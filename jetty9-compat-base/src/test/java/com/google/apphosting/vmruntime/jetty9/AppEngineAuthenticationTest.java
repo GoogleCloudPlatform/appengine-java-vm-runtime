@@ -129,8 +129,6 @@ public class AppEngineAuthenticationTest extends TestCase {
    * @param request The request object to use.
    * @param response The response object to use. Must be created by Mockito.mock()
    * @return Any data written to response.getWriter()
-   * @throws IOException
-   * @throws ServletException
    */
   private String runRequest(String path, Request request, Response response)
       throws IOException, ServletException {

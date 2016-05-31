@@ -251,8 +251,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   /**
    * Sets the system properties expected by jetty.xml.
-   *
-   * @throws IOException
    */
   protected void setSystemProperties(File logs) throws IOException {
     String logFilePattern = logs.getAbsolutePath() + "/log.%g";

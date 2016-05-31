@@ -95,7 +95,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     public String generateNewId() {
-      byte randomBytes[] = new byte[16];
+      byte[] randomBytes = new byte[16];
       _random.nextBytes(randomBytes);
       // Use a web-safe encoding in case the session identifier gets
       // passed via a URL path parameter.
@@ -302,15 +302,19 @@ public class SessionManager extends AbstractSessionManager {
       // Optimize flushing of session data to persistent storage based on nearness to expiry time.
       long expirationTime = sessionData.getExpirationTime();
       long timeRemaining = expirationTime - accessTime;
-      if (dirty) {
-      } else if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
-        dirty = true;
-        if (logger.isLoggable(Level.FINE)) {
-          logger.fine(
-              String.format("Session %s accessed while near expiration, marking dirty.", getId()));
+      if (!dirty) {
+        if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
+          dirty = true;
+          if (logger.isLoggable(Level.FINE)) {
+            logger.fine(
+                String
+                    .format("Session %s accessed while near expiration, marking dirty.", getId()));
+          }
+        } else {
+          if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
+          }
         }
-      } else if (logger.isLoggable(Level.FINE)) {
-        logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
       }
       sessionData.setExpirationTime(
           System.currentTimeMillis() + getSessionExpirationInMilliseconds());
@@ -319,7 +323,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     /**
-     * Check if the expiration time has passed
+     * Check if the expiration time has passed.
      *
      * @see org.eclipse.jetty.server.session.AbstractSession#checkExpiry(long)
      */
@@ -521,9 +525,6 @@ public class SessionManager extends AbstractSessionManager {
   /**
    * Call any session id listeners registered. Usually done by renewSessionId() method, but that is
    * not used in appengine.
-   *
-   * @param session
-   * @param oldId
    */
   public void callSessionIdListeners(AbstractSession session, String oldId) {
     HttpSessionEvent event = new HttpSessionEvent(session);

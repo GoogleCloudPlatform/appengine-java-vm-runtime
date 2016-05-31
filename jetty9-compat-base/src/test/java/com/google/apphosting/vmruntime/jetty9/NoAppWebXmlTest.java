@@ -16,8 +16,6 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import static junit.framework.TestCase.assertTrue;
-
 import java.util.Arrays;
 
 /**
@@ -34,8 +32,6 @@ public class NoAppWebXmlTest extends VmRuntimeTestBase {
 
   /**
    * Tests that mapping a servlet to / works.
-   *
-   * @throws Exception
    */
   public void testWelcomeServlet() throws Exception {
     String[] lines = fetchUrl(createUrl("/"));

@@ -83,7 +83,6 @@ public class TestInetAddressServlet extends HttpServletTest {
    * If InetAddress.getHostName() was invoked before other methods on
    * InetAddress were ever invoked in the JVM, an illegal open() syscall
    * occurred. For this test to be valid it must come first.
-   * @throws Exception
    */
   private static void testGetHostNameFirst(HttpServletResponse response) throws Exception {
     InetAddress inetAddr = InetAddress.getByAddress(null, new byte[] {74, 125, (byte) 224, 50});
@@ -99,8 +98,6 @@ public class TestInetAddressServlet extends HttpServletTest {
    * InetAddres4.getLocalHost() and Inet6Address.getLocalHost() and then test
    * their properties.
    * @param response HttpServletResponse used to return failure message
-   * @throws IOException
-   * @throws AssertionFailedException If an assertion fails
    */
   private static void testGetLocalHost(HttpServletResponse response)
       throws IOException, AssertionFailedException {
@@ -114,11 +111,7 @@ public class TestInetAddressServlet extends HttpServletTest {
   }
 
   /**
-   * Test properties of an instance of InetAddress obtained via getLocalHost()
-   * @param localHost
-   * @param response
-   * @throws IOException
-   * @throws AssertionFailedException
+   * Test properties of an instance of InetAddress obtained via getLocalHost().
    */
   private static void testLocalHost(InetAddress localHost, HttpServletResponse response)
       throws IOException, AssertionFailedException {
@@ -171,10 +164,11 @@ public class TestInetAddressServlet extends HttpServletTest {
    * is identical to testGetLocalHost(InetAddress, HttpServletResponse),  except that the
    * parameter is of type Inet4Address instead of InetAddress. This will test a different
    * code-path through our byte-rewriting.
-   * @param localHost The instance of InetAddress being tested
+   *
+   * @param localHost hhe instance of InetAddress being tested
    * @param response HttpServletResponse used to return failure message
-   * @throws IOException If method being tested throws this.
-   * @throws AssertionFailedException
+   * @throws IOException if method being tested throws this
+   * @throws AssertionFailedException if assertion fails
    */
   private static void testLocalHost4(Inet4Address localHost, HttpServletResponse response)
       throws IOException, AssertionFailedException {
@@ -363,10 +357,10 @@ public class TestInetAddressServlet extends HttpServletTest {
     testNameAndAddress6(hostName, addressString, addr, 0, inet6Addr, response);
 
     //Now we test a real IPv6 address with a scope ID
-    int scopeID = 17;
+    int scopeId = 17;
     addressString = "1080:0:0:0:8:800:200C:417A%17";
-    inet6Addr = Inet6Address.getByAddress(hostName, addr, scopeID);
-    testNameAndAddress6(hostName, addressString, addr, scopeID, inet6Addr, response);
+    inet6Addr = Inet6Address.getByAddress(hostName, addr, scopeId);
+    testNameAndAddress6(hostName, addressString, addr, scopeId, inet6Addr, response);
   }
 
   /**
@@ -377,7 +371,7 @@ public class TestInetAddressServlet extends HttpServletTest {
    * @param hostName The expected host name
    * @param addressString The expected address string
    * @param addressBytes The expected address bytes
-   * @param scopeID the expected scopeID
+   * @param scopeId the expected scope id
    * @param inet6Addr The instance of Inet6Address being tested
    * @param response HttpServletResponse used to return failure message
    * @throws IOException If method being tested throws this.
@@ -387,7 +381,7 @@ public class TestInetAddressServlet extends HttpServletTest {
       String hostName,
       String addressString,
       byte[] addressBytes,
-      int scopeID,
+      int scopeId,
       Inet6Address inet6Addr,
       HttpServletResponse response)
       throws IOException, AssertionFailedException {
@@ -441,7 +435,7 @@ public class TestInetAddressServlet extends HttpServletTest {
     assertNull("getScopedInterface()", inet6Addr.getScopedInterface(), response);
 
     //getScopedID
-    assertEquals("getScopedID()", scopeID, inet6Addr.getScopeId(), response);
+    assertEquals("getScopedID()", scopeId, inet6Addr.getScopeId(), response);
 
     //getHashCode
     assertFalse("hashCode is 0", 0 == inet6Addr.hashCode(), response);
@@ -499,26 +493,26 @@ public class TestInetAddressServlet extends HttpServletTest {
     inetAddr = InetAddress.getByName(addressStr);
     assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
     Inet6Address inet6Addr = (Inet6Address) inetAddr;
-    int scopeID = 0;
-    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    int scopeId = 0;
+    testNameAndAddress6(name, addressStr, addressBytes, scopeId, inet6Addr, response);
     inetAddr = Inet4Address.getByName(addressStr);
     assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
     inet6Addr = (Inet6Address) inetAddr;
-    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    testNameAndAddress6(name, addressStr, addressBytes, scopeId, inet6Addr, response);
     inetAddr = Inet6Address.getByName(addressStr);
     assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
     inet6Addr = (Inet6Address) inetAddr;
-    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    testNameAndAddress6(name, addressStr, addressBytes, scopeId, inet6Addr, response);
 
     //Now we try passing in an IPV6 address with a numeric scope ID as the name
     addressStr = "1080:0:0:0:8:800:200C:417A%42";
-    scopeID = 42;
+    scopeId = 42;
     addressBytes =
         new byte[] {0x10, (byte) 0x80, 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0x20, 0xC, 0x41, 0x7A};
     inetAddr = InetAddress.getByName(addressStr);
     assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
     inet6Addr = (Inet6Address) inetAddr;
-    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    testNameAndAddress6(name, addressStr, addressBytes, scopeId, inet6Addr, response);
 
     //Now we try passing in an IPV6 address with a non-numeric interface name as the name
     addressStr = "1080:0:0:0:8:800:200C:417A%MyFavoriteInterface";
@@ -536,9 +530,6 @@ public class TestInetAddressServlet extends HttpServletTest {
   /**
    * Tests NetworkInterface.getNetworkInterfaces(), NetworkInterface.getByName(String).
    * The mirrors for these methods do nothing but return null.
-   * @param response
-   * @throws IOException
-   * @throws AssertionFailedException
    */
   private static void testNetworkInterface(HttpServletResponse response)
       throws IOException, AssertionFailedException {

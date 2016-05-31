@@ -154,7 +154,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     environment.apiCallStarted(VmRuntimeUtils.MAX_USER_API_CALL_WAIT_MS, wasAsync);
 
     try {
-      byte responseData[] =
+      byte[] responseData =
           runSyncCall(environment, packageName, methodName, requestData, timeoutMs);
       long end = System.currentTimeMillis();
       if (logger.isLoggable(Level.FINE)) {

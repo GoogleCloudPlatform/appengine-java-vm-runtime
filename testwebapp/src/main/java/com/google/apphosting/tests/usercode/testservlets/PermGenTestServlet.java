@@ -68,8 +68,6 @@ public class PermGenTestServlet extends HttpServlet {
   /**
    * By interning numMegs Strings of size about one meg and holding on to a reference to the
    * interned strings, we put approximately numMegs megs into perm-gen space.
-   *
-   * @param numMegs
    */
   private static void usePermGenSpace(int numMegs) {
     String[] strings = new String[numMegs];

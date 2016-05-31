@@ -46,8 +46,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
   /**
    * Test that non compiled jsp files can be served.
-   *
-   * @throws Exception
    */
   public void testJspNotCompiled() throws Exception {
     int iter = 0;
@@ -67,8 +65,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
   /**
    * Tests that mapping a servlet to / works.
-   *
-   * @throws Exception
    */
   public void testWelcomeServlet() throws Exception {
     String[] lines = fetchUrl(createUrl("/"));
@@ -77,8 +73,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
   /**
    * Test that the API Proxy was configured by the VmRuntimeFilter.
-   *
-   * @throws Exception
    */
   public void testApiProxyInstall() throws Exception {
     assertNotNull(ApiProxy.getDelegate());
@@ -89,8 +83,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
   /**
    * Test that the thread local environment is set up on each request.
-   *
-   * @throws Exception
    */
   public void testEnvironmentInstall() throws Exception {
     String[] lines = fetchUrl(createUrl("/CurrentEnvironmentAccessor"));
@@ -102,10 +94,8 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   /**
    * Test that the health check servlet was loaded and responds with "ok" with
    * the proper version provided.
-   *
-   * @throws Exception
    */
-  public void testHealthOK() throws Exception {
+  public void testHealthOk() throws Exception {
     String[] lines = fetchUrl(createUrl("/_ah/health"));
     assertEquals(1, lines.length);
     assertEquals("ok", lines[0].trim());
@@ -114,8 +104,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   /**
    * Test that all AppEngine specific system properties are set up when the
    * VmRuntimeFilter is initialized.
-   *
-   * @throws Exception
    */
   public void testSystemProperties() throws Exception {
     String[] lines = fetchUrl(createUrl("/printSystemProperties"));
@@ -141,8 +129,6 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
    * Test that sessions are disabled. Disabling sessions means that the default HashSessionManager
    * is being used, which keeps sessions in memory only. Enabling sessions uses the appengine
    * SessionManager which will use Datastore and memcache as persistent backing stores.
-   *
-   * @throws Exception
    */
   public void testSessions() throws Exception {
     for (int i = 1; i <= 5; i++) {
@@ -154,7 +140,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     }
   }
 
-  public void testSsl_NoSSL() throws Exception {
+  public void testSsl_NoSsl() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
@@ -164,7 +150,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals(expected, get.getResponseBodyAsString());
   }
 
-  public void testSsl_WithSSL() throws Exception {
+  public void testSsl_WithSsl() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/test-ssl").toString());
@@ -177,7 +163,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   public void testWithUntrustedInboundIp() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrlForHostIP("/test-ssl").toString());
+    GetMethod get = new GetMethod(createUrlForHostIp("/test-ssl").toString());
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
   }

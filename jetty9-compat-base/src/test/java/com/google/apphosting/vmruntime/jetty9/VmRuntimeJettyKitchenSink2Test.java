@@ -45,8 +45,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
   /**
    * Test that the count servlet was loaded, and that local state is preserved
    * between requests.
-   *
-   * @throws Exception
    */
   public void testCountLocal() throws Exception {
     for (int i = 1; i <= 5; i++) {
@@ -58,8 +56,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
 
   /**
    * Test that abandoned transactions are aborted when the request completes.
-   *
-   * @throws Exception
    */
   public void testAbandonTransaction() throws Exception {
     long transactionId = 123456789012345L;
@@ -84,8 +80,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
-   *
-   * @throws Exception
    */
   public void testBlobUpload() throws Exception {
     String postData =
@@ -129,8 +123,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
   /**
    * Test that the count servlet was loaded, and that memcache calls are
    * forwarded through the VmApiProxyDelegate.
-   *
-   * @throws Exception
    */
   public void testCountMemcache() throws Exception {
     // Replace the API proxy delegate so we can fake API responses.

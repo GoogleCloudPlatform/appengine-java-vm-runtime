@@ -706,8 +706,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   /**
    * Notifies the environment that an API call was queued up.
-   *
-   * @throws ApiProxyException
    */
   void asyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
     try {

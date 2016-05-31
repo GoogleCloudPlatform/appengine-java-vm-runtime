@@ -108,7 +108,7 @@ public class TestBlobUploadServlet extends HttpServlet {
           HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Expected header to be present: " + UPLOAD_HEADER);
       return;
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException expected) {
     }
 
     Map<String, String[]> parameterMap = req.getParameterMap();

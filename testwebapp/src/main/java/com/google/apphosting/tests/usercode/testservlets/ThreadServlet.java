@@ -134,8 +134,8 @@ public class ThreadServlet extends HttpServlet {
             while (true) {
               try {
                 future.get();
-              } catch (InterruptedException ex) {
-              } catch (DeadlineExceededException ex) {
+              } catch (InterruptedException | DeadlineExceededException ex) {
+                // ignore
               } catch (ExecutionException ex) {
                 logger.warning("thread threw: " + ex.getCause());
                 break;
@@ -145,6 +145,7 @@ public class ThreadServlet extends HttpServlet {
             try {
               future.get();
             } catch (InterruptedException ex) {
+              // ignore
             } catch (ExecutionException ex) {
               logger.warning("thread threw: " + ex.getCause());
             }
@@ -157,6 +158,7 @@ public class ThreadServlet extends HttpServlet {
         Thread thread = factory.newThread(runnable);
         thread.setUncaughtExceptionHandler(
             new Thread.UncaughtExceptionHandler() {
+              @Override
               public void uncaughtException(Thread t, Throwable e) {
                 logger.warning("thread threw: " + e);
               }
@@ -171,6 +173,7 @@ public class ThreadServlet extends HttpServlet {
               try {
                 thread.join();
               } catch (Throwable th) {
+                // ignore
               }
             }
           } else {
@@ -192,7 +195,7 @@ public class ThreadServlet extends HttpServlet {
     final Object lock2 = new Object();
     final CyclicBarrier barrier = new CyclicBarrier(3);
 
-    ThreadManager.createThreadForCurrentRequest(
+    Runnable runnable =
         new Runnable() {
           public void run() {
             synchronized (lock1) {
@@ -206,9 +209,10 @@ public class ThreadServlet extends HttpServlet {
               }
             }
           }
-        })
-        .start();
-    ThreadManager.createThreadForCurrentRequest(
+        };
+    ThreadManager.createThreadForCurrentRequest(runnable).start();
+
+    runnable =
         new Runnable() {
           public void run() {
             synchronized (lock2) {
@@ -222,8 +226,8 @@ public class ThreadServlet extends HttpServlet {
               }
             }
           }
-        })
-        .start();
+        };
+    ThreadManager.createThreadForCurrentRequest(runnable).start();
     barrier.await();
   }
 }

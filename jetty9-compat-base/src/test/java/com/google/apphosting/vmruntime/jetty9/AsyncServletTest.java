@@ -36,8 +36,6 @@ public class AsyncServletTest extends VmRuntimeTestBase {
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
-   *
-   * @throws Exception
    */
   public void testAsyncPost() throws Exception {
     String postData = "Now is the winter of our discontent\n";
