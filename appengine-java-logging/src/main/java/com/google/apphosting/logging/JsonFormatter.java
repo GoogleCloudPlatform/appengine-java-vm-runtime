@@ -102,8 +102,8 @@ public class JsonFormatter extends Formatter {
     Throwable thrown = record.getThrown();
     if (thrown != null) {
       StringWriter sw = new StringWriter();
-      try (PrintWriter pw = new PrintWriter(sw); ) {
-        sb.append("\n");
+      try (PrintWriter pw = new PrintWriter(sw)) {
+        sb.append('\n');
         thrown.printStackTrace(pw);
       }
       sb.append(sw.getBuffer());

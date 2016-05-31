@@ -708,7 +708,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    *
    * @throws ApiProxyException
    */
-  void aSyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
+  void asyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
     try {
       if (pendingApiCallSemaphore.tryAcquire(maxWaitMs, TimeUnit.MILLISECONDS)) {
         return; // All good.
