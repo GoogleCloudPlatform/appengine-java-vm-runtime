@@ -15,9 +15,9 @@
  */
 package com.google.apphosting.runtime;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.Serializable;
 
 /**
  * {@code SessionData} is a simple data container for the contents of

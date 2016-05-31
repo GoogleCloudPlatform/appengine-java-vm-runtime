@@ -18,16 +18,16 @@ package com.google.apphosting.vmruntime.jetty9;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import com.google.gson.Gson;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-
-import com.google.gson.Gson;
 
 public class LoggingTest extends VmRuntimeTestBase {
 
@@ -54,7 +54,7 @@ public class LoggingTest extends VmRuntimeTestBase {
     // Look for the log entry with our query string
     try (BufferedReader in =
         new BufferedReader(
-            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1)); ) {
+            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1))) {
       String line;
       while ((line = in.readLine()) != null) {
         if (line.contains(query)) {

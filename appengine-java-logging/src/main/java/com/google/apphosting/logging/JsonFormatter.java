@@ -15,6 +15,8 @@
  */
 package com.google.apphosting.logging;
 
+import com.google.gson.stream.JsonWriter;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,8 +24,6 @@ import java.time.Instant;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-
-import com.google.gson.stream.JsonWriter;
 
 /**
  * A Formatter for use with java.util.logging that outputs LogRecords as JSON data with the
@@ -102,8 +102,8 @@ public class JsonFormatter extends Formatter {
     Throwable thrown = record.getThrown();
     if (thrown != null) {
       StringWriter sw = new StringWriter();
-      try (PrintWriter pw = new PrintWriter(sw); ) {
-        sb.append("\n");
+      try (PrintWriter pw = new PrintWriter(sw)) {
+        sb.append('\n');
         thrown.printStackTrace(pw);
       }
       sb.append(sw.getBuffer());

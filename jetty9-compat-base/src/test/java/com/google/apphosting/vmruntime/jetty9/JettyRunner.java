@@ -18,11 +18,8 @@ package com.google.apphosting.vmruntime.jetty9;
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.Handler;
@@ -41,7 +38,11 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 class JettyRunner extends AbstractLifeCycle implements Runnable {
 
@@ -114,12 +115,12 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
         target = new File(project, "jetty9-compat-base/target");
       }
 
-      File jetty_base =
+      File jettyBase =
           new File(
               System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
 
       Assert.assertTrue(target.isDirectory());
-      Assert.assertTrue(jetty_base.isDirectory());
+      Assert.assertTrue(jettyBase.isDirectory());
       logs = new File(target, "logs");
       logs.delete();
       logs.mkdirs();
@@ -145,8 +146,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
       // Basic jetty.xml handler setup
       HandlerCollection handlers = new HandlerCollection();
-      ContextHandlerCollection contexts =
-          new ContextHandlerCollection(); // TODO is a context handler collection needed for a single context?
+      // TODO is a context handler collection needed for a single context?
+      ContextHandlerCollection contexts = new ContextHandlerCollection();
       handlers.setHandlers(new Handler[] {contexts, new DefaultHandler()});
       server.setHandler(handlers);
 
@@ -217,7 +218,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
 
       // Hack to find the webdefault.xml
-      File webDefault = new File(jetty_base, "etc/webdefault.xml");
+      File webDefault = new File(jettyBase, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
 
       contexts.addHandler(context);
@@ -253,10 +254,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
    * @throws IOException
    */
   protected void setSystemProperties(File logs) throws IOException {
-
-    String log_file_pattern = logs.getAbsolutePath() + "/log.%g";
-
-    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, log_file_pattern);
+    String logFilePattern = logs.getAbsolutePath() + "/log.%g";
+    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, logFilePattern);
     System.setProperty(
         "jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
     System.setProperty("jetty.appenginehost", "localhost");

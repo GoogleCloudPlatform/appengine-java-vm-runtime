@@ -15,6 +15,8 @@
  */
 package com.google.apphosting.vmruntime;
 
+import static java.lang.String.valueOf;
+
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.LogRecord;
@@ -27,8 +29,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.valueOf;
 
 /**
  * Implements the ApiProxy environment when running in a Google Compute Engine VM.
@@ -708,7 +708,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
    *
    * @throws ApiProxyException
    */
-  void aSyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
+  void asyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
     try {
       if (pendingApiCallSemaphore.tryAcquire(maxWaitMs, TimeUnit.MILLISECONDS)) {
         return; // All good.

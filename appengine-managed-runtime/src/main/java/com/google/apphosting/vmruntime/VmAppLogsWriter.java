@@ -15,14 +15,13 @@
  */
 package com.google.apphosting.vmruntime;
 
+import com.google.appengine.repackaged.com.google.common.base.Stopwatch;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.logservice.LogServicePb.FlushRequest;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogGroup;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogLine;
-
-import com.google.appengine.repackaged.com.google.common.base.Stopwatch;
 
 import java.util.LinkedList;
 import java.util.List;

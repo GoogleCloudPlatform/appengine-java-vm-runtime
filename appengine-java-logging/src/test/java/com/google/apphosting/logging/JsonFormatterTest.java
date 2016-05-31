@@ -15,16 +15,19 @@
  */
 package com.google.apphosting.logging;
 
+import static org.hamcrest.core.StringEndsWith.endsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import com.google.gson.Gson;
+
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-
-import org.junit.Test;
-
-import com.google.gson.Gson;
-import static org.hamcrest.core.StringEndsWith.endsWith;
-import static org.junit.Assert.*;
 
 public class JsonFormatterTest {
 

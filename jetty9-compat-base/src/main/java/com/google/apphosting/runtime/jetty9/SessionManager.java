@@ -17,6 +17,16 @@ package com.google.apphosting.runtime.jetty9;
 
 import static com.google.appengine.repackaged.com.google.common.io.BaseEncoding.base64Url;
 
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.LogRecord;
+import com.google.apphosting.api.DeadlineExceededException;
+import com.google.apphosting.runtime.SessionData;
+import com.google.apphosting.runtime.SessionStore;
+
+import org.eclipse.jetty.server.session.AbstractSession;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.SecureRandom;
@@ -34,16 +44,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionIdListener;
-
-import org.eclipse.jetty.server.session.AbstractSession;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionIdManager;
-
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.LogRecord;
-import com.google.apphosting.api.DeadlineExceededException;
-import com.google.apphosting.runtime.SessionData;
-import com.google.apphosting.runtime.SessionStore;
 
 /**
  * Implements the Jetty {@link AbstractSessionManager} and, as an inner class,

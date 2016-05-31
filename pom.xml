@@ -21,7 +21,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.37-SNAPSHOT</version>
+  <version>1.9.38-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Google App Engine Runtime Parent</name>
   <scm>
@@ -33,8 +33,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.8.v20160314</jetty.version>
-    <appengine.api.version>1.9.37</appengine.api.version>
+    <appengine.api.version>1.9.38</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
+    <checkstyle.config.location>checkstyle/google-checks.xml</checkstyle.config.location>
   </properties>
 
   <developers>
@@ -151,7 +152,6 @@
           <artifactId>docker-maven-plugin</artifactId>
           <version>0.3.2</version>
         </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -210,9 +210,30 @@
             <localCheckout>true</localCheckout>
           </configuration>
         </plugin>
-
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <consoleOutput>true</consoleOutput>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
   <profiles>
@@ -238,7 +259,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
           </plugin>
-        </plugins>
+       </plugins>
       </build>
     </profile>
   </profiles>

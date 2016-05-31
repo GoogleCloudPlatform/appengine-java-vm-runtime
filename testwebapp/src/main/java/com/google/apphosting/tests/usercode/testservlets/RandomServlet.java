@@ -17,9 +17,9 @@ package com.google.apphosting.tests.usercode.testservlets;
 
 import java.security.SecureRandom;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServlet;
 
 public class RandomServlet extends HttpServlet {
   @Override

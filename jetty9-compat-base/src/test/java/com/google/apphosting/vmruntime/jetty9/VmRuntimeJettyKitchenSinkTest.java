@@ -19,15 +19,17 @@ import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import java.util.Arrays;
 import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Misc individual Jetty9 vmengines tests.
@@ -136,7 +138,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
   /**
    * Test that sessions are disabled. Disabling sessions means that the NoOpSessionManager
-   * is being used, which keeps sessions in memory only for the duration of a single request.
+   * is being used, which keeps sessions in memory only for the duration of a single request
    * Enabling sessions uses the appengine SessionManager which will use Datastore and memcache
    * as persistent backing stores.
    *

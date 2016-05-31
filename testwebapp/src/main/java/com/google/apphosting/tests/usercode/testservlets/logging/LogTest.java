@@ -16,21 +16,21 @@
 package com.google.apphosting.tests.usercode.testservlets.logging;
 
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
+import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 
 import java.io.IOException;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
 
 /**
  * Tests java.util.logging configuration from a file.
