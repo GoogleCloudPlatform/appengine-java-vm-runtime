@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.socket.SocketServicePb.ResolveReply;
@@ -155,8 +156,7 @@ public class TestInetAddressServlet extends HttpServletTest {
     assertFalse("isSiteLocalAddress", localHost.isSiteLocalAddress(), response);
 
     //toString
-    String s = localHost.toString();
-    assertEquals("toString", "localhost/127.0.0.1", s, response);
+    assertEquals("toString", "localhost/127.0.0.1", localHost.toString(), response);
 
     //isReachable
     assertFalse("isReachable", localHost.isReachable(1000), response);
@@ -212,8 +212,7 @@ public class TestInetAddressServlet extends HttpServletTest {
     assertFalse("isSiteLocalAddress", localHost.isSiteLocalAddress(), response);
 
     //toString
-    String s = localHost.toString();
-    assertEquals("toString", "localhost/127.0.0.1", s, response);
+    assertEquals("toString", "localhost/127.0.0.1", localHost.toString(), response);
 
     //isReachable
     assertFalse("isReachable", localHost.isReachable(1000), response);
@@ -322,9 +321,8 @@ public class TestInetAddressServlet extends HttpServletTest {
     assertFalse("isSiteLocalAddress", iAddr.isSiteLocalAddress(), response);
 
     //toString
-    String s = iAddr.toString();
     String prefix = (name == null ? addressString : name);
-    assertEquals("toString", prefix + "/" + addressString, s, response);
+    assertEquals("toString", prefix + "/" + addressString, iAddr.toString(), response);
 
     //isReachable
     assertFalse("isReachable", iAddr.isReachable(1000), response);
@@ -431,10 +429,10 @@ public class TestInetAddressServlet extends HttpServletTest {
     assertFalse("isSiteLocalAddress", inet6Addr.isSiteLocalAddress(), response);
 
     //toString
-    String s = inet6Addr.toString();
+    String str = inet6Addr.toString();
     String prefix = (hostName == null ? addressString : hostName);
     assertEquals(
-        "toString", (prefix + "/" + addressString).toUpperCase(), s.toUpperCase(), response);
+        "toString", (prefix + "/" + addressString).toUpperCase(), str.toUpperCase(), response);
 
     //isReachable
     assertFalse("isReachable", inet6Addr.isReachable(1000), response);
@@ -485,50 +483,50 @@ public class TestInetAddressServlet extends HttpServletTest {
 
     //Now we try passing in an IPV4 address string as the name
     String name = null;
-    String addressString = "123.17.0.77";
+    String addressStr = "123.17.0.77";
     byte[] addressBytes = new byte[] {123, 17, 0, 77};
-    InetAddress iAddr = InetAddress.getByName(addressString);
-    TestInetAddressServlet.testNameAndAddress4(name, addressString, addressBytes, iAddr, response);
-    iAddr = Inet4Address.getByName(addressString);
-    TestInetAddressServlet.testNameAndAddress4(name, addressString, addressBytes, iAddr, response);
-    iAddr = Inet6Address.getByName(addressString);
-    testNameAndAddress4(name, addressString, addressBytes, iAddr, response);
+    InetAddress inetAddr = InetAddress.getByName(addressStr);
+    TestInetAddressServlet.testNameAndAddress4(name, addressStr, addressBytes, inetAddr, response);
+    inetAddr = Inet4Address.getByName(addressStr);
+    TestInetAddressServlet.testNameAndAddress4(name, addressStr, addressBytes, inetAddr, response);
+    inetAddr = Inet6Address.getByName(addressStr);
+    testNameAndAddress4(name, addressStr, addressBytes, inetAddr, response);
 
     //Now we try passing in an IPV6 address string as the name
-    addressString = "1080:0:0:0:8:800:200C:417A";
+    addressStr = "1080:0:0:0:8:800:200C:417A";
     addressBytes =
         new byte[] {0x10, (byte) 0x80, 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0x20, 0xC, 0x41, 0x7A};
-    iAddr = InetAddress.getByName(addressString);
-    assertTrue("instanceof Inet6Address", iAddr instanceof Inet6Address, response);
-    Inet6Address inet6Addr = (Inet6Address) iAddr;
+    inetAddr = InetAddress.getByName(addressStr);
+    assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
+    Inet6Address inet6Addr = (Inet6Address) inetAddr;
     int scopeID = 0;
-    testNameAndAddress6(name, addressString, addressBytes, scopeID, inet6Addr, response);
-    iAddr = Inet4Address.getByName(addressString);
-    assertTrue("instanceof Inet6Address", iAddr instanceof Inet6Address, response);
-    inet6Addr = (Inet6Address) iAddr;
-    testNameAndAddress6(name, addressString, addressBytes, scopeID, inet6Addr, response);
-    iAddr = Inet6Address.getByName(addressString);
-    assertTrue("instanceof Inet6Address", iAddr instanceof Inet6Address, response);
-    inet6Addr = (Inet6Address) iAddr;
-    testNameAndAddress6(name, addressString, addressBytes, scopeID, inet6Addr, response);
+    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    inetAddr = Inet4Address.getByName(addressStr);
+    assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
+    inet6Addr = (Inet6Address) inetAddr;
+    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
+    inetAddr = Inet6Address.getByName(addressStr);
+    assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
+    inet6Addr = (Inet6Address) inetAddr;
+    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
 
     //Now we try passing in an IPV6 address with a numeric scope ID as the name
-    addressString = "1080:0:0:0:8:800:200C:417A%42";
+    addressStr = "1080:0:0:0:8:800:200C:417A%42";
     scopeID = 42;
     addressBytes =
         new byte[] {0x10, (byte) 0x80, 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0x20, 0xC, 0x41, 0x7A};
-    iAddr = InetAddress.getByName(addressString);
-    assertTrue("instanceof Inet6Address", iAddr instanceof Inet6Address, response);
-    inet6Addr = (Inet6Address) iAddr;
-    testNameAndAddress6(name, addressString, addressBytes, scopeID, inet6Addr, response);
+    inetAddr = InetAddress.getByName(addressStr);
+    assertTrue("instanceof Inet6Address", inetAddr instanceof Inet6Address, response);
+    inet6Addr = (Inet6Address) inetAddr;
+    testNameAndAddress6(name, addressStr, addressBytes, scopeID, inet6Addr, response);
 
     //Now we try passing in an IPV6 address with a non-numeric interface name as the name
-    addressString = "1080:0:0:0:8:800:200C:417A%MyFavoriteInterface";
+    addressStr = "1080:0:0:0:8:800:200C:417A%MyFavoriteInterface";
 
     // Trying to get an address with an interface name throws an exception.
     SecurityException caught = null;
     try {
-      iAddr = InetAddress.getByName(addressString);
+      inetAddr = InetAddress.getByName(addressStr);
     } catch (SecurityException e) {
       caught = e;
     }

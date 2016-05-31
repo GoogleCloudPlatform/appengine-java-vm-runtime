@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.ThreadManager;
@@ -192,36 +193,36 @@ public class ThreadServlet extends HttpServlet {
     final CyclicBarrier barrier = new CyclicBarrier(3);
 
     ThreadManager.createThreadForCurrentRequest(
-            new Runnable() {
-              public void run() {
-                synchronized (lock1) {
-                  try {
-                    barrier.await();
-                  } catch (Exception ex) {
-                    ex.printStackTrace();
-                  }
-                  synchronized (lock2) {
-                    lock2.toString();
-                  }
-                }
+        new Runnable() {
+          public void run() {
+            synchronized (lock1) {
+              try {
+                barrier.await();
+              } catch (Exception ex) {
+                ex.printStackTrace();
               }
-            })
+              synchronized (lock2) {
+                lock2.toString();
+              }
+            }
+          }
+        })
         .start();
     ThreadManager.createThreadForCurrentRequest(
-            new Runnable() {
-              public void run() {
-                synchronized (lock2) {
-                  try {
-                    barrier.await();
-                  } catch (Exception ex) {
-                    ex.printStackTrace();
-                  }
-                  synchronized (lock1) {
-                    lock1.toString();
-                  }
-                }
+        new Runnable() {
+          public void run() {
+            synchronized (lock2) {
+              try {
+                barrier.await();
+              } catch (Exception ex) {
+                ex.printStackTrace();
               }
-            })
+              synchronized (lock1) {
+                lock1.toString();
+              }
+            }
+          }
+        })
         .start();
     barrier.await();
   }

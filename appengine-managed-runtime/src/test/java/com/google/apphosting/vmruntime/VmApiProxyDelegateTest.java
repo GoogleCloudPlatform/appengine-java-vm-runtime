@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -507,7 +508,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         Double.toString(deadline));
   }
 
-  public void testAPIExceptionWrapping() {
+  public void testApiExceptionWrapping() {
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(createMockHttpClient());
     RuntimeException exception = delegate.constructApiException("logservice", "a");
 

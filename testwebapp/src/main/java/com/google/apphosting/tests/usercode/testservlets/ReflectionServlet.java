@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.lang.reflect.Method;
@@ -33,13 +34,13 @@ public class ReflectionServlet extends HttpServlet {
 
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException {
     // This returns a private class, Collections$2.
-    Enumeration<?> e = Collections.enumeration(Collections.emptyList());
+    Enumeration<?> enumeration = Collections.enumeration(Collections.emptyList());
     try {
       // However, we should still be able to access the public
       // Enumeration methods reflectively.
-      Method m = e.getClass().getMethod("hasMoreElements");
-      m.setAccessible(true);
-      Object result = m.invoke(e);
+      Method method = enumeration.getClass().getMethod("hasMoreElements");
+      method.setAccessible(true);
+      Object result = method.invoke(enumeration);
       res.getWriter().println("hasMoreElements = " + result);
     } catch (Exception ex) {
       throw new ServletException(ex);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import com.google.appengine.api.appidentity.AppIdentityServiceFailureException;
@@ -304,8 +305,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
   private RuntimeException constructException(
       String exceptionClassName, String message, String packageName, String methodName) {
     try {
-      Class<?> c = Class.forName(exceptionClassName);
-      Constructor<?> constructor = c.getDeclaredConstructor(String.class);
+      Class<?> clazz = Class.forName(exceptionClassName);
+      Constructor<?> constructor = clazz.getDeclaredConstructor(String.class);
       constructor.setAccessible(true);
       return (RuntimeException) constructor.newInstance(message);
     } catch (Exception e) {

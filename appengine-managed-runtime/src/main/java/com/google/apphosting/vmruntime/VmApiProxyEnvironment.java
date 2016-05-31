@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static java.lang.String.valueOf;
@@ -604,13 +605,13 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   public boolean isRequestTicket() {
-    String t = ticket;
-    return t != null && !t.isEmpty();
+    String requestTicket = ticket;
+    return requestTicket != null && !requestTicket.isEmpty();
   }
 
   public String getTicket() {
-    String t = ticket;
-    return (t != null && !t.isEmpty()) ? t : globalTicket;
+    String requestTicket = ticket;
+    return (requestTicket != null && !requestTicket.isEmpty()) ? requestTicket : globalTicket;
   }
 
   public String getPartition() {
