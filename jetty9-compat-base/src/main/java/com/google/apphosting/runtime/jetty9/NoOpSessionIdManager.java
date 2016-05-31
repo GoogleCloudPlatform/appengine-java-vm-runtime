@@ -16,10 +16,10 @@
 
 package com.google.apphosting.runtime.jetty9;
 
+import org.eclipse.jetty.server.session.AbstractSessionIdManager;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
-import org.eclipse.jetty.server.session.AbstractSessionIdManager;
 
 /**
  * Minimal implementation of the SessionIdManager, just enough to generate new session ids.

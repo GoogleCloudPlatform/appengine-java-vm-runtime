@@ -13,35 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
-import javax.servlet.http.HttpSession;
-
-import org.eclipse.jetty.http.HttpScheme;
-import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
-import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.HttpOutput;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.util.URIUtil;
-import org.eclipse.jetty.util.log.JavaUtilLog;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -70,6 +43,34 @@ import com.google.apphosting.vmruntime.VmRequestUtils;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
+
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
+import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.HttpOutput;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.util.URIUtil;
+import org.eclipse.jetty.util.log.JavaUtilLog;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
+import javax.servlet.http.HttpSession;
 
 /**
  * WebAppContext for VM Runtimes. This class extends the "normal" AppEngineWebAppContext with
@@ -294,14 +295,16 @@ public class VmRuntimeWebAppContext extends WebAppContext
   /**
    * Initialize the WebAppContext for use by the VmRuntime.
    *
-   * This method initializes the WebAppContext by setting the context path and application folder.
-   * It will also parse the appengine-web.xml file provided to set System Properties and session
-   * manager accordingly.
+   * <p>
+   * This method initializes the WebAppContext by setting the context path and 
+   * application folder. It will also parse the appengine-web.xml file provided to 
+   * set System Properties and session manager accordingly.
+   * </p>
    *
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
    * @throws AppEngineConfigException If there was a problem finding or parsing the
-   *                                  appengine-web.xml configuration.
-   * @throws IOException              If the runtime was unable to find/read appDir.
+   *         appengine-web.xml configuration.
+   * @throws IOException If the runtime was unable to find/read appDir.
    */
   public void init(String appengineWebXmlFile) throws AppEngineConfigException, IOException {
     String appDir = getBaseResource().getFile().getCanonicalPath();
@@ -352,13 +355,16 @@ public class VmRuntimeWebAppContext extends WebAppContext
     VmRuntimeInterceptor.init(appEngineWebXml);
   }
 
-
-
   @Override
   public boolean isTrustedRemoteAddr(String remoteAddr) {
     return VmRequestUtils.isTrustedRemoteAddr(isDevMode, remoteAddr);
   }
 
+  /**
+   * Get or create the RequestContext for a request.
+   * @param baseRequest The request to scope the context.
+   * @return Either an existing associated context or a new context.
+   */
   public RequestContext getRequestContext(Request baseRequest) {
     if (baseRequest == null) {
       return null;
@@ -402,7 +408,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
     public String toString() {
       return String.format(
           "RequestContext@%x %s==%s",
-          hashCode(), request.getRequestURI(), requestSpecificEnvironment);
+          hashCode(),
+          request.getRequestURI(),
+          requestSpecificEnvironment);
     }
   }
 

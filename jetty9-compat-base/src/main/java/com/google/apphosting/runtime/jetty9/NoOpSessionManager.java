@@ -16,6 +16,14 @@
 
 package com.google.apphosting.runtime.jetty9;
 
+import org.eclipse.jetty.http.HttpCookie;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.util.component.ContainerLifeCycle;
+
 import java.util.EventListener;
 import java.util.Set;
 
@@ -25,20 +33,12 @@ import javax.servlet.SessionTrackingMode;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.eclipse.jetty.http.HttpCookie;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.SessionIdManager;
-import org.eclipse.jetty.server.SessionManager;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.util.component.ContainerLifeCycle;
-
 /**
  * Does the bare minimum to create a NoOpSession. This session manager should be used only when
- * appengine-web.xml has disabled sessions. The purpose of it is to provide an implementation with just
- * enough compliance with the servlet session api so that frameworks that require the session api
- * will still work, albeit without the costs associated with distributed persistent sessions (ie
- * sessions enabled in appengine-web.xml).
+ * appengine-web.xml has disabled sessions. The purpose of it is to provide an implementation 
+ * with just enough compliance with the servlet session api so that frameworks that require the 
+ * session api will still work, albeit without the costs associated with distributed persistent 
+ * sessions (ie sessions enabled in appengine-web.xml).
  */
 public class NoOpSessionManager extends ContainerLifeCycle implements SessionManager {
 

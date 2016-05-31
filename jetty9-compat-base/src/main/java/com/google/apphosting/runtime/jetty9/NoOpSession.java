@@ -186,6 +186,8 @@ public class NoOpSession implements HttpSession {
   }
 
   private void checkValid() throws IllegalStateException {
-    if (!isValid()) throw new IllegalStateException("Session " + clusterId + " invalid");
+    if (!isValid()) {
+      throw new IllegalStateException("Session " + clusterId + " invalid");
+    }
   }
 }
