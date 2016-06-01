@@ -35,9 +35,9 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Does the bare minimum to create a NoOpSession. This session manager should be used only when
- * appengine-web.xml has disabled sessions. The purpose of it is to provide an implementation 
- * with just enough compliance with the servlet session api so that frameworks that require the 
- * session api will still work, albeit without the costs associated with distributed persistent 
+ * appengine-web.xml has disabled sessions. The purpose of it is to provide an implementation
+ * with just enough compliance with the servlet session api so that frameworks that require the
+ * session api will still work, albeit without the costs associated with distributed persistent
  * sessions (ie sessions enabled in appengine-web.xml).
  */
 public class NoOpSessionManager extends ContainerLifeCycle implements SessionManager {
