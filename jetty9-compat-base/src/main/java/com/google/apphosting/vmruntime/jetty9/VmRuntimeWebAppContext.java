@@ -362,6 +362,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
   /**
    * Get or create the RequestContext for a request.
+   * 
    * @param baseRequest The request to scope the context.
    * @return Either an existing associated context or a new context.
    */
