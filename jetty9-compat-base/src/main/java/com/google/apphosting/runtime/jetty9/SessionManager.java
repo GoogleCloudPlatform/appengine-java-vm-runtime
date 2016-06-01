@@ -362,10 +362,9 @@ public class SessionManager extends AbstractSessionManager {
    * Constructs a SessionManager
    *
    * @param sessionStoresInWriteOrder The SessionStores in the order to which they should be
-   *                                  written. When attempting to load a session, the read order is
-   *                                  the opposite of the write order, so if the write order is A,
-   *                                  B, C, when reading we will first consult C, and if the session
-   *                                  is not found move on to B, and if not found then on to A.
+   *        written. When attempting to load a session, the read order is the opposite of the write
+   *        order, so if the write order is A, B, C, when reading we will first consult C, and if
+   *        the session is not found move on to B, and if not found then on to A.
    */
   public SessionManager(List<SessionStore> sessionStoresInWriteOrder) {
     super();
