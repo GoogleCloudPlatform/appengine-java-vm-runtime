@@ -50,7 +50,6 @@ import javax.servlet.http.HttpSessionIdListener;
  * Implements the Jetty {@link AbstractSessionManager} and, as an inner class,
  * {@link HashSessionIdManager} for our context. The session manager has to check the provided
  * {@link SessionStore SessionStores} to find sessions.
- *
  */
 public class SessionManager extends AbstractSessionManager {
   private static final Logger logger = Logger.getLogger(SessionManager.class.getName());
@@ -107,12 +106,12 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   /**
-   * A session implementation using the provided list of {@link SessionStore SessionStores} to store
-   * attributes. Expiration is also stored.
    * <p>
-   * An instance of this class may be used simultaneously be multiple request threads. We use
-   * synchronization to guard access to sessionData and the parent object state.
-   *
+   * A session implementation using the provided list of {@link SessionStore SessionStores} to store
+   * attributes. Expiration is also stored. An instance of this class may be used simultaneously
+   * be multiple request threads. We use synchronization to guard access to sessionData and the
+   * parent object state.
+   * </p>
    */
   public class AppEngineSession extends AbstractSession {
 
@@ -149,8 +148,7 @@ public class SessionManager extends AbstractSessionManager {
 
     @Override
     public void renewId(HttpServletRequest request) {
-
-      String oldId = getClusterId();
+      final String oldId = getClusterId();
 
       // remove session with the old from storage
       deleteSession();
@@ -307,8 +305,8 @@ public class SessionManager extends AbstractSessionManager {
           dirty = true;
           if (logger.isLoggable(Level.FINE)) {
             logger.fine(
-                String
-                    .format("Session %s accessed while near expiration, marking dirty.", getId()));
+                String.format(
+                    "Session %s accessed while near expiration, marking dirty.", getId()));
           }
         } else {
           if (logger.isLoggable(Level.FINE)) {
@@ -512,7 +510,7 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   /**
-   * Not used
+   * Not used.
    */
   @Override
   public void renewSessionId(

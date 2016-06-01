@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM jetty9:@@image.label@@
+FROM jetty9:${docker.label.prefix}${jetty.version}
+
+# Create env vars to identify image
+ENV GAE_IMAGE_NAME ${project.artifactId}
+ENV GAE_IMAGE_LABEL ${docker.label.prefix}${project.version}
+ENV GAE_IMAGE_VERSION ${project.version}
 
 # Remove stock Jetty Base
 RUN rm -fr $JETTY_BASE \
