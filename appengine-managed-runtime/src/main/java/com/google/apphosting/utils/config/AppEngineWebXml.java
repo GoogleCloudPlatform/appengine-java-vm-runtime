@@ -1,16 +1,18 @@
-// Copyright 2014 Google Inc. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.apphosting.utils.config;
 
@@ -41,7 +43,11 @@ public class AppEngineWebXml implements Cloneable {
   /**
    * Enumeration of supported scaling types.
    */
-  public static enum ScalingType {AUTOMATIC, MANUAL, BASIC}
+  public static enum ScalingType {
+    AUTOMATIC,
+    MANUAL,
+    BASIC
+  }
 
   // System properties defined by the application in appengine-web.xml
   private final Map<String, String> systemProperties = Maps.newHashMap();
@@ -64,13 +70,15 @@ public class AppEngineWebXml implements Cloneable {
   public static final String WARMUP_SERVICE = "warmup";
 
   public static final String URL_HANDLER_URLFETCH = "urlfetch";
-  public static final String URL_HANDLER_NATIVE= "native";
+  public static final String URL_HANDLER_NATIVE = "native";
 
   private String appId;
 
   private String majorVersionId;
 
   private String module;
+  // Used to be module, but now replaced by service.
+  private String service;
   private String instanceClass;
 
   private final AutomaticScaling automaticScaling;
@@ -119,11 +127,11 @@ public class AppEngineWebXml implements Cloneable {
 
   private boolean codeLock = false;
   private boolean useVm = false;
-  // Default env is 1 (GAE V1)
-  private String env = "1";
+  // Default env is standard (GAE V1)
+  // TODO(user): Add a test emitting an error if "env" is present but it has an invalid value.
+  private String env = "standard";
   private ApiConfig apiConfig;
   private final List<String> apiEndpointIds;
-  private Pagespeed pagespeed;
 
   /**
    * Represent user's choice w.r.t the usage of Google's customized connector-j.
@@ -239,6 +247,10 @@ public class AppEngineWebXml implements Cloneable {
     return module;
   }
 
+  public String getService() {
+    return service;
+  }
+
   /**
    * Sets instanceClass (aka class in the xml/yaml files). Normalizes empty and null
    * inputs to null.
@@ -275,6 +287,10 @@ public class AppEngineWebXml implements Cloneable {
 
   public void setModule(String module) {
     this.module = module;
+  }
+
+  public void setService(String service) {
+    this.service = service;
   }
 
   public void setSslEnabled(boolean ssl) {
@@ -349,8 +365,8 @@ public class AppEngineWebXml implements Cloneable {
 
   public void addUserPermission(String className, String name, String actions) {
     if (className.startsWith("java.")) {
-      throw new AppEngineConfigException("Cannot specify user-permissions for " +
-                                         "classes in java.* packages.");
+      throw new AppEngineConfigException(
+          "Cannot specify user-permissions for " + "classes in java.* packages.");
     }
 
     userPermissions.add(new UserPermission(className, name, actions));
@@ -359,10 +375,9 @@ public class AppEngineWebXml implements Cloneable {
   public Permissions getUserPermissions() {
     Permissions permissions = new Permissions();
     for (UserPermission permission : userPermissions) {
-      permissions.add(new UnresolvedPermission(permission.getClassName(),
-                                               permission.getName(),
-                                               permission.getActions(),
-                                               null));
+      permissions.add(
+          new UnresolvedPermission(
+              permission.getClassName(), permission.getName(), permission.getActions(), null));
     }
     permissions.setReadOnly();
     return permissions;
@@ -373,7 +388,7 @@ public class AppEngineWebXml implements Cloneable {
       throw new AppEngineConfigException("public-root cannot contain wildcards");
     }
     if (root.endsWith("/")) {
-        root = root.substring(0, root.length() - 1);
+      root = root.substring(0, root.length() - 1);
     }
     if (root.length() > 0 && !root.startsWith("/")) {
       root = "/" + root;
@@ -475,6 +490,10 @@ public class AppEngineWebXml implements Cloneable {
     return env;
   }
 
+  public boolean isFlexible() {
+    return ("flex".equalsIgnoreCase(env) || "2".equals(env) || "flexible".equalsIgnoreCase(env));
+  }
+
   public ApiConfig getApiConfig() {
     return apiConfig;
   }
@@ -505,8 +524,12 @@ public class AppEngineWebXml implements Cloneable {
     if (!URL_HANDLER_URLFETCH.equals(urlStreamHandlerType)
         && !URL_HANDLER_NATIVE.equals(urlStreamHandlerType)) {
       throw new AppEngineConfigException(
-          "url-stream-handler must be " + URL_HANDLER_URLFETCH + " or " + URL_HANDLER_NATIVE +
-          " given " + urlStreamHandlerType);
+          "url-stream-handler must be "
+              + URL_HANDLER_URLFETCH
+              + " or "
+              + URL_HANDLER_NATIVE
+              + " given "
+              + urlStreamHandlerType);
     }
     this.urlStreamHandlerType = urlStreamHandlerType;
   }
@@ -523,14 +546,6 @@ public class AppEngineWebXml implements Cloneable {
     apiEndpointIds.add(id);
   }
 
-  public Pagespeed getPagespeed() {
-    return pagespeed;
-  }
-
-  public void setPagespeed(Pagespeed pagespeed) {
-    this.pagespeed = pagespeed;
-  }
-
   public void setUseGoogleConnectorJ(boolean useGoogleConnectorJ) {
     if (useGoogleConnectorJ) {
       this.useGoogleConnectorJ = UseGoogleConnectorJ.TRUE;
@@ -545,51 +560,98 @@ public class AppEngineWebXml implements Cloneable {
 
   @Override
   public String toString() {
-    return "AppEngineWebXml{" +
-        "systemProperties=" + systemProperties +
-        ", envVariables=" + envVariables +
-        ", userPermissions=" + userPermissions +
-        ", appId='" + appId + '\'' +
-        ", majorVersionId='" + majorVersionId + '\'' +
-        ", sourceLanguage='" + sourceLanguage + '\'' +
-        ", module='" + module + '\'' +
-        ", instanceClass='" + instanceClass + '\'' +
-        ", automaticScaling=" + automaticScaling  +
-        ", manualScaling=" + manualScaling  +
-        ", basicScaling=" + basicScaling  +
-        ", healthCheck=" + healthCheck +
-        ", resources=" + resources +
-        ", network=" + network +
-        ", sslEnabled=" + sslEnabled +
-        ", useSessions=" + useSessions +
-        ", asyncSessionPersistence=" + asyncSessionPersistence +
-        ", asyncSessionPersistenceQueueName='" + asyncSessionPersistenceQueueName + '\'' +
-        ", staticFileIncludes=" + staticFileIncludes +
-        ", staticFileExcludes=" + staticFileExcludes +
-        ", resourceFileIncludes=" + resourceFileIncludes +
-        ", resourceFileExcludes=" + resourceFileExcludes +
-        ", staticIncludePattern=" + staticIncludePattern +
-        ", staticExcludePattern=" + staticExcludePattern +
-        ", resourceIncludePattern=" + resourceIncludePattern +
-        ", resourceExcludePattern=" + resourceExcludePattern +
-        ", publicRoot='" + publicRoot + '\'' +
-        ", appRoot='" + appRoot + '\'' +
-        ", inboundServices=" + inboundServices +
-        ", precompilationEnabled=" + precompilationEnabled +
-        ", adminConsolePages=" + adminConsolePages +
-        ", errorHandlers=" + errorHandlers +
-        ", threadsafe=" + threadsafe +
-        ", threadsafeValueProvided=" + threadsafeValueProvided +
-        ", autoIdPolicy=" + autoIdPolicy +
-        ", codeLock=" + codeLock +
-        ", apiConfig=" + apiConfig +
-        ", apiEndpointIds=" + apiEndpointIds +
-        ", pagespeed=" + pagespeed +
-        ", classLoaderConfig=" + classLoaderConfig +
-        ", urlStreamHandlerType=" +
-            (urlStreamHandlerType == null ? URL_HANDLER_URLFETCH : urlStreamHandlerType) +
-        ", useGoogleConnectorJ=" + useGoogleConnectorJ +
-        '}';
+    return "AppEngineWebXml{"
+        + "systemProperties="
+        + systemProperties
+        + ", envVariables="
+        + envVariables
+        + ", userPermissions="
+        + userPermissions
+        + ", appId='"
+        + appId
+        + '\''
+        + ", majorVersionId='"
+        + majorVersionId
+        + '\''
+        + ", sourceLanguage='"
+        + sourceLanguage
+        + '\''
+        + ", service='"
+        + service
+        + '\''
+        + ", instanceClass='"
+        + instanceClass
+        + '\''
+        + ", automaticScaling="
+        + automaticScaling
+        + ", manualScaling="
+        + manualScaling
+        + ", basicScaling="
+        + basicScaling
+        + ", healthCheck="
+        + healthCheck
+        + ", resources="
+        + resources
+        + ", network="
+        + network
+        + ", sslEnabled="
+        + sslEnabled
+        + ", useSessions="
+        + useSessions
+        + ", asyncSessionPersistence="
+        + asyncSessionPersistence
+        + ", asyncSessionPersistenceQueueName='"
+        + asyncSessionPersistenceQueueName
+        + '\''
+        + ", staticFileIncludes="
+        + staticFileIncludes
+        + ", staticFileExcludes="
+        + staticFileExcludes
+        + ", resourceFileIncludes="
+        + resourceFileIncludes
+        + ", resourceFileExcludes="
+        + resourceFileExcludes
+        + ", staticIncludePattern="
+        + staticIncludePattern
+        + ", staticExcludePattern="
+        + staticExcludePattern
+        + ", resourceIncludePattern="
+        + resourceIncludePattern
+        + ", resourceExcludePattern="
+        + resourceExcludePattern
+        + ", publicRoot='"
+        + publicRoot
+        + '\''
+        + ", appRoot='"
+        + appRoot
+        + '\''
+        + ", inboundServices="
+        + inboundServices
+        + ", precompilationEnabled="
+        + precompilationEnabled
+        + ", adminConsolePages="
+        + adminConsolePages
+        + ", errorHandlers="
+        + errorHandlers
+        + ", threadsafe="
+        + threadsafe
+        + ", threadsafeValueProvided="
+        + threadsafeValueProvided
+        + ", autoIdPolicy="
+        + autoIdPolicy
+        + ", codeLock="
+        + codeLock
+        + ", apiConfig="
+        + apiConfig
+        + ", apiEndpointIds="
+        + apiEndpointIds
+        + ", classLoaderConfig="
+        + classLoaderConfig
+        + ", urlStreamHandlerType="
+        + (urlStreamHandlerType == null ? URL_HANDLER_URLFETCH : urlStreamHandlerType)
+        + ", useGoogleConnectorJ="
+        + useGoogleConnectorJ
+        + '}';
   }
 
   @Override
@@ -618,7 +680,8 @@ public class AppEngineWebXml implements Cloneable {
     if (threadsafeValueProvided != that.threadsafeValueProvided) {
       return false;
     }
-    if (autoIdPolicy != null ? !autoIdPolicy.equals(that.autoIdPolicy)
+    if (autoIdPolicy != null
+        ? !autoIdPolicy.equals(that.autoIdPolicy)
         : that.autoIdPolicy != null) {
       return false;
     }
@@ -628,21 +691,24 @@ public class AppEngineWebXml implements Cloneable {
     if (useSessions != that.useSessions) {
       return false;
     }
-    if (adminConsolePages != null ? !adminConsolePages.equals(that.adminConsolePages)
+    if (adminConsolePages != null
+        ? !adminConsolePages.equals(that.adminConsolePages)
         : that.adminConsolePages != null) {
       return false;
     }
     if (appId != null ? !appId.equals(that.appId) : that.appId != null) {
       return false;
     }
-    if (majorVersionId != null ? !majorVersionId.equals(that.majorVersionId)
+    if (majorVersionId != null
+        ? !majorVersionId.equals(that.majorVersionId)
         : that.majorVersionId != null) {
       return false;
     }
-    if (module != null ? !module.equals(that.module) : that.module != null) {
+    if (service != null ? !service.equals(that.service) : that.service != null) {
       return false;
     }
-    if (instanceClass != null ? !instanceClass.equals(that.instanceClass)
+    if (instanceClass != null
+        ? !instanceClass.equals(that.instanceClass)
         : that.instanceClass != null) {
       return false;
     }
@@ -658,75 +724,90 @@ public class AppEngineWebXml implements Cloneable {
     if (appRoot != null ? !appRoot.equals(that.appRoot) : that.appRoot != null) {
       return false;
     }
-    if (asyncSessionPersistenceQueueName != null ? !asyncSessionPersistenceQueueName
-        .equals(that.asyncSessionPersistenceQueueName)
+    if (asyncSessionPersistenceQueueName != null
+        ? !asyncSessionPersistenceQueueName.equals(that.asyncSessionPersistenceQueueName)
         : that.asyncSessionPersistenceQueueName != null) {
       return false;
     }
-    if (envVariables != null ? !envVariables.equals(that.envVariables)
+    if (envVariables != null
+        ? !envVariables.equals(that.envVariables)
         : that.envVariables != null) {
       return false;
     }
-    if (errorHandlers != null ? !errorHandlers.equals(that.errorHandlers)
+    if (errorHandlers != null
+        ? !errorHandlers.equals(that.errorHandlers)
         : that.errorHandlers != null) {
       return false;
     }
-    if (inboundServices != null ? !inboundServices.equals(that.inboundServices)
+    if (inboundServices != null
+        ? !inboundServices.equals(that.inboundServices)
         : that.inboundServices != null) {
       return false;
     }
-    if (majorVersionId != null ? !majorVersionId.equals(that.majorVersionId)
+    if (majorVersionId != null
+        ? !majorVersionId.equals(that.majorVersionId)
         : that.majorVersionId != null) {
       return false;
     }
-    if (sourceLanguage != null ? !sourceLanguage.equals(that.sourceLanguage)
+    if (sourceLanguage != null
+        ? !sourceLanguage.equals(that.sourceLanguage)
         : that.sourceLanguage != null) {
       return false;
     }
     if (publicRoot != null ? !publicRoot.equals(that.publicRoot) : that.publicRoot != null) {
       return false;
     }
-    if (resourceExcludePattern != null ? !resourceExcludePattern.equals(that.resourceExcludePattern)
+    if (resourceExcludePattern != null
+        ? !resourceExcludePattern.equals(that.resourceExcludePattern)
         : that.resourceExcludePattern != null) {
       return false;
     }
-    if (resourceFileExcludes != null ? !resourceFileExcludes.equals(that.resourceFileExcludes)
+    if (resourceFileExcludes != null
+        ? !resourceFileExcludes.equals(that.resourceFileExcludes)
         : that.resourceFileExcludes != null) {
       return false;
     }
-    if (resourceFileIncludes != null ? !resourceFileIncludes.equals(that.resourceFileIncludes)
+    if (resourceFileIncludes != null
+        ? !resourceFileIncludes.equals(that.resourceFileIncludes)
         : that.resourceFileIncludes != null) {
       return false;
     }
-    if (resourceIncludePattern != null ? !resourceIncludePattern.equals(that.resourceIncludePattern)
+    if (resourceIncludePattern != null
+        ? !resourceIncludePattern.equals(that.resourceIncludePattern)
         : that.resourceIncludePattern != null) {
       return false;
     }
-    if (staticExcludePattern != null ? !staticExcludePattern.equals(that.staticExcludePattern)
+    if (staticExcludePattern != null
+        ? !staticExcludePattern.equals(that.staticExcludePattern)
         : that.staticExcludePattern != null) {
       return false;
     }
-    if (staticFileExcludes != null ? !staticFileExcludes.equals(that.staticFileExcludes)
+    if (staticFileExcludes != null
+        ? !staticFileExcludes.equals(that.staticFileExcludes)
         : that.staticFileExcludes != null) {
       return false;
     }
-    if (staticFileIncludes != null ? !staticFileIncludes.equals(that.staticFileIncludes)
+    if (staticFileIncludes != null
+        ? !staticFileIncludes.equals(that.staticFileIncludes)
         : that.staticFileIncludes != null) {
       return false;
     }
-    if (staticIncludePattern != null ? !staticIncludePattern.equals(that.staticIncludePattern)
+    if (staticIncludePattern != null
+        ? !staticIncludePattern.equals(that.staticIncludePattern)
         : that.staticIncludePattern != null) {
       return false;
     }
-    if (systemProperties != null ? !systemProperties.equals(that.systemProperties)
+    if (systemProperties != null
+        ? !systemProperties.equals(that.systemProperties)
         : that.systemProperties != null) {
       return false;
     }
-    if (betaSettings != null ? !betaSettings.equals(that.betaSettings) : that.betaSettings != null) {
+    if (betaSettings != null
+        ? !betaSettings.equals(that.betaSettings)
+        : that.betaSettings != null) {
       return false;
     }
-    if (healthCheck != null ? !healthCheck.equals(that.healthCheck)
-        : that.healthCheck != null) {
+    if (healthCheck != null ? !healthCheck.equals(that.healthCheck) : that.healthCheck != null) {
       return false;
     }
     if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
@@ -735,27 +816,27 @@ public class AppEngineWebXml implements Cloneable {
     if (network != null ? !network.equals(that.network) : that.network != null) {
       return false;
     }
-    if (userPermissions != null ? !userPermissions.equals(that.userPermissions)
+    if (userPermissions != null
+        ? !userPermissions.equals(that.userPermissions)
         : that.userPermissions != null) {
       return false;
     }
-    if (apiConfig != null ? !apiConfig.equals(that.apiConfig)
-        : that.apiConfig != null) {
+    if (apiConfig != null ? !apiConfig.equals(that.apiConfig) : that.apiConfig != null) {
       return false;
     }
-    if (apiEndpointIds != null ? !apiEndpointIds.equals(that.apiEndpointIds)
+    if (apiEndpointIds != null
+        ? !apiEndpointIds.equals(that.apiEndpointIds)
         : that.apiEndpointIds != null) {
       return false;
     }
-    if (pagespeed != null ? !pagespeed.equals(that.pagespeed) : that.pagespeed != null) {
+    if (classLoaderConfig != null
+        ? !classLoaderConfig.equals(that.classLoaderConfig)
+        : that.classLoaderConfig != null) {
       return false;
     }
-    if (classLoaderConfig != null ? !classLoaderConfig.equals(that.classLoaderConfig) :
-        that.classLoaderConfig != null) {
-      return false;
-    }
-    if (urlStreamHandlerType != null ? !urlStreamHandlerType.equals(that.urlStreamHandlerType) :
-        that.urlStreamHandlerType != null) {
+    if (urlStreamHandlerType != null
+        ? !urlStreamHandlerType.equals(that.urlStreamHandlerType)
+        : that.urlStreamHandlerType != null) {
       return false;
     }
     if (useGoogleConnectorJ != that.useGoogleConnectorJ) {
@@ -773,7 +854,7 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
     result = 31 * result + (majorVersionId != null ? majorVersionId.hashCode() : 0);
     result = 31 * result + (sourceLanguage != null ? sourceLanguage.hashCode() : 0);
-    result = 31 * result + (module != null ? module.hashCode() : 0);
+    result = 31 * result + (service != null ? service.hashCode() : 0);
     result = 31 * result + (instanceClass != null ? instanceClass.hashCode() : 0);
     result = 31 * result + automaticScaling.hashCode();
     result = 31 * result + manualScaling.hashCode();
@@ -782,8 +863,10 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (useSessions ? 1 : 0);
     result = 31 * result + (asyncSessionPersistence ? 1 : 0);
     result =
-        31 * result + (asyncSessionPersistenceQueueName != null ? asyncSessionPersistenceQueueName
-            .hashCode() : 0);
+        31 * result
+            + (asyncSessionPersistenceQueueName != null
+                ? asyncSessionPersistenceQueueName.hashCode()
+                : 0);
     result = 31 * result + (staticFileIncludes != null ? staticFileIncludes.hashCode() : 0);
     result = 31 * result + (staticFileExcludes != null ? staticFileExcludes.hashCode() : 0);
     result = 31 * result + (resourceFileIncludes != null ? resourceFileIncludes.hashCode() : 0);
@@ -804,7 +887,6 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (codeLock ? 1 : 0);
     result = 31 * result + (apiConfig != null ? apiConfig.hashCode() : 0);
     result = 31 * result + (apiEndpointIds != null ? apiEndpointIds.hashCode() : 0);
-    result = 31 * result + (pagespeed != null ? pagespeed.hashCode() : 0);
     result = 31 * result + (classLoaderConfig != null ? classLoaderConfig.hashCode() : 0);
     result = 31 * result + (urlStreamHandlerType != null ? urlStreamHandlerType.hashCode() : 0);
     result = 31 * result + (useGoogleConnectorJ.hashCode());
@@ -843,8 +925,7 @@ public class AppEngineWebXml implements Cloneable {
         } else {
           staticRoot = "**";
         }
-        staticIncludePattern = Pattern.compile(
-            makeRegexp(Collections.singletonList(staticRoot)));
+        staticIncludePattern = Pattern.compile(makeRegexp(Collections.singletonList(staticRoot)));
       } else {
         List<String> patterns = new ArrayList<String>();
         for (StaticFileInclude include : staticFileIncludes) {
@@ -871,7 +952,7 @@ public class AppEngineWebXml implements Cloneable {
    *    anything from the {@code includes} set.
    */
   public boolean includes(String path, Pattern includes, Pattern excludes) {
-    assert(includes != null);
+    assert (includes != null);
     if (!includes.matcher(path).matches()) {
       return false;
     }
@@ -925,8 +1006,6 @@ public class AppEngineWebXml implements Cloneable {
    * Sets the application root directory, as a prefix for the regexps in
    * {@link #includeResourcePattern(String)} and friends.  This is needed
    * because we want to match complete filenames relative to root.
-   *
-   * @param appRoot
    */
   public void setSourcePrefix(String appRoot) {
     this.appRoot = appRoot;
@@ -943,7 +1022,7 @@ public class AppEngineWebXml implements Cloneable {
   }
 
   private static String toNullIfEmptyOrWhitespace(String string) {
-    if (string == null || CharMatcher.WHITESPACE.matchesAllOf(string)) {
+    if (string == null || CharMatcher.whitespace().matchesAllOf(string)) {
       return null;
     }
     return string;
@@ -1060,7 +1139,7 @@ public class AppEngineWebXml implements Cloneable {
         if (!pattern.equals(other.pattern)) {
           return false;
         }
-      } else {  // pattern == null
+      } else { // pattern == null
         if (other.pattern != null) {
           return false;
         }
@@ -1072,7 +1151,7 @@ public class AppEngineWebXml implements Cloneable {
         if (!expiration.equals(other.expiration)) {
           return false;
         }
-      } else {  // expiration == null
+      } else { // expiration == null
         if (other.expiration != null) {
           return false;
         }
@@ -1084,7 +1163,7 @@ public class AppEngineWebXml implements Cloneable {
         if (!httpHeaders.equals(other.httpHeaders)) {
           return false;
         }
-      } else {  // httpHeaders == null
+      } else { // httpHeaders == null
         if (other.httpHeaders != null) {
           return false;
         }
@@ -1124,16 +1203,30 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
       AdminConsolePage other = (AdminConsolePage) obj;
       if (name == null) {
-        if (other.name != null) return false;
-      } else if (!name.equals(other.name)) return false;
+        if (other.name != null) {
+          return false;
+        }
+      } else if (!name.equals(other.name)) {
+        return false;
+      }
       if (url == null) {
-        if (other.url != null) return false;
-      } else if (!url.equals(other.url)) return false;
+        if (other.url != null) {
+          return false;
+        }
+      } else if (!url.equals(other.url)) {
+        return false;
+      }
       return true;
     }
   }
@@ -1164,8 +1257,7 @@ public class AppEngineWebXml implements Cloneable {
       final int prime = 31;
       int result = 1;
       result = prime * result + ((file == null) ? 0 : file.hashCode());
-      result = prime * result +
-          ((errorCode == null) ? 0 : errorCode.hashCode());
+      result = prime * result + ((errorCode == null) ? 0 : errorCode.hashCode());
       return result;
     }
 
@@ -1226,16 +1318,30 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) { return true; }
-      if (obj == null) { return false; }
-      if (getClass() != obj.getClass()) { return false; }
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
       ApiConfig other = (ApiConfig) obj;
       if (servletClass == null) {
-        if (other.servletClass != null) { return false; }
-      } else if (!servletClass.equals(other.servletClass)) { return false; }
+        if (other.servletClass != null) {
+          return false;
+        }
+      } else if (!servletClass.equals(other.servletClass)) {
+        return false;
+      }
       if (url == null) {
-        if (other.url != null) { return false; }
-      } else if (!url.equals(other.url)) { return false; }
+        if (other.url != null) {
+          return false;
+        }
+      } else if (!url.equals(other.url)) {
+        return false;
+      }
       return true;
     }
 
@@ -1298,7 +1404,7 @@ public class AppEngineWebXml implements Cloneable {
      * Sets maxPendingLatency. Normalizes empty and null inputs to null.
      */
     public void setMaxPendingLatency(String maxPendingLatency) {
-      this.maxPendingLatency =  toNullIfEmptyOrWhitespace(maxPendingLatency);
+      this.maxPendingLatency = toNullIfEmptyOrWhitespace(maxPendingLatency);
     }
 
     public String getMinIdleInstances() {
@@ -1309,7 +1415,7 @@ public class AppEngineWebXml implements Cloneable {
      * Sets minIdleInstances. Normalizes empty and null inputs to null.
      */
     public void setMinIdleInstances(String minIdleInstances) {
-      this.minIdleInstances =  toNullIfEmptyOrWhitespace(minIdleInstances);
+      this.minIdleInstances = toNullIfEmptyOrWhitespace(minIdleInstances);
     }
 
     public String getMaxIdleInstances() {
@@ -1320,7 +1426,7 @@ public class AppEngineWebXml implements Cloneable {
      * Sets maxIdleInstances. Normalizes empty and null inputs to null.
      */
     public void setMaxIdleInstances(String maxIdleInstances) {
-      this.maxIdleInstances =  toNullIfEmptyOrWhitespace(maxIdleInstances);
+      this.maxIdleInstances = toNullIfEmptyOrWhitespace(maxIdleInstances);
     }
 
     public boolean isEmpty() {
@@ -1335,7 +1441,7 @@ public class AppEngineWebXml implements Cloneable {
      * Sets maxConcurrentRequests. Normalizes empty and null inputs to null.
      */
     public void setMaxConcurrentRequests(String maxConcurrentRequests) {
-      this.maxConcurrentRequests =  toNullIfEmptyOrWhitespace(maxConcurrentRequests);
+      this.maxConcurrentRequests = toNullIfEmptyOrWhitespace(maxConcurrentRequests);
     }
 
     public Integer getMinNumInstances() {
@@ -1452,14 +1558,26 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public int hashCode() {
-      return Objects.hash(maxPendingLatency, minPendingLatency, maxIdleInstances,
-          minIdleInstances, maxConcurrentRequests, minNumInstances,
-          maxNumInstances, coolDownPeriodSec, cpuUtilization,
-          targetNetworkSentBytesPerSec, targetNetworkSentPacketsPerSec,
-          targetNetworkReceivedBytesPerSec, targetNetworkReceivedPacketsPerSec,
-          targetDiskWriteBytesPerSec, targetDiskWriteOpsPerSec,
-          targetDiskReadBytesPerSec, targetDiskReadOpsPerSec,
-          targetRequestCountPerSec, targetConcurrentRequests);
+      return Objects.hash(
+          maxPendingLatency,
+          minPendingLatency,
+          maxIdleInstances,
+          minIdleInstances,
+          maxConcurrentRequests,
+          minNumInstances,
+          maxNumInstances,
+          coolDownPeriodSec,
+          cpuUtilization,
+          targetNetworkSentBytesPerSec,
+          targetNetworkSentPacketsPerSec,
+          targetNetworkReceivedBytesPerSec,
+          targetNetworkReceivedPacketsPerSec,
+          targetDiskWriteBytesPerSec,
+          targetDiskWriteOpsPerSec,
+          targetDiskReadBytesPerSec,
+          targetDiskReadOpsPerSec,
+          targetRequestCountPerSec,
+          targetConcurrentRequests);
     }
 
     @Override
@@ -1485,10 +1603,10 @@ public class AppEngineWebXml implements Cloneable {
           && Objects.equals(cpuUtilization, other.cpuUtilization)
           && Objects.equals(targetNetworkSentBytesPerSec, other.targetNetworkSentBytesPerSec)
           && Objects.equals(targetNetworkSentPacketsPerSec, other.targetNetworkSentPacketsPerSec)
-          && Objects.equals(targetNetworkReceivedBytesPerSec,
-              other.targetNetworkReceivedBytesPerSec)
-          && Objects.equals(targetNetworkReceivedPacketsPerSec,
-              other.targetNetworkReceivedPacketsPerSec)
+          && Objects.equals(
+              targetNetworkReceivedBytesPerSec, other.targetNetworkReceivedBytesPerSec)
+          && Objects.equals(
+              targetNetworkReceivedPacketsPerSec, other.targetNetworkReceivedPacketsPerSec)
           && Objects.equals(targetDiskWriteBytesPerSec, other.targetDiskWriteBytesPerSec)
           && Objects.equals(targetDiskWriteOpsPerSec, other.targetDiskWriteOpsPerSec)
           && Objects.equals(targetDiskReadBytesPerSec, other.targetDiskReadBytesPerSec)
@@ -1499,25 +1617,44 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public String toString() {
-      return "AutomaticScaling [minPendingLatency=" + minPendingLatency
-          + ", maxPendingLatency=" + maxPendingLatency
-          + ", minIdleInstances=" + minIdleInstances
-          + ", maxIdleInstances=" + maxIdleInstances
-          + ", maxConcurrentRequests=" + maxConcurrentRequests
-          + ", minNumInstances=" + minNumInstances
-          + ", maxNumInstances=" + maxNumInstances
-          + ", coolDownPeriodSec=" + coolDownPeriodSec
-          + ", cpuUtilization=" + cpuUtilization
-          + ", targetNetworkSentBytesPerSec=" + targetNetworkSentBytesPerSec
-          + ", targetNetworkSentPacketsPerSec=" + targetNetworkSentPacketsPerSec
-          + ", targetNetworkReceivedBytesPerSec=" + targetNetworkReceivedBytesPerSec
-          + ", targetNetworkReceivedPacketsPerSec=" + targetNetworkReceivedPacketsPerSec
-          + ", targetDiskWriteBytesPerSec=" + targetDiskWriteBytesPerSec
-          + ", targetDiskWriteOpsPerSec=" + targetDiskWriteOpsPerSec
-          + ", targetDiskReadBytesPerSec=" + targetDiskReadBytesPerSec
-          + ", targetDiskReadOpsPerSec=" + targetDiskReadOpsPerSec
-          + ", targetRequestCountPerSec=" + targetRequestCountPerSec
-          + ", targetConcurrentRequests=" + targetConcurrentRequests
+      return "AutomaticScaling [minPendingLatency="
+          + minPendingLatency
+          + ", maxPendingLatency="
+          + maxPendingLatency
+          + ", minIdleInstances="
+          + minIdleInstances
+          + ", maxIdleInstances="
+          + maxIdleInstances
+          + ", maxConcurrentRequests="
+          + maxConcurrentRequests
+          + ", minNumInstances="
+          + minNumInstances
+          + ", maxNumInstances="
+          + maxNumInstances
+          + ", coolDownPeriodSec="
+          + coolDownPeriodSec
+          + ", cpuUtilization="
+          + cpuUtilization
+          + ", targetNetworkSentBytesPerSec="
+          + targetNetworkSentBytesPerSec
+          + ", targetNetworkSentPacketsPerSec="
+          + targetNetworkSentPacketsPerSec
+          + ", targetNetworkReceivedBytesPerSec="
+          + targetNetworkReceivedBytesPerSec
+          + ", targetNetworkReceivedPacketsPerSec="
+          + targetNetworkReceivedPacketsPerSec
+          + ", targetDiskWriteBytesPerSec="
+          + targetDiskWriteBytesPerSec
+          + ", targetDiskWriteOpsPerSec="
+          + targetDiskWriteOpsPerSec
+          + ", targetDiskReadBytesPerSec="
+          + targetDiskReadBytesPerSec
+          + ", targetDiskReadOpsPerSec="
+          + targetDiskReadOpsPerSec
+          + ", targetRequestCountPerSec="
+          + targetRequestCountPerSec
+          + ", targetConcurrentRequests="
+          + targetConcurrentRequests
           + "]";
     }
   }
@@ -1575,8 +1712,11 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public String toString() {
-      return "CpuUtilization [targetUtilization=" + targetUtilization
-          + ", aggregationWindowLengthSec=" + aggregationWindowLengthSec + "]";
+      return "CpuUtilization [targetUtilization="
+          + targetUtilization
+          + ", aggregationWindowLengthSec="
+          + aggregationWindowLengthSec
+          + "]";
     }
   }
 
@@ -1648,7 +1788,6 @@ public class AppEngineWebXml implements Cloneable {
     /**
      * Sets healthyThreshold.
      */
-
     public void setHealthyThreshold(Integer healthyThreshold) {
       this.healthyThreshold = healthyThreshold;
     }
@@ -1681,8 +1820,14 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public int hashCode() {
-      return Objects.hash(enableHealthCheck, checkIntervalSec, timeoutSec, unhealthyThreshold,
-                              healthyThreshold, restartThreshold, host);
+      return Objects.hash(
+          enableHealthCheck,
+          checkIntervalSec,
+          timeoutSec,
+          unhealthyThreshold,
+          healthyThreshold,
+          restartThreshold,
+          host);
     }
 
     @Override
@@ -1708,13 +1853,21 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public String toString() {
-      return "HealthCheck [enableHealthCheck=" + enableHealthCheck
-          + ", checkIntervalSec=" + checkIntervalSec
-          + ", timeoutSec=" + timeoutSec
-          + ", unhealthyThreshold=" + unhealthyThreshold
-          + ", healthyThreshold=" + healthyThreshold
-          + ", restartThreshold=" + restartThreshold
-          + ", host=" + host + "]";
+      return "HealthCheck [enableHealthCheck="
+          + enableHealthCheck
+          + ", checkIntervalSec="
+          + checkIntervalSec
+          + ", timeoutSec="
+          + timeoutSec
+          + ", unhealthyThreshold="
+          + unhealthyThreshold
+          + ", healthyThreshold="
+          + healthyThreshold
+          + ", restartThreshold="
+          + restartThreshold
+          + ", host="
+          + host
+          + "]";
     }
   }
 
@@ -1739,24 +1892,24 @@ public class AppEngineWebXml implements Cloneable {
       this.cpu = cpu;
     }
 
-    private double memory_gb;
+    private double memoryGb;
 
     public double getMemoryGb() {
-      return memory_gb;
+      return memoryGb;
     }
 
-    public void setMemoryGb(double memory_gb) {
-      this.memory_gb = memory_gb;
+    public void setMemoryGb(double memoryGb) {
+      this.memoryGb = memoryGb;
     }
 
-    private int disk_size_gb;
+    private int diskSizeGb;
 
     public int getDiskSizeGb() {
-      return disk_size_gb;
+      return diskSizeGb;
     }
 
-    public void setDiskSizeGb(int disk_size_gb) {
-      this.disk_size_gb = disk_size_gb;
+    public void setDiskSizeGb(int diskSizeGb) {
+      this.diskSizeGb = diskSizeGb;
     }
 
     public boolean isEmpty() {
@@ -1765,7 +1918,7 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public int hashCode() {
-      return Objects.hash(cpu, memory_gb, disk_size_gb);
+      return Objects.hash(cpu, memoryGb, diskSizeGb);
     }
 
     @Override
@@ -1780,16 +1933,21 @@ public class AppEngineWebXml implements Cloneable {
         return false;
       }
       Resources other = (Resources) obj;
-      return Objects.equals(cpu, other.cpu) &&
-          Objects.equals(memory_gb, other.memory_gb) &&
-          Objects.equals(disk_size_gb, other.disk_size_gb);
+      return Objects.equals(cpu, other.cpu)
+          && Objects.equals(memoryGb, other.memoryGb)
+          && Objects.equals(diskSizeGb, other.diskSizeGb);
     }
 
     @Override
     public String toString() {
-      return "Resources [" + "cpu=" + cpu +
-          ", memory_gb=" + memory_gb +
-          ", disk_size_gb=" + disk_size_gb + "]";
+      return "Resources ["
+          + "cpu="
+          + cpu
+          + ", memoryGb="
+          + memoryGb
+          + ", diskSizeGb="
+          + diskSizeGb
+          + "]";
     }
   }
 
@@ -1982,86 +2140,11 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public String toString() {
-      return "BasicScaling [" + "maxInstances=" + maxInstances
-          + ", idleTimeout=" + idleTimeout + "]";
-    }
-  }
-
-  /**
-   * Represents a &lt;pagespeed&gt; element. This is used to specify configuration for the Page
-   * Speed Service, which can be used to automatically optimize the loading speed of app engine
-   * sites.
-   */
-  public static class Pagespeed {
-    private final List<String> urlBlacklist = Lists.newArrayList();
-    private final List<String> domainsToRewrite = Lists.newArrayList();
-    private final List<String> enabledRewriters = Lists.newArrayList();
-    private final List<String> disabledRewriters = Lists.newArrayList();
-
-    public void addUrlBlacklist(String url) {
-      urlBlacklist.add(url);
-    }
-
-    public List<String> getUrlBlacklist() {
-      return Collections.unmodifiableList(urlBlacklist);
-    }
-
-    public void addDomainToRewrite(String domain) {
-      domainsToRewrite.add(domain);
-    }
-
-    public List<String> getDomainsToRewrite() {
-      return Collections.unmodifiableList(domainsToRewrite);
-    }
-
-    public void addEnabledRewriter(String rewriter) {
-      enabledRewriters.add(rewriter);
-    }
-
-    public List<String> getEnabledRewriters() {
-      return Collections.unmodifiableList(enabledRewriters);
-    }
-
-    public void addDisabledRewriter(String rewriter) {
-      disabledRewriters.add(rewriter);
-    }
-
-    public List<String> getDisabledRewriters() {
-      return Collections.unmodifiableList(disabledRewriters);
-    }
-
-    public boolean isEmpty() {
-      return urlBlacklist.isEmpty() && domainsToRewrite.isEmpty() && enabledRewriters.isEmpty()
-          && disabledRewriters.isEmpty();
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(urlBlacklist, domainsToRewrite, enabledRewriters, disabledRewriters);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
-      Pagespeed other = (Pagespeed) obj;
-      return Objects.equals(urlBlacklist, other.urlBlacklist)
-          && Objects.equals(domainsToRewrite, other.domainsToRewrite)
-          && Objects.equals(enabledRewriters, other.enabledRewriters)
-          && Objects.equals(disabledRewriters, other.disabledRewriters);
-    }
-
-    @Override
-    public String toString() {
-      return "Pagespeed [urlBlacklist=" + urlBlacklist + ", domainsToRewrite=" + domainsToRewrite
-          + ", enabledRewriters=" + enabledRewriters + ", disabledRewriters=" + disabledRewriters
+      return "BasicScaling ["
+          + "maxInstances="
+          + maxInstances
+          + ", idleTimeout="
+          + idleTimeout
           + "]";
     }
   }
@@ -2089,13 +2172,23 @@ public class AppEngineWebXml implements Cloneable {
     // Generated by eclipse.
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
       ClassLoaderConfig other = (ClassLoaderConfig) obj;
       if (entries == null) {
-        if (other.entries != null) return false;
-      } else if (!entries.equals(other.entries)) return false;
+        if (other.entries != null) {
+          return false;
+        }
+      } else if (!entries.equals(other.entries)) {
+        return false;
+      }
       return true;
     }
 
@@ -2107,12 +2200,13 @@ public class AppEngineWebXml implements Cloneable {
 
   public static class PrioritySpecifierEntry {
     private String filename;
-    private Double priority;  // null means not present.  Default priority is 1.0.
+    private Double priority; // null means not present.  Default priority is 1.0.
 
     private void checkNotAlreadySet() {
       if (filename != null) {
-        throw new AppEngineConfigException("Found more that one file name matching tag. "
-            + "Only one of 'filename' attribute allowed.");
+        throw new AppEngineConfigException(
+            "Found more that one file name matching tag. "
+                + "Only one of 'filename' attribute allowed.");
       }
     }
 
@@ -2171,16 +2265,30 @@ public class AppEngineWebXml implements Cloneable {
     // Generated by eclipse.
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
       PrioritySpecifierEntry other = (PrioritySpecifierEntry) obj;
       if (filename == null) {
-        if (other.filename != null) return false;
-      } else if (!filename.equals(other.filename)) return false;
+        if (other.filename != null) {
+          return false;
+        }
+      } else if (!filename.equals(other.filename)) {
+        return false;
+      }
       if (priority == null) {
-        if (other.priority != null) return false;
-      } else if (!priority.equals(other.priority)) return false;
+        if (other.priority != null) {
+          return false;
+        }
+      } else if (!priority.equals(other.priority)) {
+        return false;
+      }
       return true;
     }
 

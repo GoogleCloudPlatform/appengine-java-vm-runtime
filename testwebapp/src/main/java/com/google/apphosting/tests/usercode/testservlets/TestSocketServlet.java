@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -355,97 +355,53 @@ public class TestSocketServlet extends HttpServletTest {
   }
 
   static class MockSocketImpl extends SocketImpl {
-    /* (non-Javadoc)
-     * @see java.net.SocketOptions#setOption(int, java.lang.Object)
-     */
     @Override
-    public void setOption(int optID, Object value) throws SocketException {}
+    public void setOption(int optId, Object value) throws SocketException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketOptions#getOption(int)
-     */
     @Override
-    public Object getOption(int optID) throws SocketException {
+    public Object getOption(int optId) throws SocketException {
       return null;
     }
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#create(boolean)
-     */
     @Override
     protected void create(boolean stream) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#connect(java.lang.String, int)
-     */
     @Override
     protected void connect(String host, int port) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#connect(java.net.InetAddress, int)
-     */
     @Override
     protected void connect(InetAddress address, int port) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#connect(java.net.SocketAddress, int)
-     */
     @Override
-    protected void connect(SocketAddress address, int timeout) throws IOException {
+    protected void connect(SocketAddress address, int timeout) throws IOException {}
 
-    }
-
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#bind(java.net.InetAddress, int)
-     */
     @Override
     protected void bind(InetAddress host, int port) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#listen(int)
-     */
     @Override
     protected void listen(int backlog) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#accept(java.net.SocketImpl)
-     */
     @Override
     protected void accept(SocketImpl s) throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#getInputStream()
-     */
     @Override
     protected InputStream getInputStream() throws IOException {
       return null;
     }
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#getOutputStream()
-     */
     @Override
     protected OutputStream getOutputStream() throws IOException {
       return null;
     }
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#available()
-     */
     @Override
     protected int available() throws IOException {
       return 0;
     }
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#close()
-     */
     @Override
     protected void close() throws IOException {}
 
-    /* (non-Javadoc)
-     * @see java.net.SocketImpl#sendUrgentData(int)
-     */
     @Override
     protected void sendUrgentData(int data) throws IOException {}
   }

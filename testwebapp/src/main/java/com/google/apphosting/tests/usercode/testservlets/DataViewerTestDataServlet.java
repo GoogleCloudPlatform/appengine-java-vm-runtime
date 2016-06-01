@@ -1,18 +1,19 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.NamespaceManager;
@@ -56,13 +57,13 @@ public class DataViewerTestDataServlet extends HttpServlet {
           .print(ds.prepare(new Query()).countEntities(FetchOptions.Builder.withDefaults()));
     } else {
       // add our dummy data to the datastore;
-      Entity e = new Entity(SAMPLE_KIND_1, "the name 1");
-      e.setUnindexedProperty("p1", "v1");
-      e.setProperty("p2", "v2");
-      e.setProperty("p3", "v3");
-      e.setUnindexedProperty("p4", "v4");
-      e.setUnindexedProperty("p5", "v5");
-      ds.put(e);
+      Entity entity = new Entity(SAMPLE_KIND_1, "the name 1");
+      entity.setUnindexedProperty("p1", "v1");
+      entity.setProperty("p2", "v2");
+      entity.setProperty("p3", "v3");
+      entity.setUnindexedProperty("p4", "v4");
+      entity.setUnindexedProperty("p5", "v5");
+      ds.put(entity);
 
       Entity e2 = new Entity(SAMPLE_KIND_1, "the name 2");
       e2.setUnindexedProperty("p0", "v7");
@@ -75,10 +76,10 @@ public class DataViewerTestDataServlet extends HttpServlet {
 
       String nameFormat = "the name %04d";
       for (int i = 0; i < 1025; i++) {
-        e = new Entity(PAGINATION_KIND, String.format(nameFormat, i));
-        e.setProperty("p1", "v1");
-        e.setProperty("num", i);
-        ds.put(e);
+        entity = new Entity(PAGINATION_KIND, String.format(nameFormat, i));
+        entity.setProperty("p1", "v1");
+        entity.setProperty("num", i);
+        ds.put(entity);
       }
 
       NamespaceManager.set("other");
@@ -88,10 +89,10 @@ public class DataViewerTestDataServlet extends HttpServlet {
       ds.put(e4);
 
       for (int i = 0; i < 1020; i++) {
-        e = new Entity(PAGINATION_KIND, String.format(nameFormat, i));
-        e.setProperty("new namespace p1", "new namespace v1");
-        e.setProperty("new namespace num", i);
-        ds.put(e);
+        entity = new Entity(PAGINATION_KIND, String.format(nameFormat, i));
+        entity.setProperty("new namespace p1", "new namespace v1");
+        entity.setProperty("new namespace num", i);
+        ds.put(entity);
       }
     }
   }

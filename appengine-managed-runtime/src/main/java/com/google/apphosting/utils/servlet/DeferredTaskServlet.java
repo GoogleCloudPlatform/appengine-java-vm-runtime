@@ -1,19 +1,18 @@
-/**
- * Copyright 2011 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 package com.google.apphosting.utils.servlet;
 
@@ -60,15 +59,14 @@ public class DeferredTaskServlet extends HttpServlet {
   static final String X_APPENGINE_QUEUENAME = "X-AppEngine-QueueName";
 
   static final String DEFERRED_TASK_SERVLET_KEY =
-    DeferredTaskContext.class.getName() + ".httpServlet";
+      DeferredTaskContext.class.getName() + ".httpServlet";
   static final String DEFERRED_TASK_REQUEST_KEY =
-    DeferredTaskContext.class.getName() + ".httpServletRequest";
+      DeferredTaskContext.class.getName() + ".httpServletRequest";
   static final String DEFERRED_TASK_RESPONSE_KEY =
-    DeferredTaskContext.class.getName() + ".httpServletResponse";
+      DeferredTaskContext.class.getName() + ".httpServletResponse";
   static final String DEFERRED_DO_NOT_RETRY_KEY =
-    DeferredTaskContext.class.getName() + ".doNotRetry";
-  static final String DEFERRED_MARK_RETRY_KEY =
-    DeferredTaskContext.class.getName() + ".markRetry";
+      DeferredTaskContext.class.getName() + ".doNotRetry";
+  static final String DEFERRED_MARK_RETRY_KEY = DeferredTaskContext.class.getName() + ".markRetry";
 
   /**
    *  Thrown by readRequest when an error occurred during deserialization.
@@ -94,9 +92,9 @@ public class DeferredTaskServlet extends HttpServlet {
       String protocol = req.getProtocol();
       String msg = "DeferredTaskServlet does not support method: " + method;
       if (protocol.endsWith("1.1")) {
-          resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, msg);
+        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, msg);
       } else {
-          resp.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
       }
       return;
     }
@@ -125,9 +123,11 @@ public class DeferredTaskServlet extends HttpServlet {
       if (doNotRetry == null || !doNotRetry) {
         throw new ServletException(e);
       } else if (doNotRetry) {
-        resp.setStatus(HttpURLConnection.HTTP_NOT_AUTHORITATIVE);  // Alternate success code.
-        log(DeferredTaskServlet.class.getName() +
-            " - Deferred task failed but doNotRetry specified. Exception: " + e);
+        resp.setStatus(HttpURLConnection.HTTP_NOT_AUTHORITATIVE); // Alternate success code.
+        log(
+            DeferredTaskServlet.class.getName()
+                + " - Deferred task failed but doNotRetry specified. Exception: "
+                + e);
       }
     } finally {
       // Clean out the attributes.
@@ -149,8 +149,8 @@ public class DeferredTaskServlet extends HttpServlet {
    * <p>Note that other exceptions may be thrown by the
    * {@link DeferredTask#run()} method.
    */
-  protected void performRequest(
-      HttpServletRequest req, HttpServletResponse resp) throws DeferredTaskException {
+  protected void performRequest(HttpServletRequest req, HttpServletResponse resp)
+      throws DeferredTaskException {
     readRequest(req, resp).run();
   }
 
@@ -165,68 +165,74 @@ public class DeferredTaskServlet extends HttpServlet {
    * <li>{@link IOException}: Deserialization failure.
    * <li>{@link ClassCastException}: Deserialization failure.   *
    */
-  protected DeferredTask readRequest(
-      HttpServletRequest req, HttpServletResponse resp) throws DeferredTaskException {
+  protected DeferredTask readRequest(HttpServletRequest req, HttpServletResponse resp)
+      throws DeferredTaskException {
     String contentType = req.getHeader("content-type");
-    if (contentType == null ||
-        !contentType.equals(DeferredTaskContext.RUNNABLE_TASK_CONTENT_TYPE)) {
-      throw new DeferredTaskException(new IllegalArgumentException(
-          "Invalid content-type header."
-          + " received: '" + (contentType == null ? "null" : contentType)
-          + "' expected: '" + DeferredTaskContext.RUNNABLE_TASK_CONTENT_TYPE + "'"));
+    if (contentType == null
+        || !contentType.equals(DeferredTaskContext.RUNNABLE_TASK_CONTENT_TYPE)) {
+      throw new DeferredTaskException(
+          new IllegalArgumentException(
+              "Invalid content-type header."
+                  + " received: '"
+                  + (contentType == null ? "null" : contentType)
+                  + "' expected: '"
+                  + DeferredTaskContext.RUNNABLE_TASK_CONTENT_TYPE
+                  + "'"));
     }
 
     DeferredTask deferredTask;
     try {
       ServletInputStream stream = req.getInputStream();
-      ObjectInputStream objectStream = new ObjectInputStream(stream) {
-        @Override
-        protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
-            ClassNotFoundException {
-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-          String name = desc.getName();
-          try {
-            return Class.forName(name, false, classLoader);
-          } catch (ClassNotFoundException ex) {
-            // This one should also handle primitive types
-            return super.resolveClass(desc);
-          }
-        }
-
-        @Override
-        protected Class<?> resolveProxyClass(String[] interfaces)
-            throws IOException, ClassNotFoundException {
-          // Note(user) This logic was copied from ObjectInputStream.java in the
-          // JDK, and then modified to use the thread context class loader instead of the
-          // "latest" loader that is used there.
-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-          ClassLoader nonPublicLoader = null;
-          boolean hasNonPublicInterface = false;
-
-          // define proxy in class loader of non-public interface(s), if any
-          Class[] classObjs = new Class[interfaces.length];
-          for (int i = 0; i < interfaces.length; i++) {
-            Class cl = Class.forName(interfaces[i], false, classLoader);
-            if ((cl.getModifiers() & Modifier.PUBLIC) == 0) {
-              if (hasNonPublicInterface) {
-                if (nonPublicLoader != cl.getClassLoader()) {
-                  throw new IllegalAccessError("conflicting non-public interface class loaders");
-                }
-              } else {
-                nonPublicLoader = cl.getClassLoader();
-                hasNonPublicInterface = true;
+      ObjectInputStream objectStream =
+          new ObjectInputStream(stream) {
+            @Override
+            protected Class<?> resolveClass(ObjectStreamClass desc)
+                throws IOException, ClassNotFoundException {
+              ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+              String name = desc.getName();
+              try {
+                return Class.forName(name, false, classLoader);
+              } catch (ClassNotFoundException ex) {
+                // This one should also handle primitive types
+                return super.resolveClass(desc);
               }
             }
-            classObjs[i] = cl;
-          }
-          try {
-            return Proxy.getProxyClass(
-                hasNonPublicInterface ? nonPublicLoader : classLoader, classObjs);
-          } catch (IllegalArgumentException e) {
-            throw new ClassNotFoundException(null, e);
-          }
-        }
-      };
+
+            @Override
+            protected Class<?> resolveProxyClass(String[] interfaces)
+                throws IOException, ClassNotFoundException {
+              // Note(user) This logic was copied from ObjectInputStream.java in the
+              // JDK, and then modified to use the thread context class loader instead of the
+              // "latest" loader that is used there.
+              ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+              ClassLoader nonPublicLoader = null;
+              boolean hasNonPublicInterface = false;
+
+              // define proxy in class loader of non-public interface(s), if any
+              Class[] classObjs = new Class[interfaces.length];
+              for (int i = 0; i < interfaces.length; i++) {
+                Class cl = Class.forName(interfaces[i], false, classLoader);
+                if ((cl.getModifiers() & Modifier.PUBLIC) == 0) {
+                  if (hasNonPublicInterface) {
+                    if (nonPublicLoader != cl.getClassLoader()) {
+                      throw new IllegalAccessError(
+                          "conflicting non-public interface class loaders");
+                    }
+                  } else {
+                    nonPublicLoader = cl.getClassLoader();
+                    hasNonPublicInterface = true;
+                  }
+                }
+                classObjs[i] = cl;
+              }
+              try {
+                return Proxy.getProxyClass(
+                    hasNonPublicInterface ? nonPublicLoader : classLoader, classObjs);
+              } catch (IllegalArgumentException e) {
+                throw new ClassNotFoundException(null, e);
+              }
+            }
+          };
       deferredTask = (DeferredTask) objectStream.readObject();
     } catch (ClassNotFoundException e) {
       throw new DeferredTaskException(e);

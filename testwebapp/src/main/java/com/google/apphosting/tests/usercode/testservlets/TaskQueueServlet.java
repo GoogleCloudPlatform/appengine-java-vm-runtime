@@ -1,18 +1,19 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.NamespaceManager;
@@ -29,8 +30,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.Double;
-import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -47,9 +46,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * See {@link com.google.appengine.tools.development.DevAppServerTaskQueueIntegrationTest}
- * for information on how we use this servlet in our tests.
- *
  * All doXXX methods are synchronized to prevent lastRequestData from
  * getting reset while we're processing.
  *
@@ -108,12 +104,12 @@ public class TaskQueueServlet extends HttpServlet {
 
   private static void deferredTask(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
-    String queue = req.getParameter("queue");
-    Queue q;
-    if (queue == null) {
-      q = QueueFactory.getDefaultQueue();
+    String queueName = req.getParameter("queue");
+    Queue queue;
+    if (queueName == null) {
+      queue = QueueFactory.getDefaultQueue();
     } else {
-      q = QueueFactory.getQueue(queue);
+      queue = QueueFactory.getQueue(queueName);
     }
     final String data = req.getParameter("deferredData");
 
@@ -127,7 +123,7 @@ public class TaskQueueServlet extends HttpServlet {
             });
 
     latch = new CountDownLatch(1);
-    TaskHandle handle = q.add(opts);
+    TaskHandle handle = queue.add(opts);
     resp.getWriter().print(handle.getQueueName());
   }
 
@@ -137,24 +133,24 @@ public class TaskQueueServlet extends HttpServlet {
   }
 
   private void purgeQueue(HttpServletRequest req) throws ServletException {
-    String queue = req.getParameter("queue");
-    Queue q;
-    if (queue == null) {
-      q = QueueFactory.getDefaultQueue();
+    String queueName = req.getParameter("queue");
+    Queue queue;
+    if (queueName == null) {
+      queue = QueueFactory.getDefaultQueue();
     } else {
-      q = QueueFactory.getQueue(queue);
+      queue = QueueFactory.getQueue(queueName);
     }
-    q.purge();
+    queue.purge();
   }
 
   private void addTask(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    String queue = req.getParameter("queue");
-    Queue q;
-    if (queue == null) {
-      q = QueueFactory.getDefaultQueue();
+    String queueName = req.getParameter("queue");
+    Queue queue;
+    if (queueName == null) {
+      queue = QueueFactory.getDefaultQueue();
     } else {
-      q = QueueFactory.getQueue(queue);
+      queue = QueueFactory.getQueue(queueName);
     }
     TaskOptions.Method method = TaskOptions.Method.valueOf(req.getParameter("httpmethod"));
     String url = req.getParameter("taskUrl");
@@ -189,23 +185,23 @@ public class TaskQueueServlet extends HttpServlet {
       NamespaceManager.set(currentNamespace);
     }
     latch = new CountDownLatch(1);
-    TaskHandle handle = q.add(opts);
+    TaskHandle handle = queue.add(opts);
     resp.getWriter().print(handle.getQueueName());
   }
 
   private void addTasks(HttpServletRequest req) throws ServletException {
     int numTasks = Integer.parseInt(req.getParameter("numTasks"));
-    Queue q = QueueFactory.getDefaultQueue();
+    Queue queue = QueueFactory.getDefaultQueue();
 
     latch = new CountDownLatch(numTasks);
-    q.add(Collections.nCopies(numTasks, TaskOptions.Builder.withUrl(req.getServletPath())));
+    queue.add(Collections.nCopies(numTasks, TaskOptions.Builder.withUrl(req.getServletPath())));
   }
 
   private void addPullTasks(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     int numTasks = Integer.parseInt(req.getParameter("numTasks"));
-    String queue = req.getParameter("queue");
-    Queue q = QueueFactory.getQueue(queue);
+    String queueName = req.getParameter("queue");
+    Queue queue = QueueFactory.getQueue(queueName);
 
     List<TaskOptions> options = new ArrayList<TaskOptions>();
     for (int i = 0; i < numTasks; i++) {
@@ -213,26 +209,27 @@ public class TaskQueueServlet extends HttpServlet {
           TaskOptions.Builder.withMethod(TaskOptions.Method.PULL)
               .payload(String.format("payload-%03d", i).getBytes()));
     }
-    List<TaskHandle> tasks = q.add(options);
-    resp.getWriter().print(queue + "," + tasks.size());
+    List<TaskHandle> tasks = queue.add(options);
+    resp.getWriter().print(queueName + "," + tasks.size());
   }
 
   private void leaseAndDeleteTasks(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     int numTasks = Integer.parseInt(req.getParameter("numTasks"));
     Double lease = Double.parseDouble(req.getParameter("lease"));
-    String queue = req.getParameter("queue");
-    Queue q = QueueFactory.getQueue(queue);
+    String queueName = req.getParameter("queue");
+    Queue queue = QueueFactory.getQueue(queueName);
     Boolean doDelete = Boolean.parseBoolean(req.getParameter("doDelete"));
 
-    List<TaskHandle> tasks = q.leaseTasks(lease.intValue() * 1000, TimeUnit.MILLISECONDS, numTasks);
+    List<TaskHandle> tasks =
+        queue.leaseTasks(lease.intValue() * 1000, TimeUnit.MILLISECONDS, numTasks);
 
     for (TaskHandle task : tasks) {
       if (doDelete) {
-        q.deleteTask(task.getName());
+        queue.deleteTask(task.getName());
       }
     }
-    resp.getWriter().print(queue + "," + tasks.size());
+    resp.getWriter().print(queueName + "," + tasks.size());
   }
 
   @Override
@@ -334,11 +331,7 @@ public class TaskQueueServlet extends HttpServlet {
       return " ";
     }
     for (Map.Entry<String, String> entry : map.entrySet()) {
-      sb
-          .append(entry.getKey())
-          .append(SEPARATOR)
-          .append(entry.getValue())
-          .append(SEPARATOR);
+      sb.append(entry.getKey()).append(SEPARATOR).append(entry.getValue()).append(SEPARATOR);
     }
     return sb.toString();
   }

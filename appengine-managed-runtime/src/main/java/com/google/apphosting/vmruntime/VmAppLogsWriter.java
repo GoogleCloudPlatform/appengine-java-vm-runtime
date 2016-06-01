@@ -1,30 +1,28 @@
-/**
- * Copyright 2010 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
-
 package com.google.apphosting.vmruntime;
 
+import com.google.appengine.repackaged.com.google.common.base.Stopwatch;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.LogRecord;
 import com.google.apphosting.api.logservice.LogServicePb.FlushRequest;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogGroup;
 import com.google.apphosting.api.logservice.LogServicePb.UserAppLogLine;
-
-import com.google.appengine.repackaged.com.google.common.base.Stopwatch;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -69,9 +67,9 @@ import java.util.logging.Logger;
  * child RequestThreads created by the request through the threading API.
  *
  */
+@Deprecated
 class VmAppLogsWriter {
-  private static final Logger logger =
-      Logger.getLogger(VmAppLogsWriter.class.getName());
+  private static final Logger logger = Logger.getLogger(VmAppLogsWriter.class.getName());
 
   // (Some constants below package scope for testability)
   static final String LOG_CONTINUATION_SUFFIX = "\n<continued in next message>";
@@ -115,15 +113,19 @@ class VmAppLogsWriter {
    *   minutes. The initial log will stay cached until the second message
    *   is logged.
    */
-  public VmAppLogsWriter(List<UserAppLogLine> buffer, long maxBytesToFlush, int maxLogMessageLength,
+  public VmAppLogsWriter(
+      List<UserAppLogLine> buffer,
+      long maxBytesToFlush,
+      int maxLogMessageLength,
       int maxFlushSeconds) {
     this.buffer = buffer;
     this.maxSecondsBetweenFlush = maxFlushSeconds;
 
     if (maxLogMessageLength < MIN_MAX_LOG_MESSAGE_LENGTH) {
-      String message = String.format(
-          "maxLogMessageLength silly small (%s); setting maxLogMessageLength to %s",
-          maxLogMessageLength, MIN_MAX_LOG_MESSAGE_LENGTH);
+      String message =
+          String.format(
+              "maxLogMessageLength silly small (%s); setting maxLogMessageLength to %s",
+              maxLogMessageLength, MIN_MAX_LOG_MESSAGE_LENGTH);
       logger.warning(message);
       this.maxLogMessageLength = MIN_MAX_LOG_MESSAGE_LENGTH;
     } else {
@@ -134,9 +136,10 @@ class VmAppLogsWriter {
 
     // This should never happen, but putting here just in case.
     if (maxBytesToFlush < this.maxLogMessageLength) {
-      String message = String.format(
-          "maxBytesToFlush (%s) smaller than  maxLogMessageLength (%s)",
-          maxBytesToFlush, this.maxLogMessageLength);
+      String message =
+          String.format(
+              "maxBytesToFlush (%s) smaller than  maxLogMessageLength (%s)",
+              maxBytesToFlush, this.maxLogMessageLength);
       logger.warning(message);
       this.maxBytesToFlush = this.maxLogMessageLength;
     } else {
@@ -155,7 +158,7 @@ class VmAppLogsWriter {
    * this method may block.
    */
   synchronized void addLogRecordAndMaybeFlush(LogRecord fullRecord) {
-    for (LogRecord record : split(fullRecord)){
+    for (LogRecord record : split(fullRecord)) {
       UserAppLogLine logLine = new UserAppLogLine();
       logLine.setLevel(record.getLevel().ordinal());
       logLine.setTimestampUsec(record.getTimestamp());
@@ -164,8 +167,7 @@ class VmAppLogsWriter {
       // enough for us.  It uses the maximum possible size for varint
       // values, but the real size of strings.
       int maxEncodingSize = logLine.maxEncodingSize();
-      if (maxBytesToFlush > 0 &&
-          (currentByteCount + maxEncodingSize) > maxBytesToFlush) {
+      if (maxBytesToFlush > 0 && (currentByteCount + maxEncodingSize) > maxBytesToFlush) {
         logger.info(currentByteCount + " bytes of app logs pending, starting flush...");
         waitForCurrentFlushAndStartNewFlush();
       }
@@ -180,8 +182,8 @@ class VmAppLogsWriter {
       currentByteCount += maxEncodingSize;
     }
 
-    if (maxSecondsBetweenFlush > 0 &&
-        stopwatch.elapsed(TimeUnit.SECONDS) >= maxSecondsBetweenFlush) {
+    if (maxSecondsBetweenFlush > 0
+        && stopwatch.elapsed(TimeUnit.SECONDS) >= maxSecondsBetweenFlush) {
       waitForCurrentFlushAndStartNewFlush();
     }
   }
@@ -227,16 +229,19 @@ class VmAppLogsWriter {
             VmApiProxyDelegate.ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS + LOG_FLUSH_TIMEOUT_MS,
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ex) {
-        logger.warning("Interruped while blocking on a log flush, setting interrupt bit and " +
-                       "continuing.  Some logs may be lost or occur out of order!");
+        logger.warning(
+            "Interruped while blocking on a log flush, setting interrupt bit and "
+                + "continuing.  Some logs may be lost or occur out of order!");
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
-        logger.log(Level.WARNING, "Timeout waiting for log flush to complete. "
-            + "Log messages may have been lost/reordered!", e);
-      } catch (ExecutionException ex) {
         logger.log(
             Level.WARNING,
-            "A log flush request failed.  Log messages may have been lost!", ex);
+            "Timeout waiting for log flush to complete. "
+                + "Log messages may have been lost/reordered!",
+            e);
+      } catch (ExecutionException ex) {
+        logger.log(
+            Level.WARNING, "A log flush request failed.  Log messages may have been lost!", ex);
       }
       currentFlush = null;
     }
@@ -276,19 +281,18 @@ class VmAppLogsWriter {
    * that the message is continued in the following log message or is a
    * continuation of the previous log mesage.
    */
-  
-  List<LogRecord> split(LogRecord aRecord){
+  List<LogRecord> split(LogRecord aRecord) {
     // This method is public so it is testable.
     LinkedList<LogRecord> theList = new LinkedList<LogRecord>();
     String message = aRecord.getMessage();
-    if (null == message || message.length() <= maxLogMessageLength){
+    if (null == message || message.length() <= maxLogMessageLength) {
       theList.add(aRecord);
       return theList;
     }
     String remaining = message;
-    while (remaining.length() > 0){
+    while (remaining.length() > 0) {
       String nextMessage;
-      if (remaining.length() <= maxLogMessageLength){
+      if (remaining.length() <= maxLogMessageLength) {
         nextMessage = remaining;
         remaining = "";
       } else {
@@ -297,7 +301,7 @@ class VmAppLogsWriter {
         // Try to cut the string at a friendly point
         int friendlyCutLength = remaining.lastIndexOf('\n', logCutLength);
         // But only if that yields a message of reasonable length
-        if (friendlyCutLength > logCutLengthDiv10){
+        if (friendlyCutLength > logCutLengthDiv10) {
           cutLength = friendlyCutLength;
           cutAtNewline = true;
         }
@@ -305,8 +309,8 @@ class VmAppLogsWriter {
         remaining = remaining.substring(cutLength + (cutAtNewline ? 1 : 0));
         // Only prepend the continuation prefix if doing so would not push
         // the length of the next message over the limit.
-        if (remaining.length() > maxLogMessageLength ||
-            remaining.length() + LOG_CONTINUATION_PREFIX_LENGTH <= maxLogMessageLength){
+        if (remaining.length() > maxLogMessageLength
+            || remaining.length() + LOG_CONTINUATION_PREFIX_LENGTH <= maxLogMessageLength) {
           remaining = LOG_CONTINUATION_PREFIX + remaining;
         }
       }
@@ -322,7 +326,6 @@ class VmAppLogsWriter {
    *
    * @param stopwatch The {@link Stopwatch} instance to use.
    */
-  
   void setStopwatch(Stopwatch stopwatch) {
     this.stopwatch = stopwatch;
   }
@@ -332,7 +335,6 @@ class VmAppLogsWriter {
    *
    * This method is not simply visible for testing, it only exists for testing.
    */
-  
   int getMaxLogMessageLength() {
     return maxLogMessageLength;
   }
@@ -342,7 +344,6 @@ class VmAppLogsWriter {
    *
    * This code is not simply visible for testing, it only exists for testing.
    */
-  
   long getByteCountBeforeFlushing() {
     return maxBytesToFlush;
   }

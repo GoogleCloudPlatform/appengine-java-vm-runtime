@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -19,17 +19,15 @@ package com.google.apphosting.vmruntime;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkArgument;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkState;
 
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
 import com.google.appengine.repackaged.com.google.common.collect.Lists;
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.Environment;
 
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
 
 /**
  * Thread factory creating threads with a request specific thread local environment.
@@ -70,20 +68,23 @@ public class VmRequestThreadFactory implements ThreadFactory {
    */
   @Override
   public Thread newThread(final Runnable runnable) {
-    checkState(requestEnvironment != null,
+    checkState(
+        requestEnvironment != null,
         "Request threads can only be created within the context of a running request.");
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        if (runnable == null) {
-          return;
-        }
-        checkState(allowNewRequestThreadCreation,
-            "Cannot start new threads after the request thread stops.");
-        ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
-        runnable.run();
-      }
-    });
+    Thread thread =
+        new Thread() {
+          @Override
+          public void run() {
+            if (runnable == null) {
+              return;
+            }
+            checkState(
+                allowNewRequestThreadCreation,
+                "Cannot start new threads after the request thread stops.");
+            ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
+            runnable.run();
+          }
+        };
     checkState(
         allowNewRequestThreadCreation, "Cannot create new threads after the request thread stops.");
     synchronized (mutex) {
@@ -109,8 +110,9 @@ public class VmRequestThreadFactory implements ThreadFactory {
     synchronized (mutex) {
       for (Thread thread : createdThreads) {
         if (thread.isAlive()) {
-          logger.warning(String.format(
-              "Request thread %s is still alive, forcing interrupt.", thread.getName()));
+          logger.warning(
+              String.format(
+                  "Request thread %s is still alive, forcing interrupt.", thread.getName()));
         }
         thread.interrupt();
       }

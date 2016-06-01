@@ -1,14 +1,14 @@
-/**
- * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -45,10 +45,10 @@ public class PermGenTestServlet extends HttpServlet {
     for (int i = 0; i < ONE_K; i++) {
       builder.append('x');
     }
-    String one_k_string = builder.toString();
+    String oneKbString = builder.toString();
     builder = new StringBuilder();
     for (int i = 0; i < ONE_HALF_K; i++) {
-      builder.append(one_k_string);
+      builder.append(oneKbString);
     }
     ONE_MEG_STRING = builder.toString();
     if (ONE_MEG_STRING.length() != ONE_HALF_MEG) {
@@ -68,14 +68,12 @@ public class PermGenTestServlet extends HttpServlet {
   /**
    * By interning numMegs Strings of size about one meg and holding on to a reference to the
    * interned strings, we put approximately numMegs megs into perm-gen space.
-   *
-   * @param numMegs
    */
   private static void usePermGenSpace(int numMegs) {
     String[] strings = new String[numMegs];
     for (int i = 0; i < numMegs; i++) {
-      String s = ONE_MEG_STRING + i;
-      strings[i] = s.intern();
+      String str = ONE_MEG_STRING + i;
+      strings[i] = str.intern();
     }
   }
 }

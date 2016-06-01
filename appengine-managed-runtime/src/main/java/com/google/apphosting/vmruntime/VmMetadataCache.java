@@ -1,19 +1,18 @@
-/**
- * Copyright 2012 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 package com.google.apphosting.vmruntime;
 
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -43,9 +43,14 @@ public class VmMetadataCache {
 
   /** Timeout in milliseconds to retrieve data from the server. */
   private static final int TIMEOUT_MILLIS = 120 * 1000;
+  private static final String NO_VALUE = new String();
 
   public VmMetadataCache() {
-    cache = new HashMap<String, String>();
+    cache = Collections.synchronizedMap(new HashMap<>());
+  }
+
+  public String putMetadata(String path, String value) {
+    return cache.put(path, value);
   }
 
   /**
@@ -55,35 +60,29 @@ public class VmMetadataCache {
    * @return the attribute's string value or null if retrieval has failed.
    */
   public String getMetadata(String path) {
-    synchronized (cache) {
-      if (cache.containsKey(path)) {
-        return cache.get(path);
-      }
+    String cached = cache.getOrDefault(path, NO_VALUE);
+    if (cached != NO_VALUE) {
+      return cached;
     }
-
-    String value = null;
     try {
       // It is safe to concurrently retrieve the same server path.
-      value = getMetadataFromServer(path);
+      String value = getMetadataFromServer(path);
 
       // We cache missing attributes (404) as null values.
-      synchronized (cache) {
-        cache.put(path, value);
-      }
+      cache.put(path, value);
+      return value;
     } catch (IOException e) {
       // Don't cache the value if we have failed to connect or transfer.
       logger.info("Meta-data '" + path + "' path retrieval error: " + e.getMessage());
     }
-    return value;
+    return null;
   }
 
   /**
    * Clears all cached meta-data values.
    */
   public void clear() {
-    synchronized (cache) {
-      cache.clear();
-    }
+    cache.clear();
   }
 
   /**
@@ -129,8 +128,11 @@ public class VmMetadataCache {
       } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
         return null;
       }
-      throw new IOException("Meta-data request for '" + path + "' failed with error: "
-          + connection.getResponseMessage());
+      throw new IOException(
+          "Meta-data request for '"
+              + path
+              + "' failed with error: "
+              + connection.getResponseMessage());
     } finally {
       if (reader != null) {
         try {
