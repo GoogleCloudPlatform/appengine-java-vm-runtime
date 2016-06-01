@@ -16,34 +16,32 @@
 
 package com.google.apphosting.runtime.jetty9;
 
-import java.io.IOException;
+import org.eclipse.jetty.server.session.AbstractSessionIdManager;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
- * @deprecated Functionality moved to {@link VmRuntimeWebAppContext}.
- *
+ * Minimal implementation of the SessionIdManager, just enough to generate new session ids.
  */
-public class SaveSessionFilter implements Filter {
+public class NoOpSessionIdManager extends AbstractSessionIdManager {
 
   @Override
-  public void init(FilterConfig config) {
-    // No init.
+  public boolean idInUse(String id) {
+    return false;
   }
 
   @Override
-  public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
-      throws IOException, ServletException {
-    chain.doFilter(req, resp);
-  }
+  public void addSession(HttpSession session) {}
 
   @Override
-  public void destroy() {
-    // No destruction.
+  public void removeSession(HttpSession session) {}
+
+  @Override
+  public void invalidateAll(String id) {}
+
+  @Override
+  public void renewSessionId(String oldClusterId, String oldNodeId, HttpServletRequest request) {
+    //don't support this
   }
 }
