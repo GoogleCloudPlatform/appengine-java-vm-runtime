@@ -155,7 +155,6 @@ public class AsyncServlet extends HttpServlet {
       environment.put(Env.ASYNC, ApiProxy.getCurrentEnvironment());
       async.start(
           new Runnable() {
-
             @Override
             public void run() {
               try {
@@ -178,18 +177,17 @@ public class AsyncServlet extends HttpServlet {
                           // #6 on Write Possible
                           order.add(Env.ON_WRITE_POSSIBLE);
                           environment.put(Env.ON_WRITE_POSSIBLE, ApiProxy.getCurrentEnvironment());
-                          StringBuilder b = new StringBuilder();
+                          StringBuilder builder = new StringBuilder();
                           for (Env e : order) {
                             Environment env = environment.get(e);
-                            if (b.length() > 0) {
-                              b.append(',');
+                            if (builder.length() > 0) {
+                              builder.append(',');
                             }
-                            b.append(e).append(':').append(env);
+                            builder.append(e).append(':').append(env);
                           }
-                          String o = b.toString();
                           resp.setContentType("text/plain");
                           resp.setStatus(200);
-                          out.write(o.getBytes(StandardCharsets.ISO_8859_1));
+                          out.write(builder.toString().getBytes(StandardCharsets.ISO_8859_1));
                         }
                       }
 

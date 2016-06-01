@@ -155,8 +155,6 @@ class AppEngineAuthentication {
      *         {@link org.eclipse.jetty.server.Authentication.ResponseSent}. If Authentication is
      *         not mandatory, then a {@link org.eclipse.jetty.server.Authentication.Deferred} may be
      *         returned.
-     *
-     * @throws ServerAuthException
      */
     @Override
     public Authentication validateRequest(

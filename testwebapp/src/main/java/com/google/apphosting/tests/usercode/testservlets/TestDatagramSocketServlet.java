@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.socket.SocketServicePb.AcceptReply;
@@ -359,10 +360,10 @@ public class TestDatagramSocketServlet extends HttpServletTest {
 
   private static class MockSocketImpl extends DatagramSocketImpl {
     @Override
-    public void setOption(int optID, Object value) throws SocketException {}
+    public void setOption(int optId, Object value) throws SocketException {}
 
     @Override
-    public Object getOption(int optID) throws SocketException {
+    public Object getOption(int optId) throws SocketException {
       return null;
     }
 

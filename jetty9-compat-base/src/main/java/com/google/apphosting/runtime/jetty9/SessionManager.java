@@ -305,10 +305,13 @@ public class SessionManager extends AbstractSessionManager {
           dirty = true;
           if (logger.isLoggable(Level.FINE)) {
             logger.fine(
-                String.format("Session %s accessed near expiration, marking dirty.", getId()));
+                String.format(
+                    "Session %s accessed while near expiration, marking dirty.", getId()));
           }
-        } else if (logger.isLoggable(Level.FINE)) {
-          logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
+        } else {
+          if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
+          }
         }
       }
       sessionData.setExpirationTime(
@@ -318,7 +321,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     /**
-     * Check if the expiration time has passed
+     * Check if the expiration time has passed.
      *
      * @see org.eclipse.jetty.server.session.AbstractSession#checkExpiry(long)
      */
@@ -430,8 +433,7 @@ public class SessionManager extends AbstractSessionManager {
           logger.fine(
               String.format(
                   "Session %s expired %d seconds ago, ignoring",
-                  sessionId,
-                  (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+                  sessionId, (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
         }
         return null;
       }

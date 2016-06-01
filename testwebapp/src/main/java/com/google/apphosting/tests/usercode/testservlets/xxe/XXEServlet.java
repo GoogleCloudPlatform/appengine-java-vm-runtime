@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets.xxe;
 
 import java.io.IOException;
@@ -26,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Attempts XXE attacks on Jetty through web.xml. Theoretically we might be able
  * to attempt attacks on appengine-web.xml in the future here.
- *
  */
 public class XXEServlet extends HttpServlet {
 

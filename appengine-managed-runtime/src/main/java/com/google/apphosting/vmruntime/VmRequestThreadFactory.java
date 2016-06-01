@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkArgument;
@@ -71,20 +72,19 @@ public class VmRequestThreadFactory implements ThreadFactory {
         requestEnvironment != null,
         "Request threads can only be created within the context of a running request.");
     Thread thread =
-        new Thread(
-            new Runnable() {
-              @Override
-              public void run() {
-                if (runnable == null) {
-                  return;
-                }
-                checkState(
-                    allowNewRequestThreadCreation,
-                    "Cannot start new threads after the request thread stops.");
-                ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
-                runnable.run();
-              }
-            });
+        new Thread() {
+          @Override
+          public void run() {
+            if (runnable == null) {
+              return;
+            }
+            checkState(
+                allowNewRequestThreadCreation,
+                "Cannot start new threads after the request thread stops.");
+            ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
+            runnable.run();
+          }
+        };
     checkState(
         allowNewRequestThreadCreation, "Cannot create new threads after the request thread stops.");
     synchronized (mutex) {

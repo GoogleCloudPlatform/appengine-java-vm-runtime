@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -95,13 +96,13 @@ public class DumpServlet extends HttpServlet {
       out.printf("s.new()=%b%n", session.isNew());
       out.printf("s.last()=%b%n", session.getLastAccessedTime());
       for (Enumeration<String> e = session.getAttributeNames(); e.hasMoreElements(); ) {
-        String n = e.nextElement();
-        out.printf("%s=%s%n", n, session.getAttribute(n));
+        String name = e.nextElement();
+        out.printf("%s=%s%n", name, session.getAttribute(name));
       }
 
       for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
-        String n = e.nextElement();
-        session.setAttribute(n, request.getParameter(n));
+        String name = e.nextElement();
+        session.setAttribute(name, request.getParameter(name));
       }
     }
     out.println("</pre>");
