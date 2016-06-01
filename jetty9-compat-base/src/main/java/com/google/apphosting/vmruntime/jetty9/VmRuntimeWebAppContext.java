@@ -296,8 +296,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
    * Initialize the WebAppContext for use by the VmRuntime.
    *
    * <p>
-   * This method initializes the WebAppContext by setting the context path and 
-   * application folder. It will also parse the appengine-web.xml file provided to 
+   * This method initializes the WebAppContext by setting the context path and
+   * application folder. It will also parse the appengine-web.xml file provided to
    * set System Properties and session manager accordingly.
    * </p>
    *
@@ -362,7 +362,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
   /**
    * Get or create the RequestContext for a request.
-   * 
+   *
    * @param baseRequest The request to scope the context.
    * @return Either an existing associated context or a new context.
    */

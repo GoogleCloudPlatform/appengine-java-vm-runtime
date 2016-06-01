@@ -433,7 +433,8 @@ public class SessionManager extends AbstractSessionManager {
           logger.fine(
               String.format(
                   "Session %s expired %d seconds ago, ignoring",
-                  sessionId, (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+                  sessionId,
+                  (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
         }
         return null;
       }

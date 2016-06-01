@@ -53,7 +53,8 @@ public class DumpServlet extends HttpServlet {
     out.printf("contextPath=%s%n", getServletContext().getContextPath());
     out.printf(
         "version=%d.%d%n",
-        getServletContext().getMajorVersion(), getServletContext().getMinorVersion());
+        getServletContext().getMajorVersion(),
+        getServletContext().getMinorVersion());
     out.printf(
         "effectiveVersion=%d.%d%n",
         getServletContext().getEffectiveMajorVersion(),
@@ -63,19 +64,27 @@ public class DumpServlet extends HttpServlet {
     out.println("<pre>");
     out.printf(
         "remoteHost/Addr:port=%s/%s:%d%n",
-        request.getRemoteHost(), request.getRemoteAddr(), request.getRemotePort());
+        request.getRemoteHost(),
+        request.getRemoteAddr(),
+        request.getRemotePort());
     out.printf(
         "localName/Addr:port=%s/%s:%d%n",
-        request.getLocalName(), request.getLocalAddr(), request.getLocalPort());
+        request.getLocalName(),
+        request.getLocalAddr(),
+        request.getLocalPort());
     out.printf(
         "scheme=%s method=%s protocol=%s%n",
-        request.getScheme(), request.getMethod(), request.getProtocol());
+        request.getScheme(),
+        request.getMethod(),
+        request.getProtocol());
     out.printf("serverName:serverPort=%s:%d%n", request.getServerName(), request.getServerPort());
     out.printf("requestURI=%s%n", request.getRequestURI());
     out.printf("requestURL=%s%n", request.getRequestURL().toString());
     out.printf(
         "contextPath|servletPath|pathInfo=%s|%s|%s%n",
-        request.getContextPath(), request.getServletPath(), request.getPathInfo());
+        request.getContextPath(),
+        request.getServletPath(),
+        request.getPathInfo());
     out.printf(
         "session/new=%s/%b%n", request.getSession(true).getId(), request.getSession().isNew());
     out.println("</pre>");
