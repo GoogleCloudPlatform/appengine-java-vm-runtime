@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.logging;
 
 import java.util.Map;
@@ -75,7 +76,7 @@ public class LogContext extends ConcurrentHashMap<String, Object> {
   /**
    * Stream all property values defined in this context.
    */
-  public Stream<Map.Entry<String, Object>> stream() {
+  public Stream<Entry<String, Object>> stream() {
     return values.entrySet().stream();
   }
 }

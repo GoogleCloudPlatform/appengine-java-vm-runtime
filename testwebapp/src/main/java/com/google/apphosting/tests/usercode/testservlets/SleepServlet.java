@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.apphosting.api.ApiBasePb.Integer32Proto;
@@ -62,8 +63,7 @@ public class SleepServlet extends HttpServlet {
       try {
         if (useBusyLoop != null) {
           long end = System.nanoTime() + sleepMillis * 1000000;
-          long l;
-          while ((l = System.nanoTime()) < end) {
+          while (System.nanoTime() < end) {
             for (int i = 0; i < 65535; i++) {
               // Busy wait
             }

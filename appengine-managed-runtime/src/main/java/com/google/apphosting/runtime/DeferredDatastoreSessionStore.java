@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime;
 
 import static com.google.appengine.api.taskqueue.RetryOptions.Builder.withTaskAgeLimitSeconds;
@@ -72,9 +73,9 @@ public class DeferredDatastoreSessionStore extends DatastoreSessionStore {
       // scenario, but it doesn't seem worth it.
       // The length of this timeout has been chosen arbitrarily.  Maybe let
       // users set it?
-      Entity e = DatastoreSessionStore.createEntityForSession(key, data);
+      Entity entity = DatastoreSessionStore.createEntityForSession(key, data);
       queue.add(
-          withPayload(newDeferredTask(putDeferredTaskConstructor, e))
+          withPayload(newDeferredTask(putDeferredTaskConstructor, entity))
               .retryOptions(withTaskAgeLimitSeconds(SAVE_TASK_AGE_LIMIT_SECS)));
     } catch (TransientFailureException e) {
       throw new Retryable(e);

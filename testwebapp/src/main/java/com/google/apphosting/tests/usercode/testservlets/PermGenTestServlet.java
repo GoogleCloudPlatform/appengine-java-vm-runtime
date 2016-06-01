@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -67,14 +68,12 @@ public class PermGenTestServlet extends HttpServlet {
   /**
    * By interning numMegs Strings of size about one meg and holding on to a reference to the
    * interned strings, we put approximately numMegs megs into perm-gen space.
-   *
-   * @param numMegs
    */
   private static void usePermGenSpace(int numMegs) {
     String[] strings = new String[numMegs];
     for (int i = 0; i < numMegs; i++) {
-      String s = ONE_MEG_STRING + i;
-      strings[i] = s.intern();
+      String str = ONE_MEG_STRING + i;
+      strings[i] = str.intern();
     }
   }
 }

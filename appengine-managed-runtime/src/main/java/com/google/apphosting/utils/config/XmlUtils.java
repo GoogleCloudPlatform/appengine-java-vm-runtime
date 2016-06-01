@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.utils.config;
 
 import com.google.appengine.repackaged.com.google.common.io.Files;
@@ -61,8 +62,8 @@ public class XmlUtils {
   static Document parseXml(InputStream inputStream, String filename) {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(inputStream);
+      DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(inputStream);
       doc.getDocumentElement().normalize();
       return doc;
     } catch (IOException e) {

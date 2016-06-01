@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmApiProxyEnvironment.AFFINITY_ATTRIBUTE;
@@ -81,8 +82,8 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
     addMetadata(USE_MVM_AGENT_ATTRIBUTE, Boolean.toString(false));
   }
 
-  public void setUseMVM(boolean useMVM) {
-    addMetadata(USE_MVM_AGENT_ATTRIBUTE, Boolean.toString(useMVM));
+  public void setUseMvm(boolean useMvm) {
+    addMetadata(USE_MVM_AGENT_ATTRIBUTE, Boolean.toString(useMvm));
   }
 
   @Override
@@ -214,9 +215,6 @@ public class TestMetadataServer extends AbstractLifeCycle implements Runnable {
   /**
    * Advance the buffer just past the next empty line, or to the end of the
    * buffer if no empty line exists.
-   *
-   * @param requestDataReader
-   * @throws IOException
    */
   private boolean verifyHeader(BufferedReader requestData, String header) throws IOException {
     boolean found = false;

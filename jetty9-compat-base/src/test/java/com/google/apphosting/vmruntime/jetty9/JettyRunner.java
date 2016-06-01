@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
@@ -250,8 +251,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   /**
    * Sets the system properties expected by jetty.xml.
-   *
-   * @throws IOException
    */
   protected void setSystemProperties(File logs) throws IOException {
     String logFilePattern = logs.getAbsolutePath() + "/log.%g";

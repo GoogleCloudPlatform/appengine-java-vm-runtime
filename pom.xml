@@ -228,7 +228,9 @@
             <configuration>
               <consoleOutput>true</consoleOutput>
               <failOnViolation>true</failOnViolation>
+              <violationSeverity>error</violationSeverity>
               <failsOnError>true</failsOnError>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
             </configuration>
           </execution>
         </executions>
