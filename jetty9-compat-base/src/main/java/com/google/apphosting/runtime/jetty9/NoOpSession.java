@@ -54,7 +54,9 @@ public class NoOpSession implements HttpSession {
    * Finish a request
    */
   protected void complete() {
-    attributes.clear();
+    synchronized (this) {
+      attributes.clear();
+    }
   }
 
   @Override
@@ -119,7 +121,7 @@ public class NoOpSession implements HttpSession {
   public Enumeration<String> getAttributeNames() {
     synchronized (this) {
       checkValid();
-      List<String> names = new ArrayList<String>(attributes.keySet());
+      List<String> names = new ArrayList<>(attributes.keySet());
       return Collections.enumeration(names);
     }
   }
@@ -129,7 +131,7 @@ public class NoOpSession implements HttpSession {
   public String[] getValueNames() {
     synchronized (this) {
       checkValid();
-      List<String> names = new ArrayList<String>(attributes.keySet());
+      List<String> names = new ArrayList<>(attributes.keySet());
       if (names.isEmpty()) {
         return new String[0];
       }
@@ -140,6 +142,7 @@ public class NoOpSession implements HttpSession {
   @Override
   public void setAttribute(String name, Object value) {
     synchronized (this) {
+      checkValid();
       attributes.put(name, value);
     }
   }
@@ -153,6 +156,7 @@ public class NoOpSession implements HttpSession {
   @Override
   public void removeAttribute(String name) {
     synchronized (this) {
+      checkValid();
       attributes.remove(name);
     }
   }
