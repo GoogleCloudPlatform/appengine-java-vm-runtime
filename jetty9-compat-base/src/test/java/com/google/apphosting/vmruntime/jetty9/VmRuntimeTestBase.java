@@ -129,7 +129,7 @@ public class VmRuntimeTestBase extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    port = me.alexpanov.net.FreePortFinder.findFreeLocalPort();
+    port = JettyRunner.findAvailablePort();
     externalPort = port;
     metadataServer = new TestMetadataServer();
     metadataServer.setUseMvm(Boolean.valueOf(getUseMvmAgent()));
