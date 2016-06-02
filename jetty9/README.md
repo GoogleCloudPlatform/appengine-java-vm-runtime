@@ -87,13 +87,12 @@ Once you have this configuration, you can use the Google Cloud SDK to deploy thi
 ## Entry Point Features
 The entry point for the image is [docker-entrypoint.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/jetty9/src/main/docker/docker-entrypoint.bash), which does the processing of the passed command line arguments to look for an executable alternative or arguments to the default command (java).
 
-If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features: ALPN, Stackdriver Debugger & Cloud Profiler.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
+If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features: ALPN & Stackdriver Debugger.  Each of these features must be explicitly enabled and not disable by environment variables, and each has a script that is run to determine the required JVM arguments:
 
 | Feature              | directory    | Enable            | Disable        | JVM args      |
 |----------------------|--------------|-------------------|----------------|---------------|
 | ALPN                 | /opt/alpn/   | $ALPN_ENABLE      | $ALPN_DISABLE  | $ALPN_BOOT    |
 | Stackdriver Debugger | /opt/cdbg/   | \<on by default\> | $CDBG_DISABLE  | $DBG_AGENT    |
-| Cloud Profile        | /opt/cprof/  | $CPROF_ENABLE     | $CPROF_DISABLE | $PROF_AGENT   |
 | Temporary file       |              | $TMPDIR           |                | $SET_TMP      |
 | Java options         |              | $JAVA_OPTS        |                | $JAVA_OPTS    |
 
@@ -102,7 +101,6 @@ docker entry point):
 ```
 java $ALPN_BOOT \
      $DBG_AGENT \
-     $PROF_AGENT \
      $SET_TMP \
      $JAVA_OPTS \
      -Djetty.base=$JETTY_BASE -jar $JETTY_HOME/start.jar \
