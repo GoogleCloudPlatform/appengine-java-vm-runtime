@@ -185,13 +185,13 @@ public class SessionManager extends AbstractSessionManager {
 
       // save if it is dirty or its a forced save
       if (force || dirty) {
-        int delay = 50; // Start with a delay of 50ms if a put fails.
+        int delay = 1000; // Start with a delay of 1s as per SLA if a put fails.
         try {
-          // Try 10 times with exponential back-off. The tenth time the
-          // delay will be about 25 seconds. We need to eventually give
+          // Try 6 times with exponential back-off. The sixth time the
+          // delay will be about 32 seconds. We need to eventually give
           // up because it is possible the Datastore API is totally hosed
           // and we want the request to eventually terminate.
-          for (int attemptNum = 0; attemptNum < 10; attemptNum++) {
+          for (int attemptNum = 0; attemptNum < 6; attemptNum++) {
             try {
               synchronized (this) {
                 if (dirty || force) {
