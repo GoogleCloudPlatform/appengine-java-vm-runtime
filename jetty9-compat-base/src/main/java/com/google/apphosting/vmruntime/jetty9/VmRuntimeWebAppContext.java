@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -26,6 +27,7 @@ import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
+import com.google.apphosting.runtime.jetty9.NoOpSessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import com.google.apphosting.runtime.timer.Timer;
@@ -49,7 +51,6 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.HttpOutput;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.log.JavaUtilLog;
 import org.eclipse.jetty.util.resource.Resource;
@@ -294,14 +295,16 @@ public class VmRuntimeWebAppContext extends WebAppContext
   /**
    * Initialize the WebAppContext for use by the VmRuntime.
    *
-   * This method initializes the WebAppContext by setting the context path and application folder.
-   * It will also parse the appengine-web.xml file provided to set System Properties and session
-   * manager accordingly.
+   * <p>
+   * This method initializes the WebAppContext by setting the context path and
+   * application folder. It will also parse the appengine-web.xml file provided to
+   * set System Properties and session manager accordingly.
+   * </p>
    *
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
    * @throws AppEngineConfigException If there was a problem finding or parsing the
-   *                                  appengine-web.xml configuration.
-   * @throws IOException              If the runtime was unable to find/read appDir.
+   *         appengine-web.xml configuration.
+   * @throws IOException If the runtime was unable to find/read appDir.
    */
   public void init(String appengineWebXmlFile) throws AppEngineConfigException, IOException {
     String appDir = getBaseResource().getFile().getCanonicalPath();
@@ -341,11 +344,13 @@ public class VmRuntimeWebAppContext extends WebAppContext
       // No need to configure the session manager.
       return;
     }
-    AbstractSessionManager sessionManager;
+    org.eclipse.jetty.server.SessionManager sessionManager;
     if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-      getSessionHandler().setSessionManager(sessionManager);
+    } else {
+      sessionManager = new NoOpSessionManager();
     }
+    getSessionHandler().setSessionManager(sessionManager);
 
     VmRuntimeInterceptor.init(appEngineWebXml);
   }
@@ -355,6 +360,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
     return VmRequestUtils.isTrustedRemoteAddr(isDevMode, remoteAddr);
   }
 
+  /**
+   * Get or create the RequestContext for a request.
+   *
+   * @param baseRequest The request to scope the context.
+   * @return Either an existing associated context or a new context.
+   */
   public RequestContext getRequestContext(Request baseRequest) {
     if (baseRequest == null) {
       return null;
@@ -398,7 +409,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
     public String toString() {
       return String.format(
           "RequestContext@%x %s==%s",
-          hashCode(), request.getRequestURI(), requestSpecificEnvironment);
+          hashCode(),
+          request.getRequestURI(),
+          requestSpecificEnvironment);
     }
   }
 

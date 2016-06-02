@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.tests.usercode.testservlets;
+package com.google.apphosting.runtime.jetty9;
 
-import java.io.IOException;
+import org.eclipse.jetty.server.session.AbstractSessionIdManager;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
+ * Minimal implementation of the SessionIdManager, just enough to generate new session ids.
  */
-public class ServerInfoServlet extends HttpServlet {
+public class NoOpSessionIdManager extends AbstractSessionIdManager {
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws ServletException, IOException {
-    resp.setContentType("text/plain");
-    resp.getWriter().println(getServletContext().getServerInfo());
+  public boolean idInUse(String id) {
+    return false;
+  }
+
+  @Override
+  public void addSession(HttpSession session) {}
+
+  @Override
+  public void removeSession(HttpSession session) {}
+
+  @Override
+  public void invalidateAll(String id) {}
+
+  @Override
+  public void renewSessionId(String oldClusterId, String oldNodeId, HttpServletRequest request) {
+    //don't support this
   }
 }

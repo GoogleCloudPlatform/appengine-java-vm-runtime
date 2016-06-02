@@ -1006,8 +1006,6 @@ public class AppEngineWebXml implements Cloneable {
    * Sets the application root directory, as a prefix for the regexps in
    * {@link #includeResourcePattern(String)} and friends.  This is needed
    * because we want to match complete filenames relative to root.
-   *
-   * @param appRoot
    */
   public void setSourcePrefix(String appRoot) {
     this.appRoot = appRoot;

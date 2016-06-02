@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime.jetty9;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * @deprecated Functionality moved to {@link VmRuntimeWebAppContext}
+ * @deprecated Functionality moved to {@link VmRuntimeWebAppContext}.
  *
  */
 public class SaveSessionFilter implements Filter {

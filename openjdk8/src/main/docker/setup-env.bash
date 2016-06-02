@@ -14,15 +14,6 @@ else
   DBG_AGENT="$( RUNTIME_DIR=$JETTY_BASE /opt/cdbg/format-env-appengine-vm.sh )"
 fi
 
-PROF_AGENT=
-if [[ -n "${CPROF_ENABLE}" ]]; then
-  if [[ "$GAE_PARTITION" = "dev" ]]; then
-    PROF_AGENT=
-  else
-    PROF_AGENT="$( /opt/cprof/format-env-appengine-vm.sh )"
-  fi
-fi
-
 SET_TMP=
 if [[ -n "${TMPDIR}" ]]; then
   SET_TMP="-Djava.io.tmpdir=$TMPDIR"

@@ -101,12 +101,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>me.alexpanov</groupId>
-      <artifactId>free-port-finder</artifactId>
-      <version>1.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-stubs</artifactId>
       <version>${appengine.api.version}</version>

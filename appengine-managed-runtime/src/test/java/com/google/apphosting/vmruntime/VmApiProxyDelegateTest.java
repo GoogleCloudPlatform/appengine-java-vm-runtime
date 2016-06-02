@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -213,9 +214,9 @@ public class VmApiProxyDelegateTest extends TestCase {
           apiConfig.setDeadlineInSeconds(timeoutInSeconds);
           result =
               delegate
-              .makeAsyncCall(
-                  environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-              .get();
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
           fail();
         } catch (ExecutionException exception) {
           // ExecutionException is expected, and make sure the cause is expected as well.
@@ -258,9 +259,9 @@ public class VmApiProxyDelegateTest extends TestCase {
           apiConfig.setDeadlineInSeconds(timeoutInSeconds);
           result =
               delegate
-              .makeAsyncCall(
-                  environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-              .get();
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
           fail();
         } catch (ExecutionException exception) {
           // ExecutionException is expected, and make sure the cause is expected as well.
@@ -301,9 +302,9 @@ public class VmApiProxyDelegateTest extends TestCase {
           apiConfig.setDeadlineInSeconds(timeoutInSeconds);
           result =
               delegate
-              .makeAsyncCall(
-                  environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-              .get();
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
           fail();
         } catch (ExecutionException exception) {
           // ExecutionException is expected, and make sure the cause is expected as well.
@@ -343,9 +344,13 @@ public class VmApiProxyDelegateTest extends TestCase {
         try {
           result =
               delegate
-              .makeAsyncCall(
-                  environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, new ApiConfig())
-              .get();
+                  .makeAsyncCall(
+                      environment,
+                      TEST_PACKAGE_NAME,
+                      TEST_METHOD_NAME,
+                      requestData,
+                      new ApiConfig())
+                  .get();
           fail();
         } catch (ExecutionException exception) {
           // ExecutionException is expected, and make sure the cause is expected as well.
@@ -518,7 +523,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         Double.toString(deadline));
   }
 
-  public void testAPIExceptionWrapping() {
+  public void testApiExceptionWrapping() {
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(createMockHttpClient());
     RuntimeException exception = delegate.constructApiException("logservice", "a");
 
@@ -536,11 +541,11 @@ public class VmApiProxyDelegateTest extends TestCase {
         "The remote RPC to the application server failed for the call barf.d().",
         exception.getMessage());
   }
-  
+
   private static class SuppressedLogging implements Closeable {
     Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
     Level level = logger.getLevel();
-    
+
     SuppressedLogging() {
       // If the logger is not configured to log debug level
       // logs (FINE, FINER, FINEST), then set the logger
@@ -550,7 +555,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         logger.setLevel(Level.SEVERE);
       }
     }
-    
+
     @Override
     public void close() throws IOException {
       logger.setLevel(level);

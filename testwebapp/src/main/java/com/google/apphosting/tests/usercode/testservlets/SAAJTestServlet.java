@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -148,9 +149,9 @@ public class SAAJTestServlet extends HttpServlet {
   private static void assertEquals(AttachmentPart expected, AttachmentPart actual, int index)
       throws Exception {
     // We'll just check that the IDs are equal
-    String expectedID = expected.getContentId();
-    String actualID = actual.getContentId();
-    assertEquals(expectedID, actualID);
+    String expectedId = expected.getContentId();
+    String actualId = actual.getContentId();
+    assertEquals(expectedId, actualId);
   }
 
   private static void assertSOAPHeadersAreEqual(SOAPMessage expected, SOAPMessage actual)
@@ -162,28 +163,28 @@ public class SAAJTestServlet extends HttpServlet {
     SOAPHeaderElement actualHeaderElement =
         (SOAPHeaderElement) actualHeader.getChildElements().next();
     QName expectedHeaderName = expectedHeaderElement.getElementQName();
-    String expectedQN = expectedHeaderName.toString();
+    String expectedQn = expectedHeaderName.toString();
     QName actualHeaderName = actualHeaderElement.getElementQName();
-    String actualQN = actualHeaderName.toString();
-    assertEquals(expectedQN, actualQN);
+    String actualQn = actualHeaderName.toString();
+    assertEquals(expectedQn, actualQn);
     // We'll just check that the first attributes are equal
     Iterator<?> expectedAttributes = expectedHeaderElement.getAllAttributes();
     Iterator<?> actualAttributes = actualHeaderElement.getAllAttributes();
-    Name expectedAttributeName = null;
+    Name expectedAttributeName;
     try {
       expectedAttributeName = (Name) expectedAttributes.next();
     } catch (NoSuchElementException e) {
-      throw new Exception("expectedHeader " + expectedQN + " does not have any attributes");
+      throw new Exception("expectedHeader " + expectedQn + " does not have any attributes");
     }
-    Name actualAttributeName = null;
+    Name actualAttributeName;
     try {
       actualAttributeName = (Name) actualAttributes.next();
     } catch (NoSuchElementException e) {
-      throw new Exception("actualHeader " + actualQN + " does not have any attributes");
+      throw new Exception("actualHeader " + actualQn + " does not have any attributes");
     }
-    expectedQN = expectedAttributeName.getQualifiedName();
-    actualQN = actualAttributeName.getQualifiedName();
-    assertEquals(expectedQN, actualQN);
+    expectedQn = expectedAttributeName.getQualifiedName();
+    actualQn = actualAttributeName.getQualifiedName();
+    assertEquals(expectedQn, actualQn);
   }
 
   private static void assertSOAPBodiesAreEqual(SOAPMessage expected, SOAPMessage actual)
@@ -192,9 +193,9 @@ public class SAAJTestServlet extends HttpServlet {
     SOAPBody actualBody = actual.getSOAPBody();
     SOAPBodyElement expectedElement = (SOAPBodyElement) expectedBody.getChildElements().next();
     SOAPBodyElement actualElement = (SOAPBodyElement) actualBody.getChildElements().next();
-    String expectedQN = expectedElement.getElementQName().toString();
-    String actualQN = actualElement.getElementQName().toString();
-    assertEquals(expectedQN, actualQN);
+    String expectedQn = expectedElement.getElementQName().toString();
+    String actualQn = actualElement.getElementQName().toString();
+    assertEquals(expectedQn, actualQn);
   }
 
   private static void assertEquals(String expected, String actual) throws Exception {

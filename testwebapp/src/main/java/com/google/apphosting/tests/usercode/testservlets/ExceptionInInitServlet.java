@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -58,12 +59,12 @@ public class ExceptionInInitServlet extends HttpServlet {
       // and not the mirror NetworkInterface_.
       StringWriter writer = new StringWriter();
       e.printStackTrace(new PrintWriter(writer));
-      String s = writer.toString();
-      if (s.contains("NetworkInterface_")) {
-        throw new RuntimeException("Stack trace contains mirror class: " + s);
+      String str = writer.toString();
+      if (str.contains("NetworkInterface_")) {
+        throw new RuntimeException("Stack trace contains mirror class: " + str);
       }
-      if (!s.contains("NetworkInterface")) {
-        throw new RuntimeException("Stack trace does not contain expected class: " + s);
+      if (!str.contains("NetworkInterface")) {
+        throw new RuntimeException("Stack trace does not contain expected class: " + str);
       }
     } catch (SocketException e) {
       throw new ServletException(e);

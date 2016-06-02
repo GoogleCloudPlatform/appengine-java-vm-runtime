@@ -29,7 +29,7 @@ ADD jetty-base jetty_run.sh $JETTY_BASE/
 WORKDIR $JETTY_BASE
 RUN sed -i 's/^\([a-zA-Z\.]*=\).*/#\1(see gae.ini)/' start.d/server.ini \
  && java -jar $JETTY_HOME/start.jar --dry-run \
-  | sed 's/^.*java /& ${ALPN_BOOT} ${DBG_AGENT} ${PROF_AGENT} -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} ${JAVA_OPTS} /' > jetty_cmd.sh \
+  | sed 's/^.*java /& ${ALPN_BOOT} ${DBG_AGENT} -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} ${JAVA_OPTS} /' > jetty_cmd.sh \
  && chown -R jetty:jetty $JETTY_BASE \
  && chmod +x $JETTY_BASE/jetty_run.sh
     

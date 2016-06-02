@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -42,22 +43,22 @@ public class LocalDatastoreSmoketestServlet extends HttpServlet {
     resp.setContentType("text/plain");
 
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity e = new Entity("foo");
-    e.setProperty("foo", 23);
-    Key key = ds.put(e);
+    Entity entity = new Entity("foo");
+    entity.setProperty("foo", 23);
+    Key key = ds.put(entity);
 
     try {
-      e = ds.get(key);
+      entity = ds.get(key);
     } catch (EntityNotFoundException e1) {
       throw new ServletException(e1);
     }
 
-    e.setProperty("bar", 44);
-    ds.put(e);
+    entity.setProperty("bar", 44);
+    ds.put(entity);
 
-    Query q = new Query("foo");
-    q.addFilter("foo", Query.FilterOperator.GREATER_THAN_OR_EQUAL, 22);
-    Iterator<Entity> iter = ds.prepare(q).asIterator();
+    Query query = new Query("foo");
+    query.addFilter("foo", Query.FilterOperator.GREATER_THAN_OR_EQUAL, 22);
+    Iterator<Entity> iter = ds.prepare(query).asIterator();
     iter.next();
   }
 }

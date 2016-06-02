@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.File;
@@ -28,8 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Demonstrates use of {@JarFile}.
- *
+ * Demonstrates use of {@link JarFile}.
  */
 public class JarFileReadingServlet extends HttpServlet {
 

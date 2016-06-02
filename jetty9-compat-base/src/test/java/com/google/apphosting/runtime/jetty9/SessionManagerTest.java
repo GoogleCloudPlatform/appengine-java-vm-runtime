@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime.jetty9;
 
 import static org.easymock.EasyMock.createMock;
@@ -399,10 +400,10 @@ public class SessionManagerTest extends TestCase {
           new SomeSerializable(1), new SomeSerializable(2), new SomeSerializable(3),
         });
     testSerialize("key", float.class);
-    Map<String, String> m = new HashMap<String, String>();
-    m.put("a", "b");
-    m.put("1", "2");
-    testSerialize("key", m);
+    Map<String, String> map = new HashMap<>();
+    map.put("a", "b");
+    map.put("1", "2");
+    testSerialize("key", map);
 
     // TODO(schwardo) or TODO(fabbot)
     // Consider adding some cross-ClassLoader tests here.
@@ -504,10 +505,10 @@ public class SessionManagerTest extends TestCase {
     assertEquals("bar", session2.getAttribute("foo"));
   }
 
-  /** TODO Debug this
+  /**
    * public void testDatastoreOnlyLifecycle() throws EntityNotFoundException {
    * manager =
-   * new SessionManager(Collections.<SessionStore>singletonList(new DatastoreSessionStore()));
+   * new SessionManager(Collections.&lt;SessionStore&gt;singletonList(new DatastoreSessionStore()));
    * HttpServletRequest request = makeMockRequest(true);
    * replay(request);
    *

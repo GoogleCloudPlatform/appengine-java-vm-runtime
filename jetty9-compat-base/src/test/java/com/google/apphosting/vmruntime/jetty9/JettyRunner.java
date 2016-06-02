@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
@@ -40,6 +41,7 @@ import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -250,18 +252,23 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   /**
    * Sets the system properties expected by jetty.xml.
-   *
-   * @throws IOException
    */
   protected void setSystemProperties(File logs) throws IOException {
     String logFilePattern = logs.getAbsolutePath() + "/log.%g";
     System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, logFilePattern);
-    System.setProperty(
-        "jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
+    System.setProperty("jetty.appengineport", String.valueOf(findAvailablePort()));
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
     System.setProperty("GAE_SERVER_PORT", "" + port);
+  }
+
+  public static int findAvailablePort() {
+    try (ServerSocket tempSocket = new ServerSocket(0)) {
+      return tempSocket.getLocalPort();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   public static void main(String... args) throws Exception {

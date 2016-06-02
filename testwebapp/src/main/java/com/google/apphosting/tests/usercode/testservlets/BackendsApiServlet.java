@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.backends.BackendService;
@@ -28,13 +29,13 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet that prints out information from the Backends API
  *
- *  If no parameters are specified the servlet will print out
- * <current_instance>.<current_server>
+ * <p/>If no parameters are specified the servlet will print out
+ * &lt;current_instance&gt;.&lt;current_server&gt;
  *
- *  If parameter "server" is specified the host:port for that server is printed
+ * <p/>If parameter "server" is specified the host:port for that server is printed
  * out.
  *
- * If both "server" and "instance" is specified the host:port for that instance
+ * <p/>If both "server" and "instance" is specified the host:port for that instance
  * is printed out.
  *
  *
