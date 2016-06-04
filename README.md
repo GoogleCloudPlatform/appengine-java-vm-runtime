@@ -12,7 +12,7 @@ the image, you need to build it with either a local docker installation or confi
 This will create the following docker images:
  * openjdk8:8-jre
  * jetty9:9.3.x
- * jetty9-compatible:1.9.x
+ * jetty9-compat
 
 The last of these images may be used as the basis for a Java Web Application Archive: put a Dockerfile at the top directory (for example, with a Maven build, create the Dockerfile in ./src/main/webapp directory) and from this Docker image, just add your Web Application content into the /app of the container.
 
