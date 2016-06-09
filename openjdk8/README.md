@@ -40,14 +40,13 @@ If the default command (java) is used, then the entry point sources the [setup-e
 
 | Feature              | directory    | Enable/Disable  | Default | JVM args      |
 |----------------------|--------------|-----------------|---------|---------------|
-| ALPN                 | /opt/alpn/   | $ALPN_ENABLE    | false   | $ALPN_BOOT    |
 | Stackdriver Debugger | /opt/cdbg/   | $DBG_ENABLE     | true    | $DBG_AGENT    |
 | Temporary file       |              | $TMPDIR         |         | $SET_TMP      |
 | Java options         |              | $JAVA_OPTS      |         | $JAVA_OPTS    |
 
 The command line executed is effectively (where $@ are the args passed into the docker entry point):
 ```
-java $ALPN_BOOT $DBG_AGENT $SET_TMP $JAVA_OPTS "$@"
+java $DBG_AGENT $SET_TMP $JAVA_OPTS "$@"
 ```
 
 
