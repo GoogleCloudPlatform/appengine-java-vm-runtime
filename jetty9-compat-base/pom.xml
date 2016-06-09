@@ -42,6 +42,12 @@
       <type>jar</type>
     </dependency>
     <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>jetty9-base</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
       <version>${jetty.version}</version>

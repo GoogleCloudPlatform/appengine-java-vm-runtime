@@ -166,6 +166,10 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       httpConfig.setSendServerVersion(true);
       httpConfig.setSendDateHeader(false);
       httpConfig.setDelayDispatchUntilContent(false);
+      GoogleRequestCustomizer requestCustomizer = new com.google.apphosting.jetty9.GoogleRequestCustomizer();
+      requestCustomizer.setHttpPort(port);
+      requestCustomizer.setHttpsPort(Integer.parseInt("443"));
+      httpConfig.addCustomizer(requestCustomizer);
 
       // Setup Server as done by gae.xml
       server.addBean(bufferpool);
@@ -260,7 +264,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
-    System.setProperty("GAE_SERVER_PORT", "" + port);
   }
 
   public static int findAvailablePort() {

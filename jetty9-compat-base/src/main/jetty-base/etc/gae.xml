@@ -30,10 +30,30 @@
     </Call>
 
     <!-- =========================================================== -->
-    <!-- Ammend HttpConfig                                           -->
+    <!-- Amend HttpConfig                                            -->
     <!-- =========================================================== -->
     <Ref refid="httpConfig">
       <Set name="headerCacheSize"><Property name="jetty.httpConfig.headerCacheSize" default="512"/></Set>
+      <Call name="addCustomizer">
+        <Arg>
+          <New class="com.google.apphosting.jetty9.GoogleRequestCustomizer">
+            <Arg name="httpPort" type="int">
+              <Property name="gae.httpPort">
+                <Default>
+                  <Env name="GAE_SERVER_PORT">
+                    <Default>
+                      <SystemProperty name="GAE_SERVER_PORT">
+                        <Default>80</Default>
+                      </SystemProperty>
+                    </Default>
+                  </Env>
+                </Default>
+              </Property>
+            </Arg>
+            <Arg name="httpsPort" type="int"><Property name="gae.httpsPort" default="443"/></Arg>
+          </New>
+        </Arg>
+      </Call>
     </Ref>
 
     <!-- =========================================================== -->
