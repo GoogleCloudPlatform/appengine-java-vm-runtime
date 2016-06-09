@@ -36,7 +36,6 @@
     <jetty.version>9.3.8.v20160314</jetty.version>
     <appengine.api.version>1.9.38</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
-    <checkstyle.config.location>checkstyle/google-checks.xml</checkstyle.config.location>
   </properties>
 
   <developers>
@@ -229,6 +228,8 @@
               <goal>check</goal>
             </goals>
             <configuration>
+              <configLocation>checkstyle/google-checks.xml</configLocation>
+              <suppressionsLocation>checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
               <consoleOutput>true</consoleOutput>
               <failOnViolation>true</failOnViolation>
               <violationSeverity>error</violationSeverity>

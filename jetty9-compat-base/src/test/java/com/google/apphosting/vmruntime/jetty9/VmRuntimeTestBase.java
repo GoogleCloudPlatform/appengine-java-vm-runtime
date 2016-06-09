@@ -21,6 +21,8 @@ import static com.google.apphosting.vmruntime.VmMetadataCache.META_DATA_PATTERN;
 
 import junit.framework.TestCase;
 
+import org.junit.Ignore;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,8 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
-
-import org.junit.Ignore;
 
 /**
  * Base test class for the Java VmRuntime.

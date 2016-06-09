@@ -27,6 +27,14 @@ public class ApiRequest {
   public final String methodName;
   public final byte[] requestData;
 
+  /**
+   * Simple API request.
+   *
+   * @param environment the environment
+   * @param packageName the package name
+   * @param methodName the method name
+   * @param requestData the request data
+     */
   public ApiRequest(
       VmApiProxyEnvironment environment,
       String packageName,

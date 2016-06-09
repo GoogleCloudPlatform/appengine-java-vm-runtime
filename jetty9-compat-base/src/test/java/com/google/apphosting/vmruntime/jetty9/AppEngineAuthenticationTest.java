@@ -51,8 +51,8 @@ import javax.servlet.ServletException;
 
 /**
  * Tests for AppEngineAuthentication.
- * <p>
- * Test plan: Create and configure a ConstraintSecurityHandler to use our AppEngineAuthentication
+ *
+ * <p>Test plan: Create and configure a ConstraintSecurityHandler to use our AppEngineAuthentication
  * classes, then configure some paths to require users to be logged in. We then fire requests at the
  * security handler by calling its handle() method and verify that unauthenticated requests are
  * redirected to a login url, while authenticated requests are allowed through.
