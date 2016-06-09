@@ -20,9 +20,8 @@ import java.util.Arrays;
 
 /**
  * Testing that appengine-web.xml can be optional.
- *
  */
-public class NoAppWebXmlTest extends VmRuntimeTestBase {
+public class NoAppWebXmlIT extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {

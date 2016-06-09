@@ -73,7 +73,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author fabbott@google.com (Freeland Abbott)
  */
-public class SessionManagerTest extends TestCase {
+public class SessionManagerIT extends TestCase {
 
   private static final int SESSION_EXPIRATION_SECONDS = 60;
 
@@ -147,7 +147,7 @@ public class SessionManagerTest extends TestCase {
     return "";
   }
 
-  public static class NamespacedStartTest extends SessionManagerTest {
+  public static class NamespacedStartTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -159,7 +159,7 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTest extends SessionManagerTest {
+  public static class NamespacedTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "";
@@ -171,7 +171,7 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTestTest extends SessionManagerTest {
+  public static class NamespacedTestTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -511,7 +511,7 @@ public class SessionManagerTest extends TestCase {
    * new SessionManager(Collections.&lt;SessionStore&gt;singletonList(new DatastoreSessionStore()));
    * HttpServletRequest request = makeMockRequest(true);
    * replay(request);
-   *
+   * <p>
    * AppEngineSession session = manager.newSession(request);
    * session.setAttribute("foo", "bar");
    * session.save();

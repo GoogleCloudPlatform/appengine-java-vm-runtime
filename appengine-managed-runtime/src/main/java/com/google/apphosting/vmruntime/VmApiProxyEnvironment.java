@@ -379,7 +379,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
     final String ticket =
-        getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, false)
+        getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, true)
             ? null
             : request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);

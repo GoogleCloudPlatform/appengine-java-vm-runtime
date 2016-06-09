@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Base test class for the Java VmRuntime.
- *
+ * <p>
  * Test methods that are Jetty version independent should be implemented in this class.
  */
 @Ignore
@@ -106,6 +106,7 @@ public class VmRuntimeTestBase extends TestCase {
 
   /**
    * Convenience method for fetching from a HttpURLConnection. This allows headers to be set.
+   *
    * @param connection the connection to use
    * @return A string array of the lines in the response.
    */
@@ -161,7 +162,10 @@ public class VmRuntimeTestBase extends TestCase {
     conn.setRequestProperty("Metadata-Flavor", "Google");
     return conn;
   }
-  /** Timeout in milliseconds to retrieve data from the server. */
+
+  /**
+   * Timeout in milliseconds to retrieve data from the server.
+   */
   private static final int TIMEOUT_MILLIS = 120 * 1000;
 
   protected String getMetadataFromServer(String path) throws IOException {

@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-public class AsyncServletTest extends VmRuntimeTestBase {
+public class AsyncServletIT extends VmRuntimeTestBase {
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
