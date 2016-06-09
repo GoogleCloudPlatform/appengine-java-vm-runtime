@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Test VmRuntimeWebAppContext directly, without using VmRuntimeTestBase
- *
  */
 public class VmRuntimeWebAppContextTest {
 

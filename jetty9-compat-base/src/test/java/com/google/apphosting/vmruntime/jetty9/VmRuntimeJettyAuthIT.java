@@ -26,9 +26,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Testing Jetty9 auth handling.
- *
  */
-public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
+public class VmRuntimeJettyAuthIT extends VmRuntimeTestBase {
 
   public void testAuth_UserNotRequired() throws Exception {
     String[] lines = fetchUrl(createUrl("/test-auth"));
