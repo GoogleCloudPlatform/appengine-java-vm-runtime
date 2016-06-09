@@ -50,14 +50,11 @@ RUN apt-get -y update \
 
 # Add the cloud debugger libraries
 ADD https://storage.googleapis.com/cloud-debugger/appengine-java/current/cdbg_java_agent.tar.gz /opt/cdbg/
-ADD ./alpn /opt/alpn
-ADD http://central.maven.org/maven2/org/mortbay/jetty/alpn/alpn-boot/${alpn.version}/alpn-boot-${alpn.version}.jar /opt/alpn/
 COPY docker-entrypoint.bash /
 COPY setup-env.bash /
 RUN tar Cxfvz /opt/cdbg /opt/cdbg/cdbg_java_agent.tar.gz --no-same-owner \
  && rm /opt/cdbg/cdbg_java_agent.tar.gz \
- && ln -s /opt/alpn/alpn-boot-8.1.5.v20150921.jar /opt/alpn/alpn-boot.jar \
- && chmod +x /opt/alpn/format-env-appengine-vm.sh /docker-entrypoint.bash /setup-env.bash
+ && chmod +x /docker-entrypoint.bash /setup-env.bash
 
 ENTRYPOINT ["/docker-entrypoint.bash"]
 CMD ["java","-version"]

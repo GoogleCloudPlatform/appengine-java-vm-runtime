@@ -8,11 +8,6 @@ isTrue() {
   fi 
 }
 
-ALPN_BOOT=
-if isTrue "${ALPN_ENABLE:=false}" ; then
-  ALPN_BOOT="$( /opt/alpn/format-env-appengine-vm.sh )"
-fi
-
 DBG_AGENT=
 if isTrue "${DBG_ENABLE:=$( if [[ -z ${CDBG_DISABLE} ]] ; then echo true; else echo false ; fi )}" ; then
   if [[ "$GAE_PARTITION" = "dev" ]]; then

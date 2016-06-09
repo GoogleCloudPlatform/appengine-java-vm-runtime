@@ -40,7 +40,6 @@ If the default command (java) is used, then the entry point sources the [setup-e
 
 | Feature              | directory  | Enable/Disable  | Default            | JVM args           |
 |----------------------|------------|-----------------|--------------------|--------------------|
-| ALPN                 | /opt/alpn/ | $ALPN_ENABLE    | false              | $ALPN_BOOT         |
 | Stackdriver Debugger | /opt/cdbg/ | $DBG_ENABLE     | true               | $DBG_AGENT         |
 | Temporary file       |            | $TMPDIR         |                    | $JAVA_TMP_OPTS     |
 | Temporary file       |            | $HEAD_SIZE      | from /proc/meminfo | $JAVA_HEAP_OPTS    |
@@ -53,7 +52,6 @@ If not explicitly set, `JAVA_OPTS` is defaulted to
 ```
 JAVA_OPTS:=-showversion \
            ${JAVA_TMP_OPTS} \
-           ${ALPN_BOOT} \
            ${DBG_AGENT} \
            ${JAVA_HEAP_OPTS} \
            ${JAVA_GC_OPTS} \
