@@ -34,9 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Misc individual Jetty9 vmengines tests.
- *
  */
-public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
+public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {

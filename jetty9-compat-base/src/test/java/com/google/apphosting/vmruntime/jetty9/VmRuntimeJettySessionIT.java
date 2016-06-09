@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author isdal@google.com (Tomas Isdal)
  */
-public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
+public class VmRuntimeJettySessionIT extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {
@@ -123,6 +123,7 @@ public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
   //    code = fetchResponseCode(createUrl("/_ah/health"));
   //    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
   //  }
+
   /**
    * Create a datastore put response with the minimal fields required to make
    * the put succeed.

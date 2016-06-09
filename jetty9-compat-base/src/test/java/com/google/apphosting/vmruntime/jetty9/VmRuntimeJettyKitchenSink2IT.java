@@ -25,7 +25,6 @@ import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueBulkAddResponse.T
 import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueServiceError.ErrorCode;
 import com.google.apphosting.api.ApiBasePb.VoidProto;
 import com.google.apphosting.api.ApiProxy;
-//import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
 import com.google.apphosting.api.DatastorePb.Transaction;
 
 import org.apache.commons.httpclient.Header;
@@ -36,11 +35,12 @@ import org.apache.commons.httpclient.methods.PostMethod;
 
 import java.net.HttpURLConnection;
 
+//import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
+
 /**
  * Misc individual Jetty9 vmengines tests.
- *
  */
-public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
+public class VmRuntimeJettyKitchenSink2IT extends VmRuntimeTestBase {
 
   /**
    * Test that the count servlet was loaded, and that local state is preserved
