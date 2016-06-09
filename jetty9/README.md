@@ -86,17 +86,20 @@ Once you have this configuration, you can use the Google Cloud SDK to deploy thi
 ## Entry Point Features
 The entry point for the image is [docker-entrypoint.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/jetty9/src/main/docker/docker-entrypoint.bash), which does the processing of the passed command line arguments to look for an executable alternative or arguments to the default command (java).
 
-If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features to be enabled and/or configured.  The following table indicates the environment variables that may be used to enable/disable features, any default values if they are not set and the environment variable that holds the resulting JVM arguments that actually enable the feature: 
+If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features to be enabled and/or configured.  The following table indicates the environment variables that may be used to enable/disable/configure features, any default values if they are not set: 
 
-| Feature              | directory  | Enable/Disable  | Default            | JVM args           |
-|----------------------|------------|-----------------|--------------------|--------------------|
-| Stackdriver Debugger | /opt/cdbg/ | $DBG_ENABLE     | true               | $DBG_AGENT         |
-| Temporary file       |            | $TMPDIR         |                    | $JAVA_TMP_OPTS     |
-| Temporary file       |            | $HEAD_SIZE      | from /proc/meminfo | $JAVA_HEAP_OPTS    |
-| Java GC options      |            |                 | -XX:+UseG1GC       | $JAVA_GC_OPTS      |
-| Java GC Log          |            | $JAVA_GC_LOG    |                    | $JAVA_GC_LOG_OPTS  |
-| Java user options    |            | $JAVA_USER_OPTS |                    | $JAVA_USER_OPTS    |
-| Java options         |            | $JAVA_OPTS      | see below          | $JAVA_OPTS         |
+|Env Var           | Description         | Type     | Default                               |
+|------------------|---------------------|----------|---------------------------------------|
+|`DBG_ENABLE`      | Stackdriver Debugger| Boolean  | `true`                                |
+|`TMPDIR`          | Temporary Directory | dirname  |                                       |
+|`JAVA_TMP_OPTS`   | JVM tmpdir args     | JVM args | `-Djava.io.tmpdir=${TMPDIR}`          |
+|`HEAP_SIZE`       | Available heap      | Size     | Derived from `/proc/meminfo`          |
+|`JAVA_HEAP_OPTS`  | JVM heap args       | JVM args | `-Xms${HEAP_SIZE} -Xmx${HEAP_SIZE}`   |
+|`JAVA_GC_OPTS`    | JVM GC args         | JVM args | `-XX:+UseG1GC` plus configuration     |
+|`JAVA_GC_LOG`     | JVM GC log file     | filename |                                       |
+|`JAVA_GC_LOG_OPTS`| JVM GC args         | JVM args | Derived from `$JAVA_GC_LOG`           |
+|`JAVA_USER_OPTS`  | JVM other args      | JVM args |                                       |
+|`JAVA_OPTS`       | JVM args            | JVM args | See below                             |
 
 If not explicitly set, `JAVA_OPTS` is defaulted to 
 ```
