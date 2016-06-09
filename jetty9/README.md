@@ -31,7 +31,6 @@ The jetty base in this image has some additional google specific modules:
 Module | Description | enabled
 -------|-------------|------- 
  gae   | enables JSON formatted server logging; enables request log; | true  
- gae-alpn | exposes ALPN API jars | false
 
 The `$JETTY_BASE/resources/jetty-logging.properties` file configures the
 jetty logging mechanism to use `java.util.logging'.  This is configured
@@ -91,15 +90,13 @@ If the default command (java) is used, then the entry point sources the [setup-e
 
 | Feature              | directory    | Enable/Disable  | Default | JVM args      |
 |----------------------|--------------|-----------------|---------|---------------|
-| ALPN                 | /opt/alpn/   | $ALPN_ENABLE    | false   | $ALPN_BOOT    |
 | Stackdriver Debugger | /opt/cdbg/   | $DBG_ENABLE     | true    | $DBG_AGENT    |
 | Temporary file       |              | $TMPDIR         |         | $SET_TMP      |
 | Java options         |              | $JAVA_OPTS      |         | $JAVA_OPTS    |
 
 The command line executed is effectively (where $@ are the args passed into the docker entry point):
 ```
-java $ALPN_BOOT \
-     $DBG_AGENT \
+java $DBG_AGENT \
      $SET_TMP \
      $JAVA_OPTS \
      -Djetty.base=$JETTY_BASE -jar $JETTY_HOME/start.jar \

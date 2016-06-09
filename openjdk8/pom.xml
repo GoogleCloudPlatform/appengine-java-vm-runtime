@@ -28,10 +28,6 @@
   <artifactId>openjdk8</artifactId>
   <packaging>pom</packaging>
 
-  <properties>
-    <alpn.version>8.1.5.v20150921</alpn.version>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
