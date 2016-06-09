@@ -90,10 +90,10 @@ If the default command (java) is used, then the entry point sources the [setup-e
 
 |Env Var           | Description         | Type     | Default                               |
 |------------------|---------------------|----------|---------------------------------------|
-|`DBG_ENABLE`      | Stackdriver Debugger| Boolean  | `true`                                |
+|`DBG_ENABLE`      | Stackdriver Debugger| boolean  | `true`                                |
 |`TMPDIR`          | Temporary Directory | dirname  |                                       |
 |`JAVA_TMP_OPTS`   | JVM tmpdir args     | JVM args | `-Djava.io.tmpdir=${TMPDIR}`          |
-|`HEAP_SIZE`       | Available heap      | Size     | Derived from `/proc/meminfo`          |
+|`HEAP_SIZE`       | Available heap      | size     | Derived from `/proc/meminfo`          |
 |`JAVA_HEAP_OPTS`  | JVM heap args       | JVM args | `-Xms${HEAP_SIZE} -Xmx${HEAP_SIZE}`   |
 |`JAVA_GC_OPTS`    | JVM GC args         | JVM args | `-XX:+UseG1GC` plus configuration     |
 |`JAVA_GC_LOG`     | JVM GC log file     | filename |                                       |
