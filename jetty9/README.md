@@ -89,24 +89,36 @@ The entry point for the image is [docker-entrypoint.bash](https://github.com/Goo
 
 If the default command (java) is used, then the entry point sources the [setup-env.bash](https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime/blob/master/openjdk8/src/main/docker/setup-env.bash), which looks for supported features to be enabled and/or configured.  The following table indicates the environment variables that may be used to enable/disable features, any default values if they are not set and the environment variable that holds the resulting JVM arguments that actually enable the feature: 
 
-| Feature              | directory    | Enable/Disable  | Default | JVM args      |
-|----------------------|--------------|-----------------|---------|---------------|
-| ALPN                 | /opt/alpn/   | $ALPN_ENABLE    | false   | $ALPN_BOOT    |
-| Stackdriver Debugger | /opt/cdbg/   | $DBG_ENABLE     | true    | $DBG_AGENT    |
-| Temporary file       |              | $TMPDIR         |         | $SET_TMP      |
-| Java options         |              | $JAVA_OPTS      |         | $JAVA_OPTS    |
+| Feature              | directory  | Enable/Disable  | Default            | JVM args           |
+|----------------------|------------|-----------------|--------------------|--------------------|
+| ALPN                 | /opt/alpn/ | $ALPN_ENABLE    | false              | $ALPN_BOOT         |
+| Stackdriver Debugger | /opt/cdbg/ | $DBG_ENABLE     | true               | $DBG_AGENT         |
+| Temporary file       |            | $TMPDIR         |                    | $JAVA_TMP_OPTS     |
+| Temporary file       |            | $HEAD_SIZE      | from /proc/meminfo | $JAVA_HEAP_OPTS    |
+| Java GC options      |            |                 | -XX:+UseG1GC       | $JAVA_GC_OPTS      |
+| Java GC Log          |            | $JAVA_GC_LOG    |                    | $JAVA_GC_LOG_OPTS  |
+| Java user options    |            | $JAVA_USER_OPTS |                    | $JAVA_USER_OPTS    |
+| Java options         |            | $JAVA_OPTS      | see below          | $JAVA_OPTS         |
+
+If not explicitly set, `JAVA_OPTS` is defaulted to 
+```
+JAVA_OPTS:=-showversion \
+           ${JAVA_TMP_OPTS} \
+           ${ALPN_BOOT} \
+           ${DBG_AGENT} \
+           ${JAVA_HEAP_OPTS} \
+           ${JAVA_GC_OPTS} \
+           ${JAVA_GC_LOG_OPTS} \
+           ${JAVA_USER_OPTS}
+```
 
 The command line executed is effectively (where $@ are the args passed into the docker entry point):
 ```
-java $ALPN_BOOT \
-     $DBG_AGENT \
-     $SET_TMP \
-     $JAVA_OPTS \
-     -Djetty.base=$JETTY_BASE -jar $JETTY_HOME/start.jar \
+java $JAVA_OPTS \
+     -Djetty.base=$JETTY_BASE \
+     -jar $JETTY_HOME/start.jar \
      "$@"
 ```
-
-
 
 
 
