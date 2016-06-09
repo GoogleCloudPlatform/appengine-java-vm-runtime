@@ -123,6 +123,7 @@ public class VmRuntimeJettySessionIT extends VmRuntimeTestBase {
   //    code = fetchResponseCode(createUrl("/_ah/health"));
   //    assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, code);
   //  }
+
   /**
    * Create a datastore put response with the minimal fields required to make
    * the put succeed.

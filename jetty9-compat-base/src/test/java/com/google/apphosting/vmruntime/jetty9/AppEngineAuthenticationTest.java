@@ -51,8 +51,8 @@ import javax.servlet.ServletException;
 
 /**
  * Tests for AppEngineAuthentication.
- *
- *  Test plan: Create and configure a ConstraintSecurityHandler to use our AppEngineAuthentication
+ * <p>
+ * Test plan: Create and configure a ConstraintSecurityHandler to use our AppEngineAuthentication
  * classes, then configure some paths to require users to be logged in. We then fire requests at the
  * security handler by calling its handle() method and verify that unauthenticated requests are
  * redirected to a login url, while authenticated requests are allowed through.
@@ -125,8 +125,8 @@ public class AppEngineAuthenticationTest extends TestCase {
   /**
    * Fire one request at the security handler (and by extension to the AuthServlet behind it).
    *
-   * @param path The path to hit.
-   * @param request The request object to use.
+   * @param path     The path to hit.
+   * @param request  The request object to use.
    * @param response The response object to use. Must be created by Mockito.mock()
    * @return Any data written to response.getWriter()
    */

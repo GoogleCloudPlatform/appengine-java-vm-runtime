@@ -34,7 +34,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Misc individual Jetty9 vmengines tests.
- *
  */
 public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
 

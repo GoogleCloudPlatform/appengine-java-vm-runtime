@@ -42,7 +42,6 @@ import org.junit.Test;
 
 /**
  * Test VmRuntimeWebAppContext directly, without using VmRuntimeTestBase
- *
  */
 public class VmRuntimeWebAppContextTest {
 

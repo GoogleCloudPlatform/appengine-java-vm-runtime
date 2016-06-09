@@ -16,12 +16,6 @@
 
 package com.google.apphosting.runtime.jetty9;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertArrayEquals;
-
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -52,6 +46,8 @@ import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
+import org.easymock.EasyMock;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -66,7 +62,11 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.easymock.EasyMock;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertArrayEquals;
 
 /**
  * Tests for SessionManager and its inner classes.
@@ -147,8 +147,7 @@ public class SessionManagerIT extends TestCase {
     return "";
   }
 
-  public static class NamespacedStartTest extends SessionManagerIT
-  {
+  public static class NamespacedStartTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -160,8 +159,7 @@ public class SessionManagerIT extends TestCase {
     }
   }
 
-  public static class NamespacedTest extends SessionManagerIT
-  {
+  public static class NamespacedTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "";
@@ -173,8 +171,7 @@ public class SessionManagerIT extends TestCase {
     }
   }
 
-  public static class NamespacedTestTest extends SessionManagerIT
-  {
+  public static class NamespacedTestTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -514,7 +511,7 @@ public class SessionManagerIT extends TestCase {
    * new SessionManager(Collections.&lt;SessionStore&gt;singletonList(new DatastoreSessionStore()));
    * HttpServletRequest request = makeMockRequest(true);
    * replay(request);
-   *
+   * <p>
    * AppEngineSession session = manager.newSession(request);
    * session.setAttribute("foo", "bar");
    * session.save();

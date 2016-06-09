@@ -26,7 +26,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Testing Jetty9 auth handling.
- *
  */
 public class VmRuntimeJettyAuthIT extends VmRuntimeTestBase {
 
