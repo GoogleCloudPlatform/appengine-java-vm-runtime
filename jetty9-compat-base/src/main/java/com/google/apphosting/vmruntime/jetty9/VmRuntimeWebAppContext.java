@@ -249,27 +249,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
   }
 
   /**
-   * Checks if the request was made over HTTPS. If so it modifies the request so that {@code
-   * HttpServletRequest#isSecure()} returns true, {@code HttpServletRequest#getScheme()} returns
-   * "https", and {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets the
-   * scheme to "http" and port to 80.
-   *
-   * @param request The request to modify.
-   */
-  private void setSchemeAndPort(Request request) {
-    String https = request.getHeader(VmApiProxyEnvironment.HTTPS_HEADER);
-    if ("on".equals(https)) {
-      request.setSecure(true);
-      request.setScheme(HttpScheme.HTTPS.toString());
-      request.setAuthority(request.getServerName(), 443);
-    } else {
-      request.setSecure(false);
-      request.setScheme(HttpScheme.HTTP.toString());
-      request.setAuthority(request.getServerName(), defaultEnvironment.getServerPort());
-    }
-  }
-
-  /**
    * Creates a new VmRuntimeWebAppContext.
    */
   public VmRuntimeWebAppContext() {
@@ -450,9 +429,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
       // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(requestContext);
-
-      // Change scheme to HTTPS based on headers set by the appserver.
-      setSchemeAndPort(baseRequest);
     }
 
     @Override
