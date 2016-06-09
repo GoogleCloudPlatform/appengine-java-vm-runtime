@@ -52,8 +52,6 @@ import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-import org.easymock.EasyMock;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -68,12 +66,14 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.easymock.EasyMock;
+
 /**
  * Tests for SessionManager and its inner classes.
  *
  * @author fabbott@google.com (Freeland Abbott)
  */
-public class SessionManagerTest extends TestCase {
+public class SessionManagerIT extends TestCase {
 
   private static final int SESSION_EXPIRATION_SECONDS = 60;
 
@@ -147,7 +147,8 @@ public class SessionManagerTest extends TestCase {
     return "";
   }
 
-  public static class NamespacedStartTest extends SessionManagerTest {
+  public static class NamespacedStartTest extends SessionManagerIT
+  {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -159,7 +160,8 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTest extends SessionManagerTest {
+  public static class NamespacedTest extends SessionManagerIT
+  {
     @Override
     public String startNamespace() {
       return "";
@@ -171,7 +173,8 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTestTest extends SessionManagerTest {
+  public static class NamespacedTestTest extends SessionManagerIT
+  {
     @Override
     public String startNamespace() {
       return "start-namespace";

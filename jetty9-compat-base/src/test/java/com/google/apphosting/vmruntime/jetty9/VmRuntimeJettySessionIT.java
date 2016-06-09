@@ -28,9 +28,6 @@ import com.google.storage.onestore.v3.OnestoreEntity.Path;
 import com.google.storage.onestore.v3.OnestoreEntity.Path.Element;
 import com.google.storage.onestore.v3.OnestoreEntity.Reference;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,13 +35,16 @@ import java.util.Arrays;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+
 /**
  * Tests for running AppEngine Java apps inside a VM using a Jetty 9 container
  * with HTTP servlet sessions enabled.
  *
  * @author isdal@google.com (Tomas Isdal)
  */
-public class VmRuntimeJettySessionTest extends VmRuntimeTestBase {
+public class VmRuntimeJettySessionIT extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {
