@@ -454,7 +454,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final String server;
   private volatile String ticket; // request ticket is only valid until response is committed.
   private volatile String globalTicket; // global ticket is always valid
-  private final int serverPort;
   private final String partition;
   private final String appId;
   private final String module;
@@ -541,11 +540,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     this.server = server;
     this.partition = partition;
-    String port =
-        System.getenv(GAE_SERVER_PORT) == null
-            ? System.getProperty("GAE_SERVER_PORT", "80")
-            : System.getenv(GAE_SERVER_PORT);
-    this.serverPort = Integer.decode(port);
     this.appId = partition + "~" + appId;
     this.module = module == null ? "default" : module;
     this.majorVersion = majorVersion == null ? "" : majorVersion;
@@ -616,10 +610,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   public String getPartition() {
     return partition;
-  }
-
-  public int getServerPort() {
-    return serverPort;
   }
 
   @Override
