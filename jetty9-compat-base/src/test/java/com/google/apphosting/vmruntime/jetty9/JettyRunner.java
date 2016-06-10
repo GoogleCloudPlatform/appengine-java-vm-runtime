@@ -168,7 +168,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       httpConfig.setSendDateHeader(false);
       httpConfig.setDelayDispatchUntilContent(false);
       GoogleRequestCustomizer requestCustomizer =
-          new GoogleRequestCustomizer(port, Integer.parseInt("443"));
+          new GoogleRequestCustomizer(port, 443);
       httpConfig.addCustomizer(requestCustomizer);
 
       // Setup Server as done by gae.xml
