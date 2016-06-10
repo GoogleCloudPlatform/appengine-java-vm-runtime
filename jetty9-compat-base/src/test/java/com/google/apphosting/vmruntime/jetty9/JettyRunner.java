@@ -19,6 +19,7 @@ package com.google.apphosting.vmruntime.jetty9;
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
+import com.google.apphosting.jetty9.GoogleRequestCustomizer;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
@@ -166,9 +167,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       httpConfig.setSendServerVersion(true);
       httpConfig.setSendDateHeader(false);
       httpConfig.setDelayDispatchUntilContent(false);
-      GoogleRequestCustomizer requestCustomizer = new com.google.apphosting.jetty9.GoogleRequestCustomizer();
-      requestCustomizer.setHttpPort(port);
-      requestCustomizer.setHttpsPort(Integer.parseInt("443"));
+      GoogleRequestCustomizer requestCustomizer =
+          new GoogleRequestCustomizer(port, Integer.parseInt("443"));
       httpConfig.addCustomizer(requestCustomizer);
 
       // Setup Server as done by gae.xml
