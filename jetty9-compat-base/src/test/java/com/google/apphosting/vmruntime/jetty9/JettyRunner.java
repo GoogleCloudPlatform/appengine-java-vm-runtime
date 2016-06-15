@@ -43,9 +43,11 @@ import org.junit.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 class JettyRunner extends AbstractLifeCycle implements Runnable {
 
@@ -55,16 +57,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
   private final String webapp;
   private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
-  private static final String[] preconfigurationClasses = {
-    org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
-    // next one is way too slow for unit testing:
-    //org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
-  };
 
   public JettyRunner() {
     this(-1);
@@ -118,12 +110,15 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
         target = new File(project, "jetty9-compat-base/target");
       }
 
-      File jettyBase =
-          new File(
-              System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
+      String jettyBase = System.getProperty("jetty.base");
+      if (jettyBase == null) {
+        jettyBase = new File(target, "jetty-base").getAbsolutePath();
+        System.setProperty("jetty.base", jettyBase);
+      }
+      File jettyBaseFile = new File(jettyBase);
 
       Assert.assertTrue(target.isDirectory());
-      Assert.assertTrue(jettyBase.isDirectory());
+      Assert.assertTrue(jettyBaseFile.isDirectory());
       logs = new File(target, "logs");
       logs.delete();
       logs.mkdirs();
@@ -167,8 +162,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       httpConfig.setSendServerVersion(true);
       httpConfig.setSendDateHeader(false);
       httpConfig.setDelayDispatchUntilContent(false);
-      GoogleRequestCustomizer requestCustomizer =
-          new GoogleRequestCustomizer(port, 443);
+      GoogleRequestCustomizer requestCustomizer = new GoogleRequestCustomizer(port, 443);
       httpConfig.addCustomizer(requestCustomizer);
 
       // Setup Server as done by gae.xml
@@ -192,7 +186,12 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       // configuration from root.xml
       final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
-      context.setConfigurationClasses(preconfigurationClasses);
+
+      // remove annotations
+      context.setConfigurationClasses(
+          Arrays.stream(context.getConfigurationClasses())
+              .filter(n -> !n.contains("AnnotationConfiguration"))
+              .collect(Collectors.toList()));
 
       // Needed to initialize JSP!
       context.addBean(
@@ -224,7 +223,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
 
       // Hack to find the webdefault.xml
-      File webDefault = new File(jettyBase, "etc/webdefault.xml");
+      File webDefault = new File(jettyBaseFile, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
 
       contexts.addHandler(context);

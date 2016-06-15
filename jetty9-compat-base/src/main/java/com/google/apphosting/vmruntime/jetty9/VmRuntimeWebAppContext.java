@@ -59,6 +59,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -80,19 +82,8 @@ import javax.servlet.http.HttpSession;
 public class VmRuntimeWebAppContext extends WebAppContext
     implements VmRuntimeTrustedAddressChecker {
 
-  private static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
+  static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
-  // It's undesirable to have the user app override classes provided by us.
-  // So we mark them as Jetty system classes, which cannot be overridden.
-  private static final String[] SYSTEM_CLASSES = {
-    // The trailing dot means these are all Java packages, not individual classes.
-    "com.google.appengine.api.",
-    "com.google.appengine.tools.",
-    "com.google.apphosting.",
-    "com.google.cloud.sql.jdbc.",
-    "com.google.protos.cloud.sql.",
-    "com.google.storage.onestore.",
-  };
   // constant. If it's much larger than this we may need to
   // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
@@ -100,7 +91,10 @@ public class VmRuntimeWebAppContext extends WebAppContext
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
   private VmApiProxyEnvironment defaultEnvironment;
-  private DatastoreService datastoreService;
+  private Object contextDatastoreService;
+  private Method getActiveTransactions;
+  private Method transactionRollback;
+  private Method transactionGetId;
   private String quickstartWebXml;
   private PreconfigureDescriptorProcessor preconfigProcessor;
 
@@ -122,6 +116,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
   // because they have been executed via the SDK.
   private static final String[] quickstartConfigurationClasses = {
     org.eclipse.jetty.quickstart.QuickStartConfiguration.class.getCanonicalName(),
+    AppengineApiConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.JettyWebXmlConfiguration.class.getCanonicalName()
@@ -131,6 +126,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
   // is no quickstart-web.xml.
   private static final String[] preconfigurationClasses = {
     org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
+    AppengineApiConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
@@ -185,8 +181,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
       setConfigurationClasses(quickstartConfigurationClasses);
     }
 
-    datastoreService = getDatastoreService();
-
     if (quickstartWebXml == null) {
       addEventListener(new ContextListener());
     } else {
@@ -194,7 +188,31 @@ public class VmRuntimeWebAppContext extends WebAppContext
           .addDescriptorProcessor(preconfigProcessor = new PreconfigureDescriptorProcessor());
     }
 
+    // DatastoreServiceFactory.getDatastoreService();
+
     super.doStart();
+
+    // Look for a datastore service within the context
+    ClassLoader orig = Thread.currentThread().getContextClassLoader();
+    try {
+      ClassLoader loader = getClassLoader();
+      Thread.currentThread().setContextClassLoader(loader);
+      Class<?> factory = loader.loadClass(DatastoreServiceFactory.class.getName());
+      contextDatastoreService = factory.getMethod("getDatastoreService").invoke(null);
+      if (contextDatastoreService != null) {
+        getActiveTransactions =
+            contextDatastoreService.getClass().getMethod("getActiveTransactions");
+        getActiveTransactions.setAccessible(true);
+
+        Class<?> transaction = loader.loadClass(Transaction.class.getName());
+        transactionRollback = transaction.getMethod("rollback");
+        transactionGetId = transaction.getMethod("getId");
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "No context datastore service", ex);
+    } finally {
+      Thread.currentThread().setContextClassLoader(orig);
+    }
   }
 
   @Override
@@ -223,13 +241,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
     if (quickstartWebXml == null) {
       super.stopWebapp();
     }
-  }
-
-  /**
-   * Broken out to facilitate testing.
-   */
-  DatastoreService getDatastoreService() {
-    return DatastoreServiceFactory.getDatastoreService();
   }
 
   /**
@@ -269,6 +280,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
     metadataCache = new VmMetadataCache();
     wallclockTimer = new VmTimer();
     ApiProxy.setDelegate(new VmApiProxyDelegate());
+  }
+
+  @Override
+  public void configure() throws Exception {
+    // TODO Auto-generated method stub
+    super.configure();
   }
 
   /**
@@ -316,9 +333,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
     }
     VmRuntimeFileLogHandler.init();
 
-    for (String systemClass : SYSTEM_CLASSES) {
-      addSystemClass(systemClass);
-    }
     if (appEngineWebXml == null) {
       // No need to configure the session manager.
       return;
@@ -484,10 +498,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
       VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
 
       // Transaction Cleanup
-      Collection<Transaction> txns = datastoreService.getActiveTransactions();
-      if (!txns.isEmpty()) {
-        handleAbandonedTxns(txns);
-      }
+      handleAbandonedTxns();
 
       // Save dirty sessions
       HttpSession session = baseRequest.getSession(false);
@@ -504,25 +515,40 @@ public class VmRuntimeWebAppContext extends WebAppContext
       env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
     }
 
-    void handleAbandonedTxns(Collection<Transaction> txns) {
-      // TODO(user): In the dev appserver, capture a stack trace whenever a
-      // transaction is started so we can print it here.
-      for (Transaction txn : txns) {
+    void handleAbandonedTxns() {
+      if (getActiveTransactions != null) {
         try {
-          logger.warning(
-              "Request completed without committing or rolling back transaction with id "
-                  + txn.getId()
-                  + ".  Transaction will be rolled back.");
-          txn.rollback();
-        } catch (Exception e) {
-          // We swallow exceptions so that there is no risk of our cleanup
-          // impacting the actual result of the request.
+          Object txns = getActiveTransactions.invoke(contextDatastoreService);
+
+          if (txns instanceof Collection) {
+            for (Object tx : (Collection<Object>) txns) {
+              Object id = transactionGetId.invoke(tx);
+              try {
+                logger.warning(
+                    "Request completed without committing or rolling back transaction "
+                        + id
+                        + ".  Transaction will be rolled back.");
+                transactionRollback.invoke(tx);
+              } catch (InvocationTargetException ex) {
+                logger.log(
+                    Level.WARNING,
+                    "Swallowing an target exception we received while trying to rollback "
+                        + "abandoned transaction "
+                        + id,
+                    ex.getTargetException());
+              } catch (Exception ex) {
+                logger.log(
+                    Level.WARNING,
+                    "Swallowing an exception we received while trying to rollback "
+                        + "abandoned transaction "
+                        + id,
+                    ex);
+              }
+            }
+          }
+        } catch (Exception ex) {
           logger.log(
-              Level.WARNING,
-              "Swallowing an exception we received while trying to rollback "
-                  + "abandoned transaction with id "
-                  + txn.getId(),
-              e);
+              Level.WARNING, "Swallowing an exception we received while trying to rollback ", ex);
         }
       }
     }

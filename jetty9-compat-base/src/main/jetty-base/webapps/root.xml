@@ -28,14 +28,8 @@
     <Arg><SystemProperty name="appengine_web_xml" default="WEB-INF/appengine-web.xml"/></Arg>
   </Call>
 
-  <!-- Set quickstartWebXml finle to generate rather than start -->
+  <!-- Set quickstartWebXml to generate rather than start -->
   <Set name="quickstartWebXml"><SystemProperty name="quickstart_web_xml"/></Set>
-
-  <!-- Hide the additional server implementation libraries -->
-  <Call name="addServerClass"><Arg>org.apache.commons.codec.</Arg></Call>
-  <Call name="addServerClass"><Arg>org.apache.commons.logging.</Arg></Call>
-  <Call name="addServerClass"><Arg>org.apache.http.</Arg></Call>
-  <Call name="addServerClass"><Arg>com.google.gson.</Arg></Call>
 
   <Set name="parentLoaderPriority">
     <SystemProperty name="jetty_parent_classloader" default="false"/>
