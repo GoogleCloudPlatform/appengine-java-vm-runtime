@@ -153,7 +153,11 @@ public class XmlUtils {
 
   static String getChildElementBody(Element element, String tagName, boolean required) {
     Element elt = getChildElement(element, tagName, required);
-    return (elt != null) ? getBody(elt) : null;
+    if (elt == null) {
+      return null;
+    }
+    String result = getText(elt);
+    return result.isEmpty() ? null : result;
   }
 
   static Element getOptionalChildElement(Element parent, String tagName) {
@@ -179,20 +183,6 @@ public class XmlUtils {
     } else {
       return element.getAttribute(name);
     }
-  }
-
-  static String getBody(Element element) {
-    NodeList nodes = element.getChildNodes();
-    if (nodes == null || nodes.getLength() == 0) {
-      return null;
-    }
-
-    Node firstNode = nodes.item(0);
-    if (firstNode == null) {
-      return null;
-    }
-
-    return firstNode.getNodeValue();
   }
 
   static List<Element> getChildren(Element element) {
