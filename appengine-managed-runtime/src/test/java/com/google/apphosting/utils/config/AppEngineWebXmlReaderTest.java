@@ -90,7 +90,7 @@ public class AppEngineWebXmlReaderTest extends TestCase {
     AppEngineWebXml aeWebXml = reader.readAppEngineWebXml();
     assertEquals("myapp", aeWebXml.getAppId());
     assertEquals("1", aeWebXml.getMajorVersionId());
-    assertEquals(true, aeWebXml.getSslEnabled());
+    assertTrue(aeWebXml.getSslEnabled());
     assertTrue(aeWebXml.getThreadsafeValueProvided());
   }
 
@@ -148,7 +148,7 @@ public class AppEngineWebXmlReaderTest extends TestCase {
     AppEngineWebXml aeWebXml = reader.readAppEngineWebXml();
     assertEquals("", aeWebXml.getAppId());
     assertEquals("", aeWebXml.getMajorVersionId());
-    assertEquals(false, aeWebXml.getSslEnabled());
+    assertFalse(aeWebXml.getSslEnabled());
   }
 
   public void testMinimal() {

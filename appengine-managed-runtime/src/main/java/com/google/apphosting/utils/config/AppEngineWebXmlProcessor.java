@@ -591,7 +591,7 @@ class AppEngineWebXmlProcessor {
     appEngineWebXml.setApiConfig(new ApiConfig(servlet, url));
 
     for (Element subNode : getNodeIterable(node, "endpoint-servlet-mapping-id")) {
-      String id = trim(XmlUtils.getText(subNode));
+      String id = XmlUtils.getText(subNode);
       if (id != null && id.length() > 0) {
         appEngineWebXml.addApiEndpoint(id);
       }

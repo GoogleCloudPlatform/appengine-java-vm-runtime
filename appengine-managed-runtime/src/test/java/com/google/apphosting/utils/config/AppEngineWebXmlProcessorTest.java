@@ -1318,7 +1318,7 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
     AppEngineWebXml.BasicScaling settings = parseAngGetBasicScaling(xml);
     assertFalse(settings.isEmpty());
     assertEquals("11", settings.getMaxInstances());
-    assertEquals(null, settings.getIdleTimeout());
+    assertNull(settings.getIdleTimeout());
   }
 
   public void testBasicScaling_maxInstancesAndIdleTimeout() {
@@ -1353,13 +1353,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertTrue(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_emptySetting() {
@@ -1372,13 +1372,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertTrue(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_enableHealthCheck_noSetting() {
@@ -1391,13 +1391,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertTrue(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_enableHealthCheck_empty() {
@@ -1410,13 +1410,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertTrue(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_enableHealthCheck_false() {
@@ -1430,13 +1430,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(false, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertFalse(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_enableHealthCheck_true() {
@@ -1450,13 +1450,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertTrue(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getCheckIntervalSec() {
@@ -1470,13 +1470,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
+    assertTrue(settings.getEnableHealthCheck());
     assertEquals(5, settings.getCheckIntervalSec().intValue());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getCheckIntervalSec_invalid() {
@@ -1524,13 +1524,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
     assertEquals(6, settings.getTimeoutSec().intValue());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getTimeoutSec_invalid() {
@@ -1578,13 +1578,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
     assertEquals(7, settings.getUnhealthyThreshold().intValue());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getUnhealthyThreshold_invalid() {
@@ -1632,13 +1632,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
     assertEquals(8, settings.getHealthyThreshold().intValue());
-    assertEquals(null, settings.getRestartThreshold());
-    assertEquals(null, settings.getHost());
+    assertNull(settings.getRestartThreshold());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getHealthyThreshold_invalid() {
@@ -1686,13 +1686,13 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
     assertEquals(9, settings.getRestartThreshold().intValue());
-    assertEquals(null, settings.getHost());
+    assertNull(settings.getHost());
   }
 
   public void testHealthCheck_getRestartThreshold_invalid() {
@@ -1740,12 +1740,12 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(true, settings.getEnableHealthCheck());
-    assertEquals(null, settings.getCheckIntervalSec());
-    assertEquals(null, settings.getTimeoutSec());
-    assertEquals(null, settings.getUnhealthyThreshold());
-    assertEquals(null, settings.getHealthyThreshold());
-    assertEquals(null, settings.getRestartThreshold());
+    assertTrue(settings.getEnableHealthCheck());
+    assertNull(settings.getCheckIntervalSec());
+    assertNull(settings.getTimeoutSec());
+    assertNull(settings.getUnhealthyThreshold());
+    assertNull(settings.getHealthyThreshold());
+    assertNull(settings.getRestartThreshold());
     assertEquals("test.com", settings.getHost());
   }
 
@@ -1766,7 +1766,7 @@ public class AppEngineWebXmlProcessorTest extends TestCase {
             + "</appengine-web-app>\n";
     AppEngineWebXml.HealthCheck settings = parseAngGetHealthCheck(xml);
     assertFalse(settings.isEmpty());
-    assertEquals(false, settings.getEnableHealthCheck());
+    assertFalse(settings.getEnableHealthCheck());
     assertEquals(5, settings.getCheckIntervalSec().intValue());
     assertEquals(6, settings.getTimeoutSec().intValue());
     assertEquals(7, settings.getUnhealthyThreshold().intValue());
