@@ -17,12 +17,12 @@
 package com.google.apphosting.vmruntime;
 
 import com.google.apphosting.logging.JsonFormatter;
+import com.google.apphosting.logging.SystemLogger;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -31,8 +31,7 @@ import java.util.logging.Logger;
  * with the cloud logging agent.
  *
  */
-public class VmRuntimeFileLogHandler extends FileHandler {
-
+public class VmRuntimeFileLogHandler extends FileHandler implements SystemLogger {
   // This exists for testing purposes only.  If set, the cloud logger may lose logs.
   public static final String LOG_DIRECTORY_PROPERTY = "com.google.apphosting.logs";
   public static final String LOG_PATTERN_CONFIG_PROPERTY =
@@ -41,12 +40,11 @@ public class VmRuntimeFileLogHandler extends FileHandler {
   private static final String DEFAULT_LOG_DIRECTORY = "/var/log/app_engine";
   private static final String DEFAULT_LOG_PATTERN = "app.%g.log.json";
   private static final String APP_ENGINE_LOG_CONFIG_PATTERN_ENV = "APP_ENGINE_LOG_CONFIG_PATTERN";
-  private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
+  private static final int LOG_PER_FILE_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;
-  public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
 
-  private VmRuntimeFileLogHandler() throws IOException {
-    super(fileLogPattern(), LOG_MAX_SIZE, LOG_MAX_FILES, true);
+  public VmRuntimeFileLogHandler() throws IOException {
+    super(fileLogPattern(), LOG_PER_FILE_SIZE, LOG_MAX_FILES, true);
     setLevel(Level.FINEST);
     setFormatter(new JsonFormatter());
   }
@@ -71,34 +69,18 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     return directory + "/" + DEFAULT_LOG_PATTERN;
   }
 
-  /**
-   * Initialize the {@code VmRuntimeFileLogHandler} by installing it on the root logger.
-   */
-  public static void init() throws IOException {
-    reloadLoggingProperties(LogManager.getLogManager());
+  @Override
+  public void configure() throws IOException {
     Logger rootLogger = Logger.getLogger("");
+
+    // Look for the expected Handlers
     for (Handler handler : rootLogger.getHandlers()) {
       if (handler instanceof VmRuntimeFileLogHandler) {
-        return; // Already installed.
+        // Nothing else to do, return
+        return;
       }
     }
-    rootLogger.addHandler(new VmRuntimeFileLogHandler());
-  }
 
-  /**
-   * Reloads logging to pick up changes to the java.util.logging.config.file system property.
-   */
-  private static void reloadLoggingProperties(LogManager logManager) {
-    String logging = System.getProperty(VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
-    if (logging == null) {
-      return;
-    }
-    try {
-      logManager.readConfiguration();
-    } catch (SecurityException | IOException e) {
-      e.printStackTrace();
-      System.err.println("Warning: caught exception when reading logging properties.");
-      System.err.println(e.getClass().getName() + ": " + e.getMessage());
-    }
+    rootLogger.addHandler(new VmRuntimeFileLogHandler());
   }
 }

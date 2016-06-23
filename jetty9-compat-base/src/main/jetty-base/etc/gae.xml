@@ -88,17 +88,14 @@
       <Call name="addHandler">
         <Arg>
           <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler">
-	    <Set name="requestLog">
-	      <New id="RequestLogImpl" class="org.eclipse.jetty.server.NCSARequestLog">
-		<Arg><Property name="com.google.apphosting.logs" default="/var/log/app_engine"/>/request.yyyy_mm_dd.log</Arg>
-		<Set name="retainDays">2</Set>
-		<Set name="append">true</Set>
-		<Set name="extended">true</Set>
-		<Set name="LogTimeZone">GMT</Set>
-		<Set name="logLatency">true</Set>
-		<Set name="preferProxiedForAddress">true</Set>
-	      </New>
-	    </Set>
+            <Set name="requestLog">
+              <New id="RequestLogImpl" class="org.eclipse.jetty.server.Slf4jRequestLog">
+                <Set name="extended">true</Set>
+                <Set name="LogTimeZone">GMT</Set>
+                <Set name="logLatency">true</Set>
+                <Set name="preferProxiedForAddress">true</Set>
+              </New>
+            </Set>
           </New>
         </Arg>
       </Call>

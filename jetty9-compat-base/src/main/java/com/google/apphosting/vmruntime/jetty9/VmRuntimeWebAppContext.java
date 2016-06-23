@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.logging.CoreLogging;
 import com.google.apphosting.logging.LogContext;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
@@ -40,11 +41,9 @@ import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
 import com.google.apphosting.vmruntime.VmMetadataCache;
 import com.google.apphosting.vmruntime.VmRequestUtils;
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
-import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
 import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -310,11 +309,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
-    String logConfig = System.getProperty("java.util.logging.config.file");
+
+    String logConfig = System.getProperty(CoreLogging.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
     if (logConfig != null && logConfig.startsWith("WEB-INF/")) {
-      System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
+      logConfig = URIUtil.addPaths(appDir, logConfig);
     }
-    VmRuntimeFileLogHandler.init();
+    CoreLogging.init(logConfig);
 
     for (String systemClass : SYSTEM_CLASSES) {
       addSystemClass(systemClass);
