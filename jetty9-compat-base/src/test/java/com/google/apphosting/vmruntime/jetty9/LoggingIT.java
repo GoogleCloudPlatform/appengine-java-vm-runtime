@@ -17,6 +17,7 @@
 package com.google.apphosting.vmruntime.jetty9;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import com.google.gson.Gson;
@@ -38,8 +39,8 @@ public class LoggingIT extends VmRuntimeTestBase {
 
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    String query = Long.toHexString(System.nanoTime());
-    GetMethod get = new GetMethod(createUrl("/testLogging?nano=" + query).toString());
+    String query = "nano=" + Long.toHexString(System.nanoTime());
+    GetMethod get = new GetMethod(createUrl("/testLogging?" + query).toString());
     int httpCode = httpClient.executeMethod(get);
 
     assertThat(httpCode, equalTo(200));
@@ -47,34 +48,36 @@ public class LoggingIT extends VmRuntimeTestBase {
     String body = get.getResponseBodyAsString();
     assertThat(body, equalTo("FINE\nSEVERE\nfalse\n\n"));
 
-    File logs = runner.getLogDir();
-    File log = new File(logs, "log.0");
+    File log = runner.findLogFileThatContains(query);
 
     assertTrue(log.exists());
 
     // Look for the log entry with our query string
-    try (BufferedReader in =
-        new BufferedReader(
-            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1))) {
+    try (FileInputStream in = new FileInputStream(log);
+        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+        BufferedReader buf = new BufferedReader(reader)) {
       String line;
-      while ((line = in.readLine()) != null) {
+      while ((line = buf.readLine()) != null) {
         if (line.contains(query)) {
           break;
         }
       }
 
       JsonData data = new Gson().fromJson(line, JsonData.class);
+      assertThat("Parsed Data", data, notNullValue());
       assertThat(data.severity, equalTo("INFO"));
-      assertThat(data.message, org.hamcrest.Matchers.containsString("LogTest Hello nano=" + query));
+      assertThat(data.message, org.hamcrest.Matchers.containsString("LogTest Hello " + query));
 
-      line = in.readLine();
+      line = buf.readLine();
       data = new Gson().fromJson(line, JsonData.class);
+      assertThat("Parsed Data", data, notNullValue());
       assertThat(data.severity, equalTo("ERROR"));
-      assertThat(
-          data.message, org.hamcrest.Matchers.containsString("LoggingServlet doGet: not null"));
+      assertThat(data.message,
+          org.hamcrest.Matchers.containsString("LoggingServlet doGet: not null"));
 
-      line = in.readLine();
+      line = buf.readLine();
       data = new Gson().fromJson(line, JsonData.class);
+      assertThat("Parsed Data", data, notNullValue());
       assertThat(data.severity, equalTo("ERROR"));
       assertThat(data.message, org.hamcrest.Matchers.containsString("LoggingServlet doGet: null"));
     }
@@ -86,6 +89,7 @@ public class LoggingIT extends VmRuntimeTestBase {
       public long seconds;
       public long nanos;
     }
+
 
     public LogTimestamp timestamp;
     public String severity;

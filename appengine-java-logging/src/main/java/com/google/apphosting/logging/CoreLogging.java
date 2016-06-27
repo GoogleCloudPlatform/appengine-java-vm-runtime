@@ -27,6 +27,7 @@ import java.util.logging.LogManager;
  */
 public class CoreLogging {
   public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
+  private static final boolean DEBUG = Boolean.getBoolean("com.google.apphosting.logging.DEBUG");
 
   /**
    * Initialize the java.util.logging Environment.
@@ -44,6 +45,7 @@ public class CoreLogging {
   public static void init(File appConfigFile) throws IOException {
     // Use App (User) Configuration specified as a file parameter
     if (appConfigFile != null && appConfigFile.exists()) {
+      debug("Loading User Config (from file): %s", appConfigFile);
       appConfig(appConfigFile);
     } else {
       // Use App (User) Configuration specified as a System property
@@ -51,8 +53,14 @@ public class CoreLogging {
       if (julConfigFile != null) {
         File configFile = new File(julConfigFile);
         if (configFile.exists()) {
+          debug("Loading User Config (from property): %s", appConfigFile);
           appConfig(configFile);
+        } else {
+          warning("Logging Config System Property (%s) points to invalid file: %s",
+              JAVA_UTIL_LOGGING_CONFIG_PROPERTY, appConfigFile.getAbsolutePath());
         }
+      } else {
+        debug("No User Config");
       }
     }
 
@@ -68,7 +76,7 @@ public class CoreLogging {
    */
   public static void init(String appConfigFilename) throws IOException {
     File appConfigFile = null;
-    if (appConfigFilename == null) {
+    if (appConfigFilename != null) {
       appConfigFile = new File(appConfigFilename);
     }
     init(appConfigFile);
@@ -77,7 +85,7 @@ public class CoreLogging {
   private static void appConfig(File configFile) {
     try (FileInputStream is = new FileInputStream(configFile)) {
       LogManager logManager = LogManager.getLogManager();
-      logManager.reset();
+      logManager.reset(); // close & remove existing handlers, reset existing logger levels
       logManager.readConfiguration(is);
     } catch (SecurityException | IOException e) {
       System.err.println("Warning: caught exception when reading logging properties: " + configFile
@@ -98,5 +106,15 @@ public class CoreLogging {
     for (SystemLogger systemLogger : serviceLoader) {
       systemLogger.configure();
     }
+  }
+
+  private static void debug(String format, Object... args) {
+    if (DEBUG) {
+      System.err.printf("[CoreLogging:DEBUG] " + format + "%n", args);
+    }
+  }
+
+  private static void warning(String format, Object... args) {
+    System.err.printf("[CoreLogging:WARNING] " + format + "%n", args);
   }
 }

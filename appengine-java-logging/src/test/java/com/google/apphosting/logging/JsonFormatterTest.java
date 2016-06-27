@@ -133,7 +133,8 @@ public class JsonFormatterTest {
           greaterThanOrEqualTo(now.getEpochSecond()));
       assertThat("timestamp.nanos", data.timestamp.nanos, greaterThanOrEqualTo(now.getNano()));
       assertThat("thread name", data.thread, is(expectedThreadName));
-      assertThat("logger message", data.message, startsWith(CommonsLoggingExample.class.getName() + " run: " + expected[i][1]));
+      assertThat("logger message", data.message,
+          startsWith(CommonsLoggingExample.class.getName() + " run: " + expected[i][1]));
       if (data.severity.equals("ERROR")) {
         assertThat("throwable", data.message,
             containsString("java.lang.RuntimeException: Generic Error"));
@@ -167,7 +168,8 @@ public class JsonFormatterTest {
           greaterThanOrEqualTo(now.getEpochSecond()));
       assertThat("timestamp.nanos", data.timestamp.nanos, greaterThanOrEqualTo(now.getNano()));
       assertThat("thread name", data.thread, is(expectedThreadName));
-      assertThat("logger message", data.message, startsWith(JulExample.class.getName() + " run: " + expected[i][1]));
+      assertThat("logger message", data.message,
+          startsWith(JulExample.class.getName() + " run: " + expected[i][1]));
       if (data.severity.equals("ERROR")) {
         assertThat("throwable", data.message,
             containsString("java.lang.RuntimeException: Generic Error"));
@@ -200,7 +202,8 @@ public class JsonFormatterTest {
           greaterThanOrEqualTo(now.getEpochSecond()));
       assertThat("timestamp.nanos", data.timestamp.nanos, greaterThanOrEqualTo(now.getNano()));
       assertThat("thread name", data.thread, is(expectedThreadName));
-      assertThat("logger message", data.message, startsWith(Log4jExample.class.getName() + " run: " + expected[i][1]));
+      assertThat("logger message", data.message,
+          startsWith(Log4jExample.class.getName() + " run: " + expected[i][1]));
       if (data.severity.equals("ERROR")) {
         assertThat("throwable", data.message,
             containsString("java.lang.RuntimeException: Generic Error"));
@@ -233,7 +236,8 @@ public class JsonFormatterTest {
           greaterThanOrEqualTo(now.getEpochSecond()));
       assertThat("timestamp.nanos", data.timestamp.nanos, greaterThanOrEqualTo(now.getNano()));
       assertThat("thread name", data.thread, is(expectedThreadName));
-      assertThat("logger message", data.message, startsWith(Slf4jExample.class.getName() + " run: " + expected[i][1]));
+      assertThat("logger message", data.message,
+          startsWith(Slf4jExample.class.getName() + " run: " + expected[i][1]));
       if (data.severity.equals("ERROR")) {
         assertThat("throwable", data.message,
             containsString("java.lang.RuntimeException: Generic Error"));
