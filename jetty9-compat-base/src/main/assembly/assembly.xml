@@ -31,6 +31,7 @@
       </includes>
       <excludes>
         <exclude>**/META-INF/**</exclude>
+        <exclude>logs/**</exclude>
       </excludes>
     </fileSet>
   </fileSets>

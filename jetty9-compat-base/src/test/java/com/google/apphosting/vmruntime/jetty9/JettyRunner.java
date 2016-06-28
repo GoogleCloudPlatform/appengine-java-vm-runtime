@@ -132,9 +132,14 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       Assert.assertTrue(target.isDirectory());
       Assert.assertTrue(jettyBase.isDirectory());
       logs = new File(target, "logs");
-      logs.delete();
-      logs.mkdirs();
-      logs.deleteOnExit();
+      if (!logs.exists()) {
+        logs.mkdirs();
+        /* Note: due to java.util.logging file locks, you cannot:
+         *  - delete the log directory or
+         *  - delete all of its contents or
+         *  - or perform a deleteOnExit() successfull
+         */
+      }
 
       // Set GAE SystemProperties
       setSystemProperties(logs);
