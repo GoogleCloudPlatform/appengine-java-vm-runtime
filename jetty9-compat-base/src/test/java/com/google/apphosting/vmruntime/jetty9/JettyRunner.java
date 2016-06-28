@@ -137,7 +137,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
         /* Note: due to java.util.logging file locks, you cannot:
          *  - delete the log directory or
          *  - delete all of its contents or
-         *  - or perform a deleteOnExit() successfull
+         *  - or perform a deleteOnExit() successfully
          */
       }
 
