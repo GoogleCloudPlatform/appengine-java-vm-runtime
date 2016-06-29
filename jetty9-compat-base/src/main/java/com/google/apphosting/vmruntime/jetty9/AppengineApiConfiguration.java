@@ -25,14 +25,14 @@ import java.util.logging.Level;
 public class AppengineApiConfiguration extends AbstractConfiguration {
 
   // A class to check if the GAE API is available.
-  public final static String GAE_CHECK_CLASS = "com.google.appengine.api.ThreadManager";
-  
+  public static final String GAE_CHECK_CLASS = "com.google.appengine.api.ThreadManager";
+
   // Hide the all container classes from the webapplication
   // TODO update to use '.' when supported by Jetty
   private static final String[] SERVER_CLASSES = {
-    "com.",
-    "javax.",
-    "org.",
+    "com.", 
+    "javax.", 
+    "org.", 
     "mozilla."
   };
 
@@ -46,20 +46,20 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     "com.google.apphosting.api.DeadlineExceededException",
     "com.google.apphosting.runtime.SessionData",
     "com.google.apphosting.runtime.UncatchableError",
-    
+
     // Expose the standard APIs that are provided
     "javax.servlet.",
     "javax.el.",
     "javax.annotation.",
     "javax.activation.", // TODO Review
     "javax.mail.", // TODO Review
-    
+
     // Expose classes needed for JSP and JSTL
     "org.apache.jasper.runtime.",
     "org.apache.jasper.JasperException",
     "org.apache.el.ExpressionFactoryImpl",
     "org.apache.tomcat.InstanceManager",
-    "org.apache.taglibs.",    
+    "org.apache.taglibs.",
   };
 
   @Override
