@@ -63,6 +63,27 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
   }
 
   /**
+   * Test that non compiled jstl JSP  can be served.
+   */
+  public void testJstlJSP() throws Exception {
+    String[] lines = fetchUrl(createUrl("/jstl.jsp"));
+    int max=-1;
+    int count=0;
+    for (String line : lines) {
+      line = line.trim();
+      if (line.length()>0 && Character.isDigit(line.charAt(0))) {
+        int value = Integer.valueOf(line);
+        count++;
+        if (value > max) {
+          max = value;
+        }
+      }
+    }
+    assertEquals(10, count);
+    assertEquals(10, max);
+  }
+
+  /**
    * Tests that mapping a servlet to / works.
    */
   public void testWelcomeServlet() throws Exception {
