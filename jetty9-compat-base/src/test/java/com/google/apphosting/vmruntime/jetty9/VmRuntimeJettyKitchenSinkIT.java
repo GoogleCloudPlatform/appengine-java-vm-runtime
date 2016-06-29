@@ -67,11 +67,11 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
    */
   public void testJstlJSP() throws Exception {
     String[] lines = fetchUrl(createUrl("/jstl.jsp"));
-    int max=-1;
-    int count=0;
+    int max = -1;
+    int count = 0;
     for (String line : lines) {
       line = line.trim();
-      if (line.length()>0 && Character.isDigit(line.charAt(0))) {
+      if (line.length() > 0 && Character.isDigit(line.charAt(0))) {
         int value = Integer.valueOf(line);
         count++;
         if (value > max) {
