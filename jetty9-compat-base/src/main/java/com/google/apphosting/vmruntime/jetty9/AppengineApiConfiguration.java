@@ -24,6 +24,9 @@ import java.util.logging.Level;
 
 public class AppengineApiConfiguration extends AbstractConfiguration {
 
+  // A class to check if the GAE API is available.
+  public final static String GAE_CHECK_CLASS = "com.google.appengine.api.ThreadManager";
+  
   // Hide the all container classes from the webapplication
   // TODO update to use '.' when supported by Jetty
   private static final String[] SERVER_CLASSES = {
@@ -34,6 +37,7 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
   };
 
   private static final String[] SHARED_CLASSES = {
+    // Expose the GAE API classes
     "com.google.appengine.api.LifecycleManager",
     "com.google.apphosting.api.ApiProxy",
     "com.google.apphosting.api.ApiStats",
@@ -64,9 +68,9 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
       context.addServerClass(systemClass);
     }
     for (String gaeClass : SHARED_CLASSES) {
-      // Don't hide GAE v1 shared classes
+      // Don't hide shared classes
       context.prependServerClass("-" + gaeClass);
-      // Don't GAE v1 shared classes to be replaced by webapp
+      // Don't allow shared classes to be replaced by webapp
       context.addSystemClass(gaeClass);
     }
   }
@@ -75,11 +79,11 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     ClassLoader loader = context.getClassLoader();
     try {
       // Test if the appengine api is available
-      loader.loadClass("com.google.appengine.api.ThreadManager");
+      loader.loadClass(GAE_CHECK_CLASS);
     } catch (Exception ex) {
       VmRuntimeWebAppContext.logger.log(Level.FINE, "No appengined API", ex);
       VmRuntimeWebAppContext.logger.log(
-          Level.WARNING, "No appengined API including in WEB-INF/lib! Please update your SDK!");
+          Level.WARNING, "No appengined API jar including in WEB-INF/lib! Please update your SDK!");
 
       // The appengine API is not available so we will add it and it's dependencies
       Resource providedApi =
@@ -98,7 +102,7 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
       }
 
       // Ensure the API can now be loaded
-      loader.loadClass("com.google.appengine.api.ThreadManager");
+      loader.loadClass(GAE_CHECK_CLASS);
     }
   }
 }
