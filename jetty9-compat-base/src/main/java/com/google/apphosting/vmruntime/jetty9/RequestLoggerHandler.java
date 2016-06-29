@@ -4,11 +4,22 @@ import com.google.apphosting.logging.SystemLogger;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 public class RequestLoggerHandler extends FileHandler implements SystemLogger {
+  public static class RequestLogFormatter extends Formatter {
+    @Override
+    public String format(LogRecord record) {
+      // We don't expand the message, or use the ResourceBundle stuff for this formatter.
+      return record.getMessage();
+    }
+  }
+
+
   public static final String LOG_DIRECTORY_PROPERTY = "com.google.apphosting.logs";
   private static final String DEFAULT_LOG_DIRECTORY = "/var/log/app_engine";
   private static final String DEFAULT_LOG_PATTERN = "access.%g.log";
@@ -19,6 +30,7 @@ public class RequestLoggerHandler extends FileHandler implements SystemLogger {
 
   public RequestLoggerHandler() throws IOException, SecurityException {
     super(getFilePattern(), LOG_PER_FILE_SIZE, LOG_MAX_FILES, LOG_APPEND);
+    setFormatter(new RequestLogFormatter());
   }
 
   private static String getFilePattern() {

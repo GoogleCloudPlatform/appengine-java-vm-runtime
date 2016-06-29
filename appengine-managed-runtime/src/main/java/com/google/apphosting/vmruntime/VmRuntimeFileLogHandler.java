@@ -38,7 +38,7 @@ public class VmRuntimeFileLogHandler extends FileHandler implements SystemLogger
       "com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.pattern";
   // Log files to /var/log/app_engine/app.[0-2].log.json
   private static final String DEFAULT_LOG_DIRECTORY = "/var/log/app_engine";
-  private static final String DEFAULT_LOG_PATTERN = "app.%g.log.json";
+  private static final String DEFAULT_LOG_PATTERN = "app.%u.%g.log.json";
   private static final String APP_ENGINE_LOG_CONFIG_PATTERN_ENV = "APP_ENGINE_LOG_CONFIG_PATTERN";
   private static final int LOG_PER_FILE_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;

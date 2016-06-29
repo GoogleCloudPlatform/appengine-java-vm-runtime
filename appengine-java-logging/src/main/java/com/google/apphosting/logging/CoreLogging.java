@@ -102,10 +102,14 @@ public class CoreLogging {
     // makes sense to use the ServiceLoader to obtain references to specific System loggers
     // that need to be initialized during this step in the logging initialization.
 
+    int count = 0;
     ServiceLoader<SystemLogger> serviceLoader = ServiceLoader.load(SystemLogger.class);
     for (SystemLogger systemLogger : serviceLoader) {
+      debug("Executing SystemLogger: %s", systemLogger.getClass().getName());
       systemLogger.configure();
+      count++;
     }
+    debug("Ran $d SystemLogger(s)", count);
   }
 
   private static void debug(String format, Object... args) {
