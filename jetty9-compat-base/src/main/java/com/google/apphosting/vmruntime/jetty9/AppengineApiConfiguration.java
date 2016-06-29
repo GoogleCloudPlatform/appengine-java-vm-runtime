@@ -24,18 +24,16 @@ import java.util.logging.Level;
 
 public class AppengineApiConfiguration extends AbstractConfiguration {
 
-  // Hide the server implementation classes from the webapplication
-  // TODO Regularly review this list; or automate generation; or change to whitelist
+  // Hide the all container classes from the webapplication
+  // TODO update to use '.' when supported by Jetty
   private static final String[] SERVER_CLASSES = {
-    "com.google.",
-    "javax.cache.",
-    "org.apache.commons.",
-    "org.apache.geronimo.",
-    "org.apache.http.",
+    "com.",
+    "javax.",
+    "org.",
     "mozilla."
   };
 
-  private static final String[] GAE_STANDARD_V1_SHAREED_CLASSES = {
+  private static final String[] SHARED_CLASSES = {
     "com.google.appengine.api.LifecycleManager",
     "com.google.apphosting.api.ApiProxy",
     "com.google.apphosting.api.ApiStats",
@@ -45,9 +43,19 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     "com.google.apphosting.runtime.SessionData",
     "com.google.apphosting.runtime.UncatchableError",
     
-    // TODO review if these should be shared or provided?
-    "javax.activation.",
-    "javax.mail.",
+    // Expose the standard APIs that are provided
+    "javax.servlet.",
+    "javax.el.",
+    "javax.annotation.",
+    "javax.activation.", // TODO Review
+    "javax.mail.", // TODO Review
+    
+    // Expose classes needed for JSP and JSTL
+    "org.apache.jasper.runtime.",
+    "org.apache.jasper.JasperException",
+    "org.apache.el.ExpressionFactoryImpl",
+    "org.apache.tomcat.InstanceManager",
+    "org.apache.taglibs.",    
   };
 
   @Override
@@ -55,7 +63,7 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     for (String systemClass : SERVER_CLASSES) {
       context.addServerClass(systemClass);
     }
-    for (String gaeClass : GAE_STANDARD_V1_SHAREED_CLASSES) {
+    for (String gaeClass : SHARED_CLASSES) {
       // Don't hide GAE v1 shared classes
       context.prependServerClass("-" + gaeClass);
       // Don't GAE v1 shared classes to be replaced by webapp

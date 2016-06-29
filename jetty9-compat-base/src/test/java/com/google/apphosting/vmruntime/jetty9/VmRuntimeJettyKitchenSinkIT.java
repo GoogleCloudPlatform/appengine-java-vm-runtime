@@ -53,7 +53,6 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
         fetchUrl(createUrl(String.format("/hello_not_compiled.jsp?start=%d&end=%d", iter, end)));
     String iterationFormat = "<h2>Iteration %d</h2>";
     for (String line : lines) {
-      System.out.println(line);
       if (!line.contains("Iteration")) {
         continue;
       }

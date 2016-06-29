@@ -194,6 +194,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
               .collect(Collectors.toList()));
 
       // Needed to initialize JSP!
+      context.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", 
+          ".*/[^/]*taglibs.*\\.jar$");
       context.addBean(
           new AbstractLifeCycle() {
             @Override
