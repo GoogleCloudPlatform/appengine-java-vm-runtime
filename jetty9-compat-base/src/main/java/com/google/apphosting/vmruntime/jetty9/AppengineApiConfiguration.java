@@ -20,7 +20,6 @@ import org.eclipse.jetty.webapp.AbstractConfiguration;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.util.Arrays;
 import java.util.logging.Level;
 
 public class AppengineApiConfiguration extends AbstractConfiguration {
@@ -52,7 +51,7 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
   };
 
   @Override
-  public void preConfigure(WebAppContext context) throws Exception {
+  public void preConfigure(WebAppContext context) {
     for (String systemClass : SERVER_CLASSES) {
       context.addServerClass(systemClass);
     }

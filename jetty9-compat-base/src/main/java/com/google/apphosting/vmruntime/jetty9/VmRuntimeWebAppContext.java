@@ -16,7 +16,6 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
@@ -44,7 +43,6 @@ import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
-import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
 import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -188,8 +186,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
           .addDescriptorProcessor(preconfigProcessor = new PreconfigureDescriptorProcessor());
     }
 
-    // DatastoreServiceFactory.getDatastoreService();
-
     super.doStart();
 
     // Look for a datastore service within the context
@@ -280,12 +276,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
     metadataCache = new VmMetadataCache();
     wallclockTimer = new VmTimer();
     ApiProxy.setDelegate(new VmApiProxyDelegate());
-  }
-
-  @Override
-  public void configure() throws Exception {
-    // TODO Auto-generated method stub
-    super.configure();
   }
 
   /**
