@@ -53,6 +53,7 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     "javax.annotation.",
     "javax.activation.", // TODO Review
     "javax.mail.", // TODO Review
+    "javax.imageio.", // TODO Review: Required by guestbook example
 
     // Expose classes needed for JSP and JSTL
     "org.apache.jasper.runtime.",
