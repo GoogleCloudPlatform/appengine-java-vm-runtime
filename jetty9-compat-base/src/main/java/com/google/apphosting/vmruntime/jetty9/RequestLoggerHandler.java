@@ -21,6 +21,8 @@ public class RequestLoggerHandler extends FileHandler implements SystemLogger {
 
 
   public static final String LOG_DIRECTORY_PROPERTY = "com.google.apphosting.logs";
+  public static final String LOG_PATTERN_CONFIG_PROPERTY =
+      RequestLoggerHandler.class.getName() + ".pattern";
   private static final String DEFAULT_LOG_DIRECTORY = "/var/log/app_engine";
   private static final String DEFAULT_LOG_PATTERN = "access.%g.log";
 
@@ -35,6 +37,15 @@ public class RequestLoggerHandler extends FileHandler implements SystemLogger {
 
   private static String getFilePattern() {
     String directory = System.getProperty(LOG_DIRECTORY_PROPERTY, DEFAULT_LOG_DIRECTORY);
+
+    String pattern = System.getProperty(LOG_PATTERN_CONFIG_PROPERTY);
+    if (pattern != null) {
+      if (pattern.startsWith("/")) {
+        return pattern;
+      }
+      return directory + "/" + pattern;
+    }
+
     return directory + "/" + DEFAULT_LOG_PATTERN;
   }
 

@@ -109,7 +109,7 @@ public class CoreLogging {
       systemLogger.configure();
       count++;
     }
-    debug("Ran $d SystemLogger(s)", count);
+    debug("Ran %d SystemLogger(s)", count);
   }
 
   private static void debug(String format, Object... args) {

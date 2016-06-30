@@ -318,8 +318,10 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
    * Sets the system properties expected by jetty.xml.
    */
   protected void setSystemProperties(File logs) throws IOException {
-    String logFilePattern = logs.getAbsolutePath() + "/log%u.%g.json";
-    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, logFilePattern);
+    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY,
+        logs.getAbsolutePath() + "/log%u.%g.json");
+    System.setProperty(RequestLoggerHandler.LOG_PATTERN_CONFIG_PROPERTY,
+        logs.getAbsolutePath() + "/request-%u.%g.log");
     System.setProperty("jetty.appengineport", String.valueOf(findAvailablePort()));
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");

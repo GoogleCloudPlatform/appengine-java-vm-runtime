@@ -130,6 +130,9 @@
   <build>
     <resources>
       <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+      <resource>
         <targetPath>${project.build.directory}/jetty-base</targetPath>
         <filtering>false</filtering>
         <directory>${project.basedir}/src/main/jetty-base</directory>
