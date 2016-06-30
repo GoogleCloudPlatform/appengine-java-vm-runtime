@@ -47,13 +47,42 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     "com.google.apphosting.runtime.SessionData",
     "com.google.apphosting.runtime.UncatchableError",
 
-    // Expose the standard APIs that are provided
+    // Expose the standard APIs that are provided by the container
     "javax.servlet.",
     "javax.el.",
-    "javax.annotation.",
-    "javax.activation.", // TODO Review
     "javax.mail.", // TODO Review
-    "javax.imageio.", // TODO Review: Required by guestbook example
+    
+    // Expose the standard APIs that are provided by the JVM
+    "com.oracle.",
+    "com.sun.",
+    "javax.accessibility.",
+    "javax.activation.",
+    "javax.activity.",
+    "javax.annotation.",
+    "javax.imageio.",
+    "javax.jws.",
+    "javax.lang.model.",
+    "javax.management.",
+    "javax.naming.",
+    "javax.net.",
+    "javax.print.",
+    "javax.rmi.",
+    "javax.script.",
+    "javax.security.",
+    "javax.smartcardio.",
+    "javax.sound.",
+    "javax.sql.",
+    "javax.swing.",
+    "javax.tools.",
+    "javax.transaction.",
+    "javax.xml.",
+    "jdk.",
+    "org.ietf.jgss.",
+    "org.jcp.xml.dsig.internal.",
+    "org.omg.",
+    "org.w3c.dom.",
+    "org.xml.",
+    "sun.",
 
     // Expose classes needed for JSP and JSTL
     "org.apache.jasper.runtime.",
