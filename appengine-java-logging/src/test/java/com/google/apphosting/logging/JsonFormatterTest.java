@@ -126,7 +126,6 @@ public class JsonFormatterTest {
 
     for (int i = 0; i < events.size(); i++) {
       String logLine = events.get(i);
-      System.out.printf("logLine[%d] = %s", i, logLine);
       JsonData data = new Gson().fromJson(logLine, JsonData.class);
       assertThat("severity", data.severity, is(expected[i][0]));
       assertThat("timestamp.seconds", data.timestamp.seconds,

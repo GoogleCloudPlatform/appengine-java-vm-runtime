@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Slf4jExample implements Runnable {
+class Slf4jExample implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Slf4jExample.class);
 
   @Override

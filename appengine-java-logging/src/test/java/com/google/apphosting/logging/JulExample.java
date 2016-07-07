@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JulExample implements Runnable {
+class JulExample implements Runnable {
   public static final Logger LOG = Logger.getLogger(JulExample.class.getName());
 
   @Override

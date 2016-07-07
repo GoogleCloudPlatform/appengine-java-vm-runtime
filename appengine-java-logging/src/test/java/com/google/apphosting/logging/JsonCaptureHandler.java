@@ -22,12 +22,10 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 public class JsonCaptureHandler extends Handler {
-
-  private JsonFormatter formatter;
+  private final JsonFormatter formatter;
   private List<String> events;
 
   public JsonCaptureHandler() {
-    super();
     formatter = new JsonFormatter();
     events = new ArrayList<>();
   }

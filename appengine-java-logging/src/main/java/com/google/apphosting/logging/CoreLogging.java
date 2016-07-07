@@ -45,7 +45,7 @@ public class CoreLogging {
   public static void init(File appConfigFile) throws IOException {
     // Use App (User) Configuration specified as a file parameter
     if (appConfigFile != null && appConfigFile.exists()) {
-      debug("Loading User Config (from file): %s", appConfigFile);
+      debug("Loading App Config (from file): %s", appConfigFile);
       appConfig(appConfigFile);
     } else {
       // Use App (User) Configuration specified as a System property
@@ -53,14 +53,14 @@ public class CoreLogging {
       if (julConfigFile != null) {
         File configFile = new File(julConfigFile);
         if (configFile.exists()) {
-          debug("Loading User Config (from property): %s", appConfigFile);
+          debug("Loading App Config (from property): %s", appConfigFile);
           appConfig(configFile);
         } else {
-          warning("Logging Config System Property (%s) points to invalid file: %s",
+          warning("Config System Property (%s) points to invalid file: %s",
               JAVA_UTIL_LOGGING_CONFIG_PROPERTY, appConfigFile.getAbsolutePath());
         }
       } else {
-        debug("No User Config");
+        debug("No App Config");
       }
     }
 
@@ -69,7 +69,7 @@ public class CoreLogging {
   }
 
   /**
-   * Convenience method for {@link #init(File)}
+   * Convenience method for {@link #init(File)}.
    *
    * @param appConfigFilename the filename of the config file (or null)
    * @throws IOException if unable to configure the logging
@@ -88,14 +88,14 @@ public class CoreLogging {
       logManager.reset(); // close & remove existing handlers, reset existing logger levels
       logManager.readConfiguration(is);
     } catch (SecurityException | IOException e) {
-      System.err.println("Warning: caught exception when reading logging properties: " + configFile
+      warning("Warning: caught exception when reading logging properties: %s", configFile
           .getAbsolutePath());
       e.printStackTrace(System.err);
     }
   }
 
   /**
-   * Manually Configure the System Level requirements for java.util.logging
+   * Manually Configure the System Level requirements for java.util.logging.
    */
   private static void systemConfig() throws IOException {
     // Since System Loggers can arrive from deep within the various compat layers, it
@@ -109,7 +109,7 @@ public class CoreLogging {
       systemLogger.configure();
       count++;
     }
-    debug("Ran %d SystemLogger(s)", count);
+    debug("Initialized %d SystemLogger(s)", count);
   }
 
   private static void debug(String format, Object... args) {

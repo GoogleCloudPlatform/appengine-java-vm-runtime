@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Log4jExample implements Runnable {
+class Log4jExample implements Runnable {
   private static final Logger LOG = Logger.getLogger(Log4jExample.class);
 
   @Override

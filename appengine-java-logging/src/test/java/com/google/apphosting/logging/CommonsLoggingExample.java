@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class CommonsLoggingExample implements Runnable {
+class CommonsLoggingExample implements Runnable {
   private static final Log LOG = LogFactory.getLog(CommonsLoggingExample.class);
 
   @Override
