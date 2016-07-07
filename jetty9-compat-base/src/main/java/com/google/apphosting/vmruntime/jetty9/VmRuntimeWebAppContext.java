@@ -521,24 +521,20 @@ public class VmRuntimeWebAppContext extends WebAppContext
                 transactionRollback.invoke(tx);
               } catch (InvocationTargetException ex) {
                 logger.log(
-                    Level.WARNING,
-                    "Swallowing an target exception we received while trying to rollback "
-                        + "abandoned transaction "
-                        + id,
+                    Level.WARNING, 
+                    "Failed to rollback abandoned transaction " + id,
                     ex.getTargetException());
               } catch (Exception ex) {
                 logger.log(
                     Level.WARNING,
-                    "Swallowing an exception we received while trying to rollback "
-                        + "abandoned transaction "
-                        + id,
+                    "Failed to rollback abandoned transaction " + id,
                     ex);
               }
             }
           }
         } catch (Exception ex) {
           logger.log(
-              Level.WARNING, "Swallowing an exception we received while trying to rollback ", ex);
+              Level.WARNING, "Failed to rollback abandoned transaction", ex);
         }
       }
     }

@@ -70,8 +70,8 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
     int count = 0;
     for (String line : lines) {
       line = line.trim();
-      if (line.length() > 0 && Character.isDigit(line.charAt(0))) {
-        int value = Integer.valueOf(line);
+      if (!line.isEmpty() && Character.isDigit(line.charAt(0))) {
+        int value = Integer.parseInt(line);
         count++;
         if (value > max) {
           max = value;

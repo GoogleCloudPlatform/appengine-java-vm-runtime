@@ -1,15 +1,17 @@
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.google.apphosting.vmruntime.jetty9;
@@ -112,8 +114,13 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
       loader.loadClass(GAE_CHECK_CLASS);
     } catch (Exception ex) {
       VmRuntimeWebAppContext.logger.log(Level.FINE, "No appengined API", ex);
-      VmRuntimeWebAppContext.logger.log(
-          Level.WARNING, "No appengined API jar including in WEB-INF/lib! Please update your SDK!");
+      if (VmRuntimeWebAppContext.logger.isLoggable(Level.FINE)) {
+        VmRuntimeWebAppContext.logger.log(Level.WARNING,
+            "No appengine API jar included in WEB-INF/lib! Please update your SDK!", ex);
+      } else {
+        VmRuntimeWebAppContext.logger.log(Level.WARNING,
+            "No appengine API jar included in WEB-INF/lib! Please update your SDK!");
+      }
 
       // The appengine API is not available so we will add it and it's dependencies
       Resource providedApi =

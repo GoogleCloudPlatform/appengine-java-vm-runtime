@@ -187,7 +187,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
 
-      // remove annotations
+      // remove annotations as they are too slow for testing
       context.setConfigurationClasses(
           Arrays.stream(context.getConfigurationClasses())
               .filter(n -> !n.contains("AnnotationConfiguration"))
