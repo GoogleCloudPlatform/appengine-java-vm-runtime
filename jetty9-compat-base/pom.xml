@@ -28,6 +28,10 @@
   <artifactId>jetty9-compat-base</artifactId>
   <packaging>jar</packaging>
 
+  <properties>
+    <appengine.api.provided.version>${appengine.api.version}</appengine.api.provided.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
@@ -70,6 +74,13 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>apache-jsp</artifactId>
+      <version>${jetty.version}</version>
+      <type>jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>apache-jstl</artifactId>
       <version>${jetty.version}</version>
       <type>jar</type>
       <scope>test</scope>
@@ -162,8 +173,8 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy-test-webapp-war</id>
-            <phase>pre-integration-test</phase>
+            <id>copy-wars-and-jars</id>
+            <phase>generate-resources</phase>
             <goals>
               <goal>copy</goal>
             </goals>
@@ -179,12 +190,21 @@
                   <outputDirectory>${project.build.directory}/webapps/</outputDirectory>
                   <destFileName>testwebapp.war</destFileName>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>appengine-api-1.0-sdk</artifactId>
+                  <version>${appengine.api.provided.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/jetty-base/lib/gae/provided-api/</outputDirectory>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
           <execution>
             <id>unpack-deps</id>
-            <phase>pre-integration-test</phase>
+            <phase>generate-resources</phase>
             <goals>
               <goal>unpack</goal>
             </goals>
@@ -213,7 +233,7 @@
           </execution>
           <execution>
             <id>gae-jars</id>
-            <phase>pre-integration-test</phase>
+            <phase>generate-resources</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>

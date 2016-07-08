@@ -130,7 +130,13 @@
             </execution>
           </executions>
         </plugin>
-
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.10</version>
+        </plugin>
+        
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -157,6 +163,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.18</version>
+	  <configuration>
+	    <useSystemClassLoader>false</useSystemClassLoader>
+	  </configuration>
         </plugin>
 
        <plugin>
@@ -243,6 +252,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.19.1</version>
+	<configuration>
+	  <useSystemClassLoader>false</useSystemClassLoader>
+	</configuration>
         <executions>
           <execution>
             <goals>
