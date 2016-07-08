@@ -38,6 +38,10 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
     "mozilla."
   };
 
+  // Classes & Packages to be shared from the containers classloader
+  // to the webapp.  Classes included here will be marked both as 
+  // exclusions from serverclasses (not hidden from webapp) and inclusion
+  // to the systemclasses (cannot be overriden by the webapp)
   private static final String[] SHARED_CLASSES = {
     // Expose the GAE API classes
     "com.google.appengine.api.LifecycleManager",

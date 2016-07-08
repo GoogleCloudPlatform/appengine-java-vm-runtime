@@ -147,7 +147,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
    * <p> If set, this context will not start, rather it will generate the
    * quickstart-web.xml file and then stop the server. If not set, the context will start normally
    * </p>
-   *
+   * 
    * @param quickstartWebXml The location of the quickstart web.xml to generate
    */
   public void setQuickstartWebXml(String quickstartWebXml) {
@@ -189,6 +189,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
     super.doStart();
 
     // Look for a datastore service within the context
+    // reflection is needed here because the webapp will either have its
+    // own impl of the Datastore Service or this AppengineApiConfiguration
+    // will add an impl.  Eitherway, it is a different instance (and maybe)
+    // a different version to the Datastore Service that is used by the 
+    // container session manager.  Thus we need to access the webapps 
+    // instance, via reflection, so that we can rollback any abandoned transactions.
     ClassLoader orig = Thread.currentThread().getContextClassLoader();
     try {
       ClassLoader loader = getClassLoader();
@@ -508,28 +514,26 @@ public class VmRuntimeWebAppContext extends WebAppContext
     void handleAbandonedTxns() {
       if (getActiveTransactions != null) {
         try {
+          // Reflection used for reasons listed in doStart
           Object txns = getActiveTransactions.invoke(contextDatastoreService);
-
-          if (txns instanceof Collection) {
-            for (Object tx : (Collection<Object>) txns) {
-              Object id = transactionGetId.invoke(tx);
-              try {
-                logger.warning(
-                    "Request completed without committing or rolling back transaction "
-                        + id
-                        + ".  Transaction will be rolled back.");
-                transactionRollback.invoke(tx);
-              } catch (InvocationTargetException ex) {
-                logger.log(
-                    Level.WARNING, 
-                    "Failed to rollback abandoned transaction " + id,
-                    ex.getTargetException());
-              } catch (Exception ex) {
-                logger.log(
-                    Level.WARNING,
-                    "Failed to rollback abandoned transaction " + id,
-                    ex);
-              }
+          for (Object tx : (Collection<Object>) txns) {
+            Object id = transactionGetId.invoke(tx);
+            try {
+              logger.warning(
+                  "Request completed without committing or rolling back transaction "
+                      + id
+                      + ".  Transaction will be rolled back.");
+              transactionRollback.invoke(tx);
+            } catch (InvocationTargetException ex) {
+              logger.log(
+                  Level.WARNING, 
+                  "Failed to rollback abandoned transaction " + id,
+                  ex.getTargetException());
+            } catch (Exception ex) {
+              logger.log(
+                  Level.WARNING,
+                  "Failed to rollback abandoned transaction " + id,
+                  ex);
             }
           }
         } catch (Exception ex) {
