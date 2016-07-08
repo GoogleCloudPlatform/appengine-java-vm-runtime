@@ -117,7 +117,6 @@ public class AppengineApiConfiguration extends AbstractConfiguration {
       // Test if the appengine api is available
       loader.loadClass(GAE_CHECK_CLASS);
     } catch (Exception ex) {
-      VmRuntimeWebAppContext.logger.log(Level.FINE, "No appengined API", ex);
       if (VmRuntimeWebAppContext.logger.isLoggable(Level.FINE)) {
         VmRuntimeWebAppContext.logger.log(Level.WARNING,
             "No appengine API jar included in WEB-INF/lib! Please update your SDK!", ex);
