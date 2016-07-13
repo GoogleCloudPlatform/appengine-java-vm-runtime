@@ -16,133 +16,46 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import org.eclipse.jetty.util.URIUtil;
-import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.AbstractConfiguration;
-import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.util.logging.Level;
 
 public class AppengineApiConfiguration extends AbstractConfiguration {
 
   // A class to check if the GAE API is available.
   public static final String GAE_CHECK_CLASS = "com.google.appengine.api.ThreadManager";
 
-  // Hide the all container classes from the webapplication
-  // TODO update to use '.' when supported by Jetty
-  private static final String[] SERVER_CLASSES = {
-    "com.", 
-    "javax.", 
-    "org.", 
-    "mozilla."
+  // It's undesirable to have the user app override classes provided by us.
+  // So we mark them as Jetty system classes, which cannot be overridden.
+  private static final String[] SYSTEM_CLASSES = {
+    "com.google.appengine.api.",
+    "com.google.appengine.tools.",
+    "com.google.apphosting.",
+    "com.google.cloud.sql.jdbc.",
+    "com.google.protos.cloud.sql.",
+    "com.google.storage.onestore.",
   };
-
-  // Classes & Packages to be shared from the containers classloader
-  // to the webapp.  Classes included here will be marked both as 
-  // exclusions from serverclasses (not hidden from webapp) and inclusion
-  // to the systemclasses (cannot be overriden by the webapp)
-  private static final String[] SHARED_CLASSES = {
-    // Expose the GAE API classes
-    "com.google.appengine.api.LifecycleManager",
-    "com.google.apphosting.api.ApiProxy",
-    "com.google.apphosting.api.ApiStats",
-    "com.google.apphosting.api.CloudTrace",
-    "com.google.apphosting.api.CloudTraceContext",
-    "com.google.apphosting.api.DeadlineExceededException",
-    "com.google.apphosting.runtime.SessionData",
-    "com.google.apphosting.runtime.UncatchableError",
-
-    // Expose the standard APIs that are provided by the container
-    "javax.servlet.",
-    "javax.el.",
-    "javax.mail.", // TODO Review
-    
-    // Expose the standard APIs that are provided by the JVM
-    "com.oracle.",
-    "com.sun.",
-    "javax.accessibility.",
-    "javax.activation.",
-    "javax.activity.",
-    "javax.annotation.",
-    "javax.imageio.",
-    "javax.jws.",
-    "javax.lang.model.",
-    "javax.management.",
-    "javax.naming.",
-    "javax.net.",
-    "javax.print.",
-    "javax.rmi.",
-    "javax.script.",
-    "javax.security.",
-    "javax.smartcardio.",
-    "javax.sound.",
-    "javax.sql.",
-    "javax.swing.",
-    "javax.tools.",
-    "javax.transaction.",
-    "javax.xml.",
-    "jdk.",
-    "org.ietf.jgss.",
-    "org.jcp.xml.dsig.internal.",
-    "org.omg.",
-    "org.w3c.dom.",
-    "org.xml.",
-    "sun.",
-
-    // Expose classes needed for JSP and JSTL
-    "org.apache.jasper.runtime.",
-    "org.apache.jasper.JasperException",
-    "org.apache.el.ExpressionFactoryImpl",
-    "org.apache.tomcat.InstanceManager",
-    "org.apache.taglibs.",
+  
+  // Hide the container classes from the webapplication
+  private static final String[] SERVER_CLASSES = {
+    "org.apache.commons.codec.", 
+    "org.apache.commons.logging.",
+    "org.apache.http.",
+    "com.google.gson."
   };
 
   @Override
   public void preConfigure(WebAppContext context) {
+    for (String systemClass : SYSTEM_CLASSES) {
+      context.addSystemClass(systemClass);
+    }
     for (String systemClass : SERVER_CLASSES) {
       context.addServerClass(systemClass);
-    }
-    for (String gaeClass : SHARED_CLASSES) {
-      // Don't hide shared classes
-      context.prependServerClass("-" + gaeClass);
-      // Don't allow shared classes to be replaced by webapp
-      context.addSystemClass(gaeClass);
     }
   }
 
   public void configure(WebAppContext context) throws Exception {
     ClassLoader loader = context.getClassLoader();
-    try {
-      // Test if the appengine api is available
-      loader.loadClass(GAE_CHECK_CLASS);
-    } catch (Exception ex) {
-      if (VmRuntimeWebAppContext.logger.isLoggable(Level.FINE)) {
-        VmRuntimeWebAppContext.logger.log(Level.WARNING,
-            "No appengine API jar included in WEB-INF/lib! Please update your SDK!", ex);
-      } else {
-        VmRuntimeWebAppContext.logger.log(Level.WARNING,
-            "No appengine API jar included in WEB-INF/lib! Please update your SDK!");
-      }
-
-      // The appengine API is not available so we will add it and it's dependencies
-      Resource providedApi =
-          Resource.newResource(
-              URIUtil.addPaths(System.getProperty("jetty.base"), "/lib/gae/provided-api/"));
-
-      if (providedApi != null) {
-        String[] list = providedApi.list();
-        if (list != null) {
-          WebAppClassLoader wloader = (WebAppClassLoader) loader;
-          for (String jar : list) {
-            wloader.addClassPath(providedApi.addPath(jar));
-            VmRuntimeWebAppContext.logger.log(Level.INFO, "Added " + jar + " to webapp classpath");
-          }
-        }
-      }
-
-      // Ensure the API can now be loaded
-      loader.loadClass(GAE_CHECK_CLASS);
-    }
+    // Ensure the API can be loaded
+    loader.loadClass(GAE_CHECK_CLASS);
   }
 }
