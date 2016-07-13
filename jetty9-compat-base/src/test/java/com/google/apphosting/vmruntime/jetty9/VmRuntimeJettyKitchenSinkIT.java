@@ -53,13 +53,33 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
         fetchUrl(createUrl(String.format("/hello_not_compiled.jsp?start=%d&end=%d", iter, end)));
     String iterationFormat = "<h2>Iteration %d</h2>";
     for (String line : lines) {
-      System.out.println(line);
       if (!line.contains("Iteration")) {
         continue;
       }
       assertEquals(line.trim(), String.format(iterationFormat, iter++));
     }
     assertEquals(end + 1, iter);
+  }
+
+  /**
+   * Test that non compiled jstl JSP  can be served.
+   */
+  public void testJstlJSP() throws Exception {
+    String[] lines = fetchUrl(createUrl("/jstl.jsp"));
+    int max = -1;
+    int count = 0;
+    for (String line : lines) {
+      line = line.trim();
+      if (!line.isEmpty() && Character.isDigit(line.charAt(0))) {
+        int value = Integer.parseInt(line);
+        count++;
+        if (value > max) {
+          max = value;
+        }
+      }
+    }
+    assertEquals(10, count);
+    assertEquals(10, max);
   }
 
   /**

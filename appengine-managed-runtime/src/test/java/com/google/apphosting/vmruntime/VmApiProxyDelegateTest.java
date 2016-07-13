@@ -542,6 +542,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         exception.getMessage());
   }
 
+  // TODO move to a common testing framework
   private static class SuppressedLogging implements Closeable {
     Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
     Level level = logger.getLevel();

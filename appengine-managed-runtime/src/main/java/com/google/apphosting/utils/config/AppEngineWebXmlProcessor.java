@@ -231,48 +231,48 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processApplicationNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setAppId(getTextNode(node));
+    appEngineWebXml.setAppId(XmlUtils.getText(node));
   }
 
   private void processPublicRootNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setPublicRoot(getTextNode(node));
+    appEngineWebXml.setPublicRoot(XmlUtils.getText(node));
   }
 
   private void processVersionNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setMajorVersionId(getTextNode(node));
+    appEngineWebXml.setMajorVersionId(XmlUtils.getText(node));
   }
 
   private void processSourceLanguageNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setSourceLanguage(getTextNode(node));
+    appEngineWebXml.setSourceLanguage(XmlUtils.getText(node));
   }
 
   private void processModuleNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setModule(getTextNode(node));
+    appEngineWebXml.setModule(XmlUtils.getText(node));
   }
 
   private void processServiceNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setService(getTextNode(node));
+    appEngineWebXml.setService(XmlUtils.getText(node));
   }
 
   private void processInstanceClassNode(Element node, AppEngineWebXml appEngineWebXml) {
 
-    appEngineWebXml.setInstanceClass(getTextNode(node));
+    appEngineWebXml.setInstanceClass(XmlUtils.getText(node));
   }
 
   private String getChildNodeText(Element parentNode, String childTag) {
-    String result = null;
     Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
-    if (node != null) {
-      result = XmlUtils.getBody(node);
+    if (node == null) {
+      return null;
     }
-    return result;
+    String result = XmlUtils.getText(node);
+    return result.isEmpty() ? null : result;
   }
 
   private Integer getChildNodePositiveInteger(Element parentNode, String childTag) {
     Integer result = null;
     Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
-    if (node != null && XmlUtils.getBody(node) != null) {
-      String trimmedText = (XmlUtils.getBody(node)).trim();
+    if (node != null) {
+      String trimmedText = XmlUtils.getText(node);
       if (!trimmedText.isEmpty()) {
         try {
           result = Integer.parseInt(trimmedText);
@@ -291,8 +291,8 @@ class AppEngineWebXmlProcessor {
   private Double getChildNodeDouble(Element parentNode, String childTag) {
     Double result = null;
     Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
-    if (node != null && XmlUtils.getBody(node) != null) {
-      String trimmedText = (XmlUtils.getBody(node)).trim();
+    if (node != null) {
+      String trimmedText = XmlUtils.getText(node);
       if (!trimmedText.isEmpty()) {
         try {
           result = Double.parseDouble(trimmedText);
@@ -407,7 +407,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processAutoIdPolicyNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setAutoIdPolicy(getTextNode(node));
+    appEngineWebXml.setAutoIdPolicy(XmlUtils.getText(node));
   }
 
   private void processCodeLockNode(Element node, AppEngineWebXml appEngineWebXml) {
@@ -419,7 +419,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processEnvNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setEnv(getTextNode(node));
+    appEngineWebXml.setEnv(XmlUtils.getText(node));
   }
 
   private void processFilesetNode(Element node, AppEngineWebXml appEngineWebXml, FileType type) {
@@ -521,7 +521,7 @@ class AppEngineWebXmlProcessor {
       network.setInstanceTag(instanceTag);
     }
     for (Element subNode : getNodeIterable(settingsNode, "forwarded-port")) {
-      String forwardedPort = getTextNode(subNode);
+      String forwardedPort = XmlUtils.getText(subNode);
       network.addForwardedPort(forwardedPort);
     }
     String name = trim(getChildNodeText(settingsNode, "name"));
@@ -558,7 +558,7 @@ class AppEngineWebXmlProcessor {
 
   private void processInboundServicesNode(Element node, AppEngineWebXml appEngineWebXml) {
     for (Element subNode : getNodeIterable(node, "service")) {
-      String service = getTextNode(subNode);
+      String service = XmlUtils.getText(subNode);
       appEngineWebXml.addInboundService(service);
     }
   }
@@ -591,7 +591,7 @@ class AppEngineWebXmlProcessor {
     appEngineWebXml.setApiConfig(new ApiConfig(servlet, url));
 
     for (Element subNode : getNodeIterable(node, "endpoint-servlet-mapping-id")) {
-      String id = trim(getTextNode(subNode));
+      String id = XmlUtils.getText(subNode);
       if (id != null && id.length() > 0) {
         appEngineWebXml.addApiEndpoint(id);
       }
@@ -615,11 +615,11 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processUrlStreamHandler(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setUrlStreamHandlerType(getTextNode(node));
+    appEngineWebXml.setUrlStreamHandlerType(XmlUtils.getText(node));
   }
 
   private boolean getBooleanValue(Element node) {
-    return toBoolean(getTextNode(node));
+    return toBoolean(XmlUtils.getText(node));
   }
 
   private boolean getBooleanAttributeValue(Element node, String attribute) {
@@ -629,14 +629,6 @@ class AppEngineWebXmlProcessor {
   private boolean toBoolean(String value) {
     value = value.trim();
     return (value.equalsIgnoreCase("true") || value.equals("1"));
-  }
-
-  private String getTextNode(Element node) {
-    String value = XmlUtils.getBody(node);
-    if (value == null) {
-      value = "";
-    }
-    return value.trim();
   }
 
   private String trim(String attribute) {

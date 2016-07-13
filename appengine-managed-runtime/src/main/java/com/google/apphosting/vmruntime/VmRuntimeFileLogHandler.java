@@ -20,6 +20,7 @@ import com.google.apphosting.logging.JsonFormatter;
 import com.google.apphosting.logging.SystemLogger;
 
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;

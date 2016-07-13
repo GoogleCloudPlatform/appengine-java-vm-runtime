@@ -54,16 +54,21 @@ import junit.framework.TestCase;
 
 import org.easymock.EasyMock;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -429,12 +434,17 @@ public class SessionManagerIT extends TestCase {
     }
   }
 
-  public void testNonDeserializableSession() {
-    AppEngineSession session = createSession();
-    session.setAttribute("key", new NonDeserializable(1));
-    session.save();
+  public void testNonDeserializableSession() throws Exception {
+    try (SuppressLogging logging =
+        new SuppressLogging(
+            SessionManager.class.getName(),
+            "com.google.appengine.tools.development.ApiProxyLocalImpl")) {
+      AppEngineSession session = createSession();
+      session.setAttribute("key", new NonDeserializable(1));
+      session.save();
 
-    assertNull(retrieveSession(session));
+      assertNull(retrieveSession(session));
+    }
   }
 
   public void testSessionNotAvailableInMemcache() throws EntityNotFoundException {
@@ -569,5 +579,27 @@ public class SessionManagerIT extends TestCase {
     }
 
     return mockRequest;
+  }
+
+  class SuppressLogging implements Closeable {
+    List<Logger> loggers = new ArrayList<>();
+    List<Level> levels = new ArrayList<>();
+
+    SuppressLogging(String... names) {
+      for (String n : names) {
+        Logger logger = Logger.getLogger(n);
+        loggers.add(logger);
+        levels.add(logger.getLevel());
+        logger.setLevel(Level.OFF);
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      Iterator<Level> level = levels.iterator();
+      for (Logger logger : loggers) {
+        logger.setLevel(level.next());
+      }
+    }
   }
 }
