@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime.jetty9;
 
 import static org.easymock.EasyMock.createMock;
@@ -53,16 +54,21 @@ import junit.framework.TestCase;
 
 import org.easymock.EasyMock;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -72,7 +78,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author fabbott@google.com (Freeland Abbott)
  */
-public class SessionManagerTest extends TestCase {
+public class SessionManagerIT extends TestCase {
 
   private static final int SESSION_EXPIRATION_SECONDS = 60;
 
@@ -146,7 +152,7 @@ public class SessionManagerTest extends TestCase {
     return "";
   }
 
-  public static class NamespacedStartTest extends SessionManagerTest {
+  public static class NamespacedStartTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -158,7 +164,7 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTest extends SessionManagerTest {
+  public static class NamespacedTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "";
@@ -170,7 +176,7 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public static class NamespacedTestTest extends SessionManagerTest {
+  public static class NamespacedTestTest extends SessionManagerIT {
     @Override
     public String startNamespace() {
       return "start-namespace";
@@ -399,10 +405,10 @@ public class SessionManagerTest extends TestCase {
           new SomeSerializable(1), new SomeSerializable(2), new SomeSerializable(3),
         });
     testSerialize("key", float.class);
-    Map<String, String> m = new HashMap<String, String>();
-    m.put("a", "b");
-    m.put("1", "2");
-    testSerialize("key", m);
+    Map<String, String> map = new HashMap<>();
+    map.put("a", "b");
+    map.put("1", "2");
+    testSerialize("key", map);
 
     // TODO(schwardo) or TODO(fabbot)
     // Consider adding some cross-ClassLoader tests here.
@@ -428,12 +434,17 @@ public class SessionManagerTest extends TestCase {
     }
   }
 
-  public void testNonDeserializableSession() {
-    AppEngineSession session = createSession();
-    session.setAttribute("key", new NonDeserializable(1));
-    session.save();
+  public void testNonDeserializableSession() throws Exception {
+    try (SuppressLogging logging =
+        new SuppressLogging(
+            SessionManager.class.getName(),
+            "com.google.appengine.tools.development.ApiProxyLocalImpl")) {
+      AppEngineSession session = createSession();
+      session.setAttribute("key", new NonDeserializable(1));
+      session.save();
 
-    assertNull(retrieveSession(session));
+      assertNull(retrieveSession(session));
+    }
   }
 
   public void testSessionNotAvailableInMemcache() throws EntityNotFoundException {
@@ -504,13 +515,13 @@ public class SessionManagerTest extends TestCase {
     assertEquals("bar", session2.getAttribute("foo"));
   }
 
-  /** TODO Debug this
+  /**
    * public void testDatastoreOnlyLifecycle() throws EntityNotFoundException {
    * manager =
-   * new SessionManager(Collections.<SessionStore>singletonList(new DatastoreSessionStore()));
+   * new SessionManager(Collections.&lt;SessionStore&gt;singletonList(new DatastoreSessionStore()));
    * HttpServletRequest request = makeMockRequest(true);
    * replay(request);
-   *
+   * <p>
    * AppEngineSession session = manager.newSession(request);
    * session.setAttribute("foo", "bar");
    * session.save();
@@ -568,5 +579,27 @@ public class SessionManagerTest extends TestCase {
     }
 
     return mockRequest;
+  }
+
+  class SuppressLogging implements Closeable {
+    List<Logger> loggers = new ArrayList<>();
+    List<Level> levels = new ArrayList<>();
+
+    SuppressLogging(String... names) {
+      for (String n : names) {
+        Logger logger = Logger.getLogger(n);
+        loggers.add(logger);
+        levels.add(logger.getLevel());
+        logger.setLevel(Level.OFF);
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      Iterator<Level> level = levels.iterator();
+      for (Logger logger : loggers) {
+        logger.setLevel(level.next());
+      }
+    }
   }
 }

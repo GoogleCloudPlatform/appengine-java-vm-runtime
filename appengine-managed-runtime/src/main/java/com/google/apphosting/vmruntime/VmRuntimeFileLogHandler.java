@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import com.google.apphosting.logging.JsonFormatter;
 
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;

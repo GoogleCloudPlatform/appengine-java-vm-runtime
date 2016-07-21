@@ -31,7 +31,7 @@ if ! type "$1" &>/dev/null; then
   source /setup-env.bash
   
   # set the command line to java with the feature arguments and passed arguments
-  set -- java $ALPN_BOOT $DBG_AGENT $PROF_AGENT $SET_TMP $JAVA_OPTS $DEFAULT_ARGS "$@"
+  set -- java $JAVA_OPTS $DEFAULT_ARGS "$@"
 fi
 
 exec "$@"

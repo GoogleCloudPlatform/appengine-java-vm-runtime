@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static org.hamcrest.Matchers.endsWith;
@@ -31,12 +32,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-public class AsyncServletTest extends VmRuntimeTestBase {
+public class AsyncServletIT extends VmRuntimeTestBase {
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
-   *
-   * @throws Exception
    */
   public void testAsyncPost() throws Exception {
     String postData = "Now is the winter of our discontent\n";

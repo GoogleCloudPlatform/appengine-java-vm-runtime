@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
@@ -26,6 +26,7 @@ import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
 import com.google.apphosting.runtime.SessionStore;
+import com.google.apphosting.runtime.jetty9.NoOpSessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager;
 import com.google.apphosting.runtime.jetty9.SessionManager.AppEngineSession;
 import com.google.apphosting.runtime.timer.Timer;
@@ -42,14 +43,12 @@ import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
-import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
 import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.HttpOutput;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.log.JavaUtilLog;
 import org.eclipse.jetty.util.resource.Resource;
@@ -58,6 +57,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -79,19 +80,8 @@ import javax.servlet.http.HttpSession;
 public class VmRuntimeWebAppContext extends WebAppContext
     implements VmRuntimeTrustedAddressChecker {
 
-  private static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
+  static final Logger logger = Logger.getLogger(VmRuntimeWebAppContext.class.getName());
 
-  // It's undesirable to have the user app override classes provided by us.
-  // So we mark them as Jetty system classes, which cannot be overridden.
-  private static final String[] SYSTEM_CLASSES = {
-    // The trailing dot means these are all Java packages, not individual classes.
-    "com.google.appengine.api.",
-    "com.google.appengine.tools.",
-    "com.google.apphosting.",
-    "com.google.cloud.sql.jdbc.",
-    "com.google.protos.cloud.sql.",
-    "com.google.storage.onestore.",
-  };
   // constant. If it's much larger than this we may need to
   // restructure the code a bit.
   protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
@@ -99,7 +89,10 @@ public class VmRuntimeWebAppContext extends WebAppContext
   private final VmMetadataCache metadataCache;
   private final Timer wallclockTimer;
   private VmApiProxyEnvironment defaultEnvironment;
-  private DatastoreService datastoreService;
+  private Object contextDatastoreService;
+  private Method getActiveTransactions;
+  private Method transactionRollback;
+  private Method transactionGetId;
   private String quickstartWebXml;
   private PreconfigureDescriptorProcessor preconfigProcessor;
 
@@ -121,6 +114,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
   // because they have been executed via the SDK.
   private static final String[] quickstartConfigurationClasses = {
     org.eclipse.jetty.quickstart.QuickStartConfiguration.class.getCanonicalName(),
+    AppengineApiConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.JettyWebXmlConfiguration.class.getCanonicalName()
@@ -130,6 +124,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
   // is no quickstart-web.xml.
   private static final String[] preconfigurationClasses = {
     org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
+    AppengineApiConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
     org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
@@ -152,7 +147,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
    * <p> If set, this context will not start, rather it will generate the
    * quickstart-web.xml file and then stop the server. If not set, the context will start normally
    * </p>
-   *
+   * 
    * @param quickstartWebXml The location of the quickstart web.xml to generate
    */
   public void setQuickstartWebXml(String quickstartWebXml) {
@@ -184,8 +179,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
       setConfigurationClasses(quickstartConfigurationClasses);
     }
 
-    datastoreService = getDatastoreService();
-
     if (quickstartWebXml == null) {
       addEventListener(new ContextListener());
     } else {
@@ -194,6 +187,34 @@ public class VmRuntimeWebAppContext extends WebAppContext
     }
 
     super.doStart();
+
+    // Look for a datastore service within the context
+    // reflection is needed here because the webapp will either have its
+    // own impl of the Datastore Service or this AppengineApiConfiguration
+    // will add an impl.  Eitherway, it is a different instance (and maybe)
+    // a different version to the Datastore Service that is used by the 
+    // container session manager.  Thus we need to access the webapps 
+    // instance, via reflection, so that we can rollback any abandoned transactions.
+    ClassLoader orig = Thread.currentThread().getContextClassLoader();
+    try {
+      ClassLoader loader = getClassLoader();
+      Thread.currentThread().setContextClassLoader(loader);
+      Class<?> factory = loader.loadClass(DatastoreServiceFactory.class.getName());
+      contextDatastoreService = factory.getMethod("getDatastoreService").invoke(null);
+      if (contextDatastoreService != null) {
+        getActiveTransactions =
+            contextDatastoreService.getClass().getMethod("getActiveTransactions");
+        getActiveTransactions.setAccessible(true);
+
+        Class<?> transaction = loader.loadClass(Transaction.class.getName());
+        transactionRollback = transaction.getMethod("rollback");
+        transactionGetId = transaction.getMethod("getId");
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "No context datastore service", ex);
+    } finally {
+      Thread.currentThread().setContextClassLoader(orig);
+    }
   }
 
   @Override
@@ -225,13 +246,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
   }
 
   /**
-   * Broken out to facilitate testing.
-   */
-  DatastoreService getDatastoreService() {
-    return DatastoreServiceFactory.getDatastoreService();
-  }
-
-  /**
    * Creates a List of SessionStores based on the configuration in the provided AppEngineWebXml.
    *
    * @param appEngineWebXml The AppEngineWebXml containing the session configuration.
@@ -245,27 +259,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
             : new DatastoreSessionStore();
     // Write session data to the datastore before we write to memcache.
     return Arrays.asList(datastoreSessionStore, new MemcacheSessionStore());
-  }
-
-  /**
-   * Checks if the request was made over HTTPS. If so it modifies the request so that {@code
-   * HttpServletRequest#isSecure()} returns true, {@code HttpServletRequest#getScheme()} returns
-   * "https", and {@code HttpServletRequest#getServerPort()} returns 443. Otherwise it sets the
-   * scheme to "http" and port to 80.
-   *
-   * @param request The request to modify.
-   */
-  private void setSchemeAndPort(Request request) {
-    String https = request.getHeader(VmApiProxyEnvironment.HTTPS_HEADER);
-    if ("on".equals(https)) {
-      request.setSecure(true);
-      request.setScheme(HttpScheme.HTTPS.toString());
-      request.setAuthority(request.getServerName(), 443);
-    } else {
-      request.setSecure(false);
-      request.setScheme(HttpScheme.HTTP.toString());
-      request.setAuthority(request.getServerName(), defaultEnvironment.getServerPort());
-    }
   }
 
   /**
@@ -294,14 +287,16 @@ public class VmRuntimeWebAppContext extends WebAppContext
   /**
    * Initialize the WebAppContext for use by the VmRuntime.
    *
-   * This method initializes the WebAppContext by setting the context path and application folder.
-   * It will also parse the appengine-web.xml file provided to set System Properties and session
-   * manager accordingly.
+   * <p>
+   * This method initializes the WebAppContext by setting the context path and
+   * application folder. It will also parse the appengine-web.xml file provided to
+   * set System Properties and session manager accordingly.
+   * </p>
    *
    * @param appengineWebXmlFile The appengine-web.xml file path (relative to appDir).
    * @throws AppEngineConfigException If there was a problem finding or parsing the
-   *                                  appengine-web.xml configuration.
-   * @throws IOException              If the runtime was unable to find/read appDir.
+   *         appengine-web.xml configuration.
+   * @throws IOException If the runtime was unable to find/read appDir.
    */
   public void init(String appengineWebXmlFile) throws AppEngineConfigException, IOException {
     String appDir = getBaseResource().getFile().getCanonicalPath();
@@ -334,18 +329,17 @@ public class VmRuntimeWebAppContext extends WebAppContext
     }
     VmRuntimeFileLogHandler.init();
 
-    for (String systemClass : SYSTEM_CLASSES) {
-      addSystemClass(systemClass);
-    }
     if (appEngineWebXml == null) {
       // No need to configure the session manager.
       return;
     }
-    AbstractSessionManager sessionManager;
+    org.eclipse.jetty.server.SessionManager sessionManager;
     if (appEngineWebXml.getSessionsEnabled()) {
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
-      getSessionHandler().setSessionManager(sessionManager);
+    } else {
+      sessionManager = new NoOpSessionManager();
     }
+    getSessionHandler().setSessionManager(sessionManager);
 
     VmRuntimeInterceptor.init(appEngineWebXml);
   }
@@ -355,6 +349,12 @@ public class VmRuntimeWebAppContext extends WebAppContext
     return VmRequestUtils.isTrustedRemoteAddr(isDevMode, remoteAddr);
   }
 
+  /**
+   * Get or create the RequestContext for a request.
+   *
+   * @param baseRequest The request to scope the context.
+   * @return Either an existing associated context or a new context.
+   */
   public RequestContext getRequestContext(Request baseRequest) {
     if (baseRequest == null) {
       return null;
@@ -398,7 +398,9 @@ public class VmRuntimeWebAppContext extends WebAppContext
     public String toString() {
       return String.format(
           "RequestContext@%x %s==%s",
-          hashCode(), request.getRequestURI(), requestSpecificEnvironment);
+          hashCode(),
+          request.getRequestURI(),
+          requestSpecificEnvironment);
     }
   }
 
@@ -437,9 +439,6 @@ public class VmRuntimeWebAppContext extends WebAppContext
 
       // Check for SkipAdminCheck and set attributes accordingly.
       VmRuntimeUtils.handleSkipAdminCheck(requestContext);
-
-      // Change scheme to HTTPS based on headers set by the appserver.
-      setSchemeAndPort(baseRequest);
     }
 
     @Override
@@ -495,10 +494,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
       VmApiProxyEnvironment env = requestContext.getRequestSpecificEnvironment();
 
       // Transaction Cleanup
-      Collection<Transaction> txns = datastoreService.getActiveTransactions();
-      if (!txns.isEmpty()) {
-        handleAbandonedTxns(txns);
-      }
+      handleAbandonedTxns();
 
       // Save dirty sessions
       HttpSession session = baseRequest.getSession(false);
@@ -515,25 +511,34 @@ public class VmRuntimeWebAppContext extends WebAppContext
       env.waitForAllApiCallsToComplete(VmRuntimeUtils.MAX_REQUEST_THREAD_API_CALL_WAIT_MS);
     }
 
-    void handleAbandonedTxns(Collection<Transaction> txns) {
-      // TODO(user): In the dev appserver, capture a stack trace whenever a
-      // transaction is started so we can print it here.
-      for (Transaction txn : txns) {
+    void handleAbandonedTxns() {
+      if (getActiveTransactions != null) {
         try {
-          logger.warning(
-              "Request completed without committing or rolling back transaction with id "
-                  + txn.getId()
-                  + ".  Transaction will be rolled back.");
-          txn.rollback();
-        } catch (Exception e) {
-          // We swallow exceptions so that there is no risk of our cleanup
-          // impacting the actual result of the request.
+          // Reflection used for reasons listed in doStart
+          Object txns = getActiveTransactions.invoke(contextDatastoreService);
+          for (Object tx : (Collection<Object>) txns) {
+            Object id = transactionGetId.invoke(tx);
+            try {
+              logger.warning(
+                  "Request completed without committing or rolling back transaction "
+                      + id
+                      + ".  Transaction will be rolled back.");
+              transactionRollback.invoke(tx);
+            } catch (InvocationTargetException ex) {
+              logger.log(
+                  Level.WARNING, 
+                  "Failed to rollback abandoned transaction " + id,
+                  ex.getTargetException());
+            } catch (Exception ex) {
+              logger.log(
+                  Level.WARNING,
+                  "Failed to rollback abandoned transaction " + id,
+                  ex);
+            }
+          }
+        } catch (Exception ex) {
           logger.log(
-              Level.WARNING,
-              "Swallowing an exception we received while trying to rollback "
-                  + "abandoned transaction with id "
-                  + txn.getId(),
-              e);
+              Level.WARNING, "Failed to rollback abandoned transaction", ex);
         }
       }
     }

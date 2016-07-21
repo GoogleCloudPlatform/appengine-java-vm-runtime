@@ -28,6 +28,10 @@
   <artifactId>jetty9-compat-base</artifactId>
   <packaging>jar</packaging>
 
+  <properties>
+    <appengine.api.provided.version>${appengine.api.version}</appengine.api.provided.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
@@ -38,6 +42,12 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-managed-runtime</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>jetty9-base</artifactId>
       <version>${project.version}</version>
       <type>jar</type>
     </dependency>
@@ -64,6 +74,13 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>apache-jsp</artifactId>
+      <version>${jetty.version}</version>
+      <type>jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>apache-jstl</artifactId>
       <version>${jetty.version}</version>
       <type>jar</type>
       <scope>test</scope>
@@ -101,12 +118,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>me.alexpanov</groupId>
-      <artifactId>free-port-finder</artifactId>
-      <version>1.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-stubs</artifactId>
       <version>${appengine.api.version}</version>
@@ -128,11 +139,22 @@
     </dependency>
   </dependencies>
   <build>
+    <resources>
+      <resource>
+        <targetPath>${project.build.directory}/jetty-base</targetPath>
+        <filtering>false</filtering>
+        <directory>${project.basedir}/src/main/jetty-base</directory>
+        <includes>
+          <include>**</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
+          <outputDirectory>${project.build.directory}/jetty-base/lib/gae/</outputDirectory>
           <archive>
             <manifestEntries>
               <url>https://github.com/GoogleCloudPlatform/appengine-runtime-java-docker-image</url>
@@ -151,8 +173,8 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>test-webapp</id>
-            <phase>generate-test-resources</phase>
+            <id>copy-wars-and-jars</id>
+            <phase>generate-resources</phase>
             <goals>
               <goal>copy</goal>
             </goals>
@@ -168,11 +190,20 @@
                   <outputDirectory>${project.build.directory}/webapps/</outputDirectory>
                   <destFileName>testwebapp.war</destFileName>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.appengine</groupId>
+                  <artifactId>appengine-api-1.0-sdk</artifactId>
+                  <version>${appengine.api.provided.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/jetty-base/lib/gae/provided-api/</outputDirectory>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
           <execution>
-            <id>jetty-home</id>
+            <id>unpack-deps</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>unpack</goal>
@@ -187,6 +218,15 @@
                   <overWrite>true</overWrite>
                   <includes>**</includes>
                   <outputDirectory>${project.build.directory}</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.appengine.demos</groupId>
+                  <artifactId>testwebapp</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <type>war</type>
+                  <overWrite>true</overWrite>
+                  <includes>**</includes>
+                  <outputDirectory>${project.build.directory}/webapps/testwebapp/</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -209,53 +249,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-jetty-base</id>
-            <phase>generate-resources</phase>
-            <configuration>
-              <target>
-                <copy todir="${project.build.directory}/jetty-base">
-                  <fileset dir="${project.basedir}/src/main/jetty-base"/>
-                </copy>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>generate-test-war</id>
-            <phase>generate-test-resources</phase>
-            <configuration>
-              <target>
-                <unzip src="${project.build.directory}/webapps/testwebapp.war"
-                       dest="${project.build.directory}/webapps/testwebapp"/>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>move-artefact</id>
-            <phase>package</phase>
-            <configuration>
-              <target>
-                <copy
-                 file="${project.build.directory}/${project.artifactId}-${project.version}.jar"
-                 todir="${project.build.directory}/jetty-base/lib/gae/"/>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -263,7 +256,7 @@
         <executions>
           <execution>
             <id>add-jetty-modules</id>
-            <phase>generate-resources</phase>
+            <phase>pre-integration-test</phase>
             <goals>
               <goal>exec</goal>
             </goals>
@@ -282,6 +275,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
@@ -289,14 +290,6 @@
           <tarLongFileMode>gnu</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

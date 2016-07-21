@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static java.lang.String.valueOf;
@@ -378,7 +379,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
     final String instance = getEnvOrMetadata(envMap, cache, INSTANCE_KEY, INSTANCE_ATTRIBUTE);
     final String affinity = getEnvOrMetadata(envMap, cache, AFFINITY_ENV_KEY, AFFINITY_ATTRIBUTE);
     final String ticket =
-        getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, false)
+        getSystemPropertyOrEnvBoolean(envMap, USE_GLOBAL_TICKET_KEY, true)
             ? null
             : request.getHeader(TICKET_HEADER);
     final String email = request.getHeader(EMAIL_HEADER);
@@ -453,7 +454,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   private final String server;
   private volatile String ticket; // request ticket is only valid until response is committed.
   private volatile String globalTicket; // global ticket is always valid
-  private final int serverPort;
   private final String partition;
   private final String appId;
   private final String module;
@@ -540,11 +540,6 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
     this.server = server;
     this.partition = partition;
-    String port =
-        System.getenv(GAE_SERVER_PORT) == null
-            ? System.getProperty("GAE_SERVER_PORT", "80")
-            : System.getenv(GAE_SERVER_PORT);
-    this.serverPort = Integer.decode(port);
     this.appId = partition + "~" + appId;
     this.module = module == null ? "default" : module;
     this.majorVersion = majorVersion == null ? "" : majorVersion;
@@ -604,21 +599,17 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   }
 
   public boolean isRequestTicket() {
-    String t = ticket;
-    return t != null && !t.isEmpty();
+    String requestTicket = ticket;
+    return requestTicket != null && !requestTicket.isEmpty();
   }
 
   public String getTicket() {
-    String t = ticket;
-    return (t != null && !t.isEmpty()) ? t : globalTicket;
+    String requestTicket = ticket;
+    return (requestTicket != null && !requestTicket.isEmpty()) ? requestTicket : globalTicket;
   }
 
   public String getPartition() {
     return partition;
-  }
-
-  public int getServerPort() {
-    return serverPort;
   }
 
   @Override
@@ -705,10 +696,8 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
 
   /**
    * Notifies the environment that an API call was queued up.
-   *
-   * @throws ApiProxyException
    */
-  void aSyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
+  void asyncApiCallAdded(long maxWaitMs) throws ApiProxyException {
     try {
       if (pendingApiCallSemaphore.tryAcquire(maxWaitMs, TimeUnit.MILLISECONDS)) {
         return; // All good.

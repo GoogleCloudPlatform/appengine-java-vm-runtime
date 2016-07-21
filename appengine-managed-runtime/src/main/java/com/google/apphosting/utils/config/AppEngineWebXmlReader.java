@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.utils.config;
 
 import java.io.File;
@@ -25,7 +26,7 @@ import java.util.logging.Logger;
 
 /**
  * Creates an {@link AppEngineWebXml} instance from
- * <appdir>WEB-INF/appengine-web.xml.  If you want to read the configuration
+ * &lt;appdir&gt;WEB-INF/appengine-web.xml.  If you want to read the configuration
  * from something that isn't a file, subclass and override
  * {@link #getInputStream()}.
  *
@@ -75,9 +76,9 @@ public class AppEngineWebXmlReader {
 
   /**
    * @return A {@link AppEngineWebXml} config object derived from the
-   * contents of <appdir>WEB-INF/appengine-web.xml.
+   * contents of &lt;appdir&gt;WEB-INF/appengine-web.xml.
    *
-   * @throws AppEngineConfigException If <appdir>WEB-INF/appengine-web.xml does
+   * @throws AppEngineConfigException If &lt;appdir&gt;WEB-INF/appengine-web.xml does
    * not exist.  Also thrown if we are unable to parse the xml.
    */
   public AppEngineWebXml readAppEngineWebXml() {
@@ -108,8 +109,8 @@ public class AppEngineWebXmlReader {
         logger.warning(
             "You have set the datastore auto id policy to 'legacy'. It is recommended "
                 + "that you select 'default' instead.\nLegacy auto ids are deprecated. You can "
-                + "continue to allocate legacy ids manually using the allocateIds() API functions.\n"
-                + "For more information see:\n"
+                + "continue to allocate legacy ids manually using the allocateIds() API functions."
+                + "\nFor more information see:\n"
                 + APPCFG_AUTO_IDS_URL
                 + "\n"
                 + DATASTORE_AUTO_IDS_URL

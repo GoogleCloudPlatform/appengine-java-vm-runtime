@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -29,7 +30,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-public class LoggingTest extends VmRuntimeTestBase {
+public class LoggingIT extends VmRuntimeTestBase {
 
   public void testGet() throws Exception {
 
@@ -54,7 +55,7 @@ public class LoggingTest extends VmRuntimeTestBase {
     // Look for the log entry with our query string
     try (BufferedReader in =
         new BufferedReader(
-            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1)); ) {
+            new InputStreamReader(new FileInputStream(log), StandardCharsets.ISO_8859_1))) {
       String line;
       while ((line = in.readLine()) != null) {
         if (line.contains(query)) {

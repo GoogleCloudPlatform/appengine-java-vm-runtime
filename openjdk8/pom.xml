@@ -28,30 +28,29 @@
   <artifactId>openjdk8</artifactId>
   <packaging>pom</packaging>
 
-  <properties>
-    <alpn.version>8.1.5.v20150921</alpn.version>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
+        <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
-            <id>generate-docker</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-	        <copy todir="${project.build.directory}/generated-sources/docker">
-		  <fileset dir="${project.basedir}/src/main/docker"/>
-		</copy>
-		<replace file="${project.build.directory}/generated-sources/docker/Dockerfile" token="@@alpn.version@@" value="${alpn.version}"/>
-              </target>
-            </configuration>
+            <id>copy-resources</id>
+            <phase>generate-resources</phase>
             <goals>
-              <goal>run</goal>
+              <goal>copy-resources</goal>
             </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/docker</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -70,7 +69,7 @@
 	      <imageTags>
 	        <imageTag>${docker.label.prefix}8-jre</imageTag>
 	      </imageTags>
-              <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
+              <dockerDirectory>${project.build.directory}/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>

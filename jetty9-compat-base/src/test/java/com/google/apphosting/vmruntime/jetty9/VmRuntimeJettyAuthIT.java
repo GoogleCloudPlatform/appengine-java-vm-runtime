@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.apphosting.api.ApiProxy;
@@ -25,9 +26,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Testing Jetty9 auth handling.
- *
  */
-public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
+public class VmRuntimeJettyAuthIT extends VmRuntimeTestBase {
 
   public void testAuth_UserNotRequired() throws Exception {
     String[] lines = fetchUrl(createUrl("/test-auth"));
@@ -148,7 +148,7 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
   public void testAuth_UntrustedInboundIp() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth").toString());
+    GetMethod get = new GetMethod(createUrlForHostIp("/admin/test-auth").toString());
     get.addRequestHeader(
         VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
@@ -162,7 +162,7 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
   public void testAuth_UntrustedInboundIpWithQuery() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth?foo=bar").toString());
+    GetMethod get = new GetMethod(createUrlForHostIp("/admin/test-auth?foo=bar").toString());
     get.addRequestHeader(
         VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.2"); // Force untrusted dev IP
     get.setFollowRedirects(false);
@@ -173,10 +173,10 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
         get.getResponseHeader("Location").getValue());
   }
 
-  public void testAuth_TrustedRealIP() throws Exception {
+  public void testAuth_TrustedRealIp() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
-    GetMethod get = new GetMethod(createUrlForHostIP("/admin/test-auth").toString());
+    GetMethod get = new GetMethod(createUrlForHostIp("/admin/test-auth").toString());
     get.addRequestHeader(VmApiProxyEnvironment.REAL_IP_HEADER, "127.0.0.1");
     get.addRequestHeader(VmApiProxyEnvironment.EMAIL_HEADER, "isdal@google.com");
     get.addRequestHeader(VmApiProxyEnvironment.AUTH_DOMAIN_HEADER, "google.com");
@@ -187,7 +187,7 @@ public class VmRuntimeJettyAuthTest extends VmRuntimeTestBase {
     assertEquals("isdal@google.com: isdal@google.com", get.getResponseBodyAsString());
   }
 
-  public void testAuth_UntrustedRealIP() throws Exception {
+  public void testAuth_UntrustedRealIp() throws Exception {
     HttpClient httpClient = new HttpClient();
     httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
     GetMethod get = new GetMethod(createUrl("/admin/test-auth").toString());

@@ -40,6 +40,31 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/docker</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>*</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
@@ -81,7 +106,7 @@
               <imageTags>
                 <imageTag>${docker.label.prefix}${project.version}</imageTag>
               </imageTags>
-              <dockerDirectory>${project.basedir}/target/docker</dockerDirectory>
+              <dockerDirectory>${project.build.directory}/docker</dockerDirectory>
             </configuration>
           </execution>
 	  <execution>
@@ -96,26 +121,6 @@
 	        <imageTag>${docker.label.prefix}${project.version}</imageTag>
 	      </imageTags>
 	    </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-docker</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-	        <copy todir="${project.build.directory}/docker">
-		  <fileset dir="${project.basedir}/src/main/docker"/>
-		</copy>
-		<replace file="${project.build.directory}/docker/Dockerfile" token="@@image.label@@" value="${docker.label.prefix}${jetty.version}"/>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>

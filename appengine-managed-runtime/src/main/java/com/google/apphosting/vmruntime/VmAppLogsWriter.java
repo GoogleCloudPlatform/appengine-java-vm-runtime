@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import com.google.appengine.repackaged.com.google.common.base.Stopwatch;
@@ -124,7 +125,8 @@ class VmAppLogsWriter {
       String message =
           String.format(
               "maxLogMessageLength silly small (%s); setting maxLogMessageLength to %s",
-              maxLogMessageLength, MIN_MAX_LOG_MESSAGE_LENGTH);
+              maxLogMessageLength,
+              MIN_MAX_LOG_MESSAGE_LENGTH);
       logger.warning(message);
       this.maxLogMessageLength = MIN_MAX_LOG_MESSAGE_LENGTH;
     } else {
@@ -138,7 +140,8 @@ class VmAppLogsWriter {
       String message =
           String.format(
               "maxBytesToFlush (%s) smaller than  maxLogMessageLength (%s)",
-              maxBytesToFlush, this.maxLogMessageLength);
+              maxBytesToFlush,
+              this.maxLogMessageLength);
       logger.warning(message);
       this.maxBytesToFlush = this.maxLogMessageLength;
     } else {

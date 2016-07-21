@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
@@ -26,6 +27,14 @@ public class ApiRequest {
   public final String methodName;
   public final byte[] requestData;
 
+  /**
+   * Simple API request.
+   *
+   * @param environment the environment
+   * @param packageName the package name
+   * @param methodName the method name
+   * @param requestData the request data
+     */
   public ApiRequest(
       VmApiProxyEnvironment environment,
       String packageName,

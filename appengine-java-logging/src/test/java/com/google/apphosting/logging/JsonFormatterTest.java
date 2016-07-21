@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.logging;
 
 import static org.hamcrest.core.StringEndsWith.endsWith;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import com.google.gson.Gson;
 

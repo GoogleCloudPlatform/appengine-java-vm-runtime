@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.apphosting.vmruntime.jetty9;
 
-import static junit.framework.TestCase.assertTrue;
+package com.google.apphosting.vmruntime.jetty9;
 
 import java.util.Arrays;
 
 /**
  * Testing that appengine-web.xml can be optional.
- *
  */
-public class NoAppWebXmlTest extends VmRuntimeTestBase {
+public class NoAppWebXmlIT extends VmRuntimeTestBase {
 
   @Override
   protected void setUp() throws Exception {
@@ -33,8 +31,6 @@ public class NoAppWebXmlTest extends VmRuntimeTestBase {
 
   /**
    * Tests that mapping a servlet to / works.
-   *
-   * @throws Exception
    */
   public void testWelcomeServlet() throws Exception {
     String[] lines = fetchUrl(createUrl("/"));

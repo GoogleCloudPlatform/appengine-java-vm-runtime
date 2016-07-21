@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheIncrementResponse;
@@ -24,7 +25,6 @@ import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueBulkAddResponse.T
 import com.google.appengine.api.taskqueue.TaskQueuePb.TaskQueueServiceError.ErrorCode;
 import com.google.apphosting.api.ApiBasePb.VoidProto;
 import com.google.apphosting.api.ApiProxy;
-//import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
 import com.google.apphosting.api.DatastorePb.Transaction;
 
 import org.apache.commons.httpclient.Header;
@@ -35,17 +35,16 @@ import org.apache.commons.httpclient.methods.PostMethod;
 
 import java.net.HttpURLConnection;
 
+//import com.google.apphosting.datastore.DatastoreV3Pb.Transaction;
+
 /**
  * Misc individual Jetty9 vmengines tests.
- *
  */
-public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
+public class VmRuntimeJettyKitchenSink2IT extends VmRuntimeTestBase {
 
   /**
    * Test that the count servlet was loaded, and that local state is preserved
    * between requests.
-   *
-   * @throws Exception
    */
   public void testCountLocal() throws Exception {
     for (int i = 1; i <= 5; i++) {
@@ -57,8 +56,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
 
   /**
    * Test that abandoned transactions are aborted when the request completes.
-   *
-   * @throws Exception
    */
   public void testAbandonTransaction() throws Exception {
     long transactionId = 123456789012345L;
@@ -83,8 +80,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
 
   /**
    * Test that blob upload requests are intercepted by the blob upload filter.
-   *
-   * @throws Exception
    */
   public void testBlobUpload() throws Exception {
     String postData =
@@ -128,8 +123,6 @@ public class VmRuntimeJettyKitchenSink2Test extends VmRuntimeTestBase {
   /**
    * Test that the count servlet was loaded, and that memcache calls are
    * forwarded through the VmApiProxyDelegate.
-   *
-   * @throws Exception
    */
   public void testCountMemcache() throws Exception {
     // Replace the API proxy delegate so we can fake API responses.

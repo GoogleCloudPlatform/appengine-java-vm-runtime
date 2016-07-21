@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime.jetty9;
 
 import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
+import com.google.apphosting.jetty9.GoogleRequestCustomizer;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
@@ -40,9 +42,12 @@ import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 class JettyRunner extends AbstractLifeCycle implements Runnable {
 
@@ -52,16 +57,6 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
   private final String webapp;
   private String appengineWebXml;
   private final CountDownLatch started = new CountDownLatch(1);
-  private static final String[] preconfigurationClasses = {
-    org.eclipse.jetty.webapp.WebInfConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.WebXmlConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.MetaInfConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.webapp.FragmentConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.plus.webapp.EnvConfiguration.class.getCanonicalName(),
-    org.eclipse.jetty.plus.webapp.PlusConfiguration.class.getCanonicalName(),
-    // next one is way too slow for unit testing:
-    //org.eclipse.jetty.annotations.AnnotationConfiguration.class.getCanonicalName()
-  };
 
   public JettyRunner() {
     this(-1);
@@ -115,12 +110,15 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
         target = new File(project, "jetty9-compat-base/target");
       }
 
-      File jetty_base =
-          new File(
-              System.getProperty("jetty.base", new File(target, "jetty-base").getAbsolutePath()));
+      String jettyBase = System.getProperty("jetty.base");
+      if (jettyBase == null) {
+        jettyBase = new File(target, "jetty-base").getAbsolutePath();
+        System.setProperty("jetty.base", jettyBase);
+      }
+      File jettyBaseFile = new File(jettyBase);
 
       Assert.assertTrue(target.isDirectory());
-      Assert.assertTrue(jetty_base.isDirectory());
+      Assert.assertTrue(jettyBaseFile.isDirectory());
       logs = new File(target, "logs");
       logs.delete();
       logs.mkdirs();
@@ -146,8 +144,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
       // Basic jetty.xml handler setup
       HandlerCollection handlers = new HandlerCollection();
-      ContextHandlerCollection contexts =
-          new ContextHandlerCollection(); // TODO is a context handler collection needed for a single context?
+      // TODO is a context handler collection needed for a single context?
+      ContextHandlerCollection contexts = new ContextHandlerCollection();
       handlers.setHandlers(new Handler[] {contexts, new DefaultHandler()});
       server.setHandler(handlers);
 
@@ -164,6 +162,8 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       httpConfig.setSendServerVersion(true);
       httpConfig.setSendDateHeader(false);
       httpConfig.setDelayDispatchUntilContent(false);
+      GoogleRequestCustomizer requestCustomizer = new GoogleRequestCustomizer(port, 443);
+      httpConfig.addCustomizer(requestCustomizer);
 
       // Setup Server as done by gae.xml
       server.addBean(bufferpool);
@@ -186,9 +186,16 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       // configuration from root.xml
       final VmRuntimeWebAppContext context = new VmRuntimeWebAppContext();
       context.setContextPath("/");
-      context.setConfigurationClasses(preconfigurationClasses);
+
+      // remove annotations as they are too slow for testing
+      context.setConfigurationClasses(
+          Arrays.stream(context.getConfigurationClasses())
+              .filter(n -> !n.contains("AnnotationConfiguration"))
+              .collect(Collectors.toList()));
 
       // Needed to initialize JSP!
+      context.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", 
+          ".*/[^/]*taglibs.*\\.jar$");
       context.addBean(
           new AbstractLifeCycle() {
             @Override
@@ -218,7 +225,7 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       context.setParentLoaderPriority(true); // true in tests for easier mocking
 
       // Hack to find the webdefault.xml
-      File webDefault = new File(jetty_base, "etc/webdefault.xml");
+      File webDefault = new File(jettyBaseFile, "etc/webdefault.xml");
       context.setDefaultsDescriptor(webDefault.getAbsolutePath());
 
       contexts.addHandler(context);
@@ -250,20 +257,22 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
 
   /**
    * Sets the system properties expected by jetty.xml.
-   *
-   * @throws IOException
    */
   protected void setSystemProperties(File logs) throws IOException {
-
-    String log_file_pattern = logs.getAbsolutePath() + "/log.%g";
-
-    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, log_file_pattern);
-    System.setProperty(
-        "jetty.appengineport", me.alexpanov.net.FreePortFinder.findFreeLocalPort() + "");
+    String logFilePattern = logs.getAbsolutePath() + "/log.%g";
+    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, logFilePattern);
+    System.setProperty("jetty.appengineport", String.valueOf(findAvailablePort()));
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
     System.setProperty("jetty.home", JETTY_HOME_PATTERN);
-    System.setProperty("GAE_SERVER_PORT", "" + port);
+  }
+
+  public static int findAvailablePort() {
+    try (ServerSocket tempSocket = new ServerSocket(0)) {
+      return tempSocket.getLocalPort();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   public static void main(String... args) throws Exception {

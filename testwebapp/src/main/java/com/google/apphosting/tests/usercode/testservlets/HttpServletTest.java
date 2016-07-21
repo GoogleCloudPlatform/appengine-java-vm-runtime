@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import java.io.IOException;
@@ -71,13 +72,13 @@ class HttpServletTest extends HttpServlet {
       int callStackOffset, String message, boolean condition, HttpServletResponse response)
       throws AssertionFailedException, IOException {
     if (!condition) {
-      AssertionFailedException e = new AssertionFailedException(message);
-      StackTraceElement[] stackTrace = e.getStackTrace();
+      AssertionFailedException exception = new AssertionFailedException(message);
+      StackTraceElement[] stackTrace = exception.getStackTrace();
       StackTraceElement element = stackTrace[1 + callStackOffset];
       String fileName = element.getFileName();
       int lineNumber = element.getLineNumber();
       response.getWriter().print(fileName + ":" + lineNumber + " Assertion Failed: " + message);
-      throw e;
+      throw exception;
     }
   }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime.jetty9;
 
 import static com.google.appengine.repackaged.com.google.common.io.BaseEncoding.base64Url;
@@ -49,7 +50,6 @@ import javax.servlet.http.HttpSessionIdListener;
  * Implements the Jetty {@link AbstractSessionManager} and, as an inner class,
  * {@link HashSessionIdManager} for our context. The session manager has to check the provided
  * {@link SessionStore SessionStores} to find sessions.
- *
  */
 public class SessionManager extends AbstractSessionManager {
   private static final Logger logger = Logger.getLogger(SessionManager.class.getName());
@@ -94,7 +94,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     public String generateNewId() {
-      byte randomBytes[] = new byte[16];
+      byte[] randomBytes = new byte[16];
       _random.nextBytes(randomBytes);
       // Use a web-safe encoding in case the session identifier gets
       // passed via a URL path parameter.
@@ -106,12 +106,12 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   /**
-   * A session implementation using the provided list of {@link SessionStore SessionStores} to store
-   * attributes. Expiration is also stored.
    * <p>
-   * An instance of this class may be used simultaneously be multiple request threads. We use
-   * synchronization to guard access to sessionData and the parent object state.
-   *
+   * A session implementation using the provided list of {@link SessionStore SessionStores} to store
+   * attributes. Expiration is also stored. An instance of this class may be used simultaneously
+   * be multiple request threads. We use synchronization to guard access to sessionData and the
+   * parent object state.
+   * </p>
    */
   public class AppEngineSession extends AbstractSession {
 
@@ -148,8 +148,7 @@ public class SessionManager extends AbstractSessionManager {
 
     @Override
     public void renewId(HttpServletRequest request) {
-
-      String oldId = getClusterId();
+      final String oldId = getClusterId();
 
       // remove session with the old from storage
       deleteSession();
@@ -186,13 +185,13 @@ public class SessionManager extends AbstractSessionManager {
 
       // save if it is dirty or its a forced save
       if (force || dirty) {
-        int delay = 50; // Start with a delay of 50ms if a put fails.
+        int delay = 1000; // Start with a delay of 1s as per SLA if a put fails.
         try {
-          // Try 10 times with exponential back-off. The tenth time the
-          // delay will be about 25 seconds. We need to eventually give
+          // Try 6 times with exponential back-off. The sixth time the
+          // delay will be about 32 seconds. We need to eventually give
           // up because it is possible the Datastore API is totally hosed
           // and we want the request to eventually terminate.
-          for (int attemptNum = 0; attemptNum < 10; attemptNum++) {
+          for (int attemptNum = 0; attemptNum < 6; attemptNum++) {
             try {
               synchronized (this) {
                 if (dirty || force) {
@@ -301,15 +300,19 @@ public class SessionManager extends AbstractSessionManager {
       // Optimize flushing of session data to persistent storage based on nearness to expiry time.
       long expirationTime = sessionData.getExpirationTime();
       long timeRemaining = expirationTime - accessTime;
-      if (dirty) {
-      } else if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
-        dirty = true;
-        if (logger.isLoggable(Level.FINE)) {
-          logger.fine(
-              String.format("Session %s accessed while near expiration, marking dirty.", getId()));
+      if (!dirty) {
+        if (timeRemaining < (getSessionExpirationInMilliseconds() * UPDATE_TIMESTAMP_RATIO)) {
+          dirty = true;
+          if (logger.isLoggable(Level.FINE)) {
+            logger.fine(
+                String.format(
+                    "Session %s accessed while near expiration, marking dirty.", getId()));
+          }
+        } else {
+          if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
+          }
         }
-      } else if (logger.isLoggable(Level.FINE)) {
-        logger.fine(String.format("Session %s accessed early, not marking dirty.", getId()));
       }
       sessionData.setExpirationTime(
           System.currentTimeMillis() + getSessionExpirationInMilliseconds());
@@ -318,7 +321,7 @@ public class SessionManager extends AbstractSessionManager {
     }
 
     /**
-     * Check if the expiration time has passed
+     * Check if the expiration time has passed.
      *
      * @see org.eclipse.jetty.server.session.AbstractSession#checkExpiry(long)
      */
@@ -430,7 +433,8 @@ public class SessionManager extends AbstractSessionManager {
           logger.fine(
               String.format(
                   "Session %s expired %d seconds ago, ignoring",
-                  sessionId, (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
+                  sessionId,
+                  (System.currentTimeMillis() - data.getExpirationTime()) / 1000));
         }
         return null;
       }
@@ -507,7 +511,7 @@ public class SessionManager extends AbstractSessionManager {
   }
 
   /**
-   * Not used
+   * Not used.
    */
   @Override
   public void renewSessionId(
@@ -520,9 +524,6 @@ public class SessionManager extends AbstractSessionManager {
   /**
    * Call any session id listeners registered. Usually done by renewSessionId() method, but that is
    * not used in appengine.
-   *
-   * @param session
-   * @param oldId
    */
   public void callSessionIdListeners(AbstractSession session, String oldId) {
     HttpSessionEvent event = new HttpSessionEvent(session);

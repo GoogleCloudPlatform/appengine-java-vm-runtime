@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.logging;
 
 import com.google.gson.stream.JsonWriter;
@@ -102,8 +103,8 @@ public class JsonFormatter extends Formatter {
     Throwable thrown = record.getThrown();
     if (thrown != null) {
       StringWriter sw = new StringWriter();
-      try (PrintWriter pw = new PrintWriter(sw); ) {
-        sb.append("\n");
+      try (PrintWriter pw = new PrintWriter(sw)) {
+        sb.append('\n');
         thrown.printStackTrace(pw);
       }
       sb.append(sw.getBuffer());

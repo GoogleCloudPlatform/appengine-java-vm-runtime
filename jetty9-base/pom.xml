@@ -68,7 +68,7 @@
         <executions>
           <execution>
             <id>jetty-home</id>
-            <phase>generate-resources</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>unpack</goal>
             </goals>
@@ -88,7 +88,7 @@
           </execution>
           <execution>
             <id>gae-jars</id>
-            <phase>generate-resources</phase>
+            <phase>pre-integration-test</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
@@ -110,7 +110,7 @@
         <executions>
           <execution>
             <id>add-jetty-modules</id>
-            <phase>process-resources</phase>
+            <phase>pre-integration-test</phase>
             <goals>
               <goal>exec</goal>
             </goals>
@@ -130,6 +130,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
@@ -137,14 +145,6 @@
           <tarLongFileMode>gnu</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

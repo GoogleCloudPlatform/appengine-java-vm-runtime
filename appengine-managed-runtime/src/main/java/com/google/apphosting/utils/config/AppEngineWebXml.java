@@ -1006,8 +1006,6 @@ public class AppEngineWebXml implements Cloneable {
    * Sets the application root directory, as a prefix for the regexps in
    * {@link #includeResourcePattern(String)} and friends.  This is needed
    * because we want to match complete filenames relative to root.
-   *
-   * @param appRoot
    */
   public void setSourcePrefix(String appRoot) {
     this.appRoot = appRoot;
@@ -1894,24 +1892,24 @@ public class AppEngineWebXml implements Cloneable {
       this.cpu = cpu;
     }
 
-    private double memory_gb;
+    private double memoryGb;
 
     public double getMemoryGb() {
-      return memory_gb;
+      return memoryGb;
     }
 
-    public void setMemoryGb(double memory_gb) {
-      this.memory_gb = memory_gb;
+    public void setMemoryGb(double memoryGb) {
+      this.memoryGb = memoryGb;
     }
 
-    private int disk_size_gb;
+    private int diskSizeGb;
 
     public int getDiskSizeGb() {
-      return disk_size_gb;
+      return diskSizeGb;
     }
 
-    public void setDiskSizeGb(int disk_size_gb) {
-      this.disk_size_gb = disk_size_gb;
+    public void setDiskSizeGb(int diskSizeGb) {
+      this.diskSizeGb = diskSizeGb;
     }
 
     public boolean isEmpty() {
@@ -1920,7 +1918,7 @@ public class AppEngineWebXml implements Cloneable {
 
     @Override
     public int hashCode() {
-      return Objects.hash(cpu, memory_gb, disk_size_gb);
+      return Objects.hash(cpu, memoryGb, diskSizeGb);
     }
 
     @Override
@@ -1936,8 +1934,8 @@ public class AppEngineWebXml implements Cloneable {
       }
       Resources other = (Resources) obj;
       return Objects.equals(cpu, other.cpu)
-          && Objects.equals(memory_gb, other.memory_gb)
-          && Objects.equals(disk_size_gb, other.disk_size_gb);
+          && Objects.equals(memoryGb, other.memoryGb)
+          && Objects.equals(diskSizeGb, other.diskSizeGb);
     }
 
     @Override
@@ -1945,10 +1943,10 @@ public class AppEngineWebXml implements Cloneable {
       return "Resources ["
           + "cpu="
           + cpu
-          + ", memory_gb="
-          + memory_gb
-          + ", disk_size_gb="
-          + disk_size_gb
+          + ", memoryGb="
+          + memoryGb
+          + ", diskSizeGb="
+          + diskSizeGb
           + "]";
     }
   }

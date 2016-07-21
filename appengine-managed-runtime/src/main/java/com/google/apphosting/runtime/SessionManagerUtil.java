@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.runtime;
 
 import java.io.ByteArrayInputStream;
@@ -112,9 +113,9 @@ public class SessionManagerUtil {
         throws IOException, ClassNotFoundException {
 
       String name = classDesc.getName();
-      Class c = primitiveTypes.get(name);
-      if (c != null) {
-        return c;
+      Class clazz = primitiveTypes.get(name);
+      if (clazz != null) {
+        return clazz;
       }
       return Class.forName(classDesc.getName(), false, classLoader);
     }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets;
 
 import com.google.appengine.api.blobstore.BlobKey;
@@ -107,7 +108,7 @@ public class TestBlobUploadServlet extends HttpServlet {
           HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Expected header to be present: " + UPLOAD_HEADER);
       return;
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException expected) {
     }
 
     Map<String, String[]> parameterMap = req.getParameterMap();

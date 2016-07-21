@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.vmruntime;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -42,12 +43,15 @@ import org.apache.http.protocol.HttpContext;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Tests the delegate for making AppEngine API calls in a Google Compute Engine VM.
@@ -194,28 +198,30 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    if (sync) {
-      try {
-        environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
-        result =
-            delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
-        fail();
-      } catch (ApiProxyException exception) {
-        assertEquals(expectedException.getClass(), exception.getClass());
-      }
-    } else {
-      try {
-        ApiConfig apiConfig = new ApiConfig();
-        apiConfig.setDeadlineInSeconds(timeoutInSeconds);
-        result =
-            delegate
-                .makeAsyncCall(
-                    environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-                .get();
-        fail();
-      } catch (ExecutionException exception) {
-        // ExecutionException is expected, and make sure the cause is expected as well.
-        assertEquals(expectedException.getClass(), exception.getCause().getClass());
+    try (SuppressedLogging l = new SuppressedLogging()) {
+      if (sync) {
+        try {
+          environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
+          result =
+              delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
+          fail();
+        } catch (ApiProxyException exception) {
+          assertEquals(expectedException.getClass(), exception.getClass());
+        }
+      } else {
+        try {
+          ApiConfig apiConfig = new ApiConfig();
+          apiConfig.setDeadlineInSeconds(timeoutInSeconds);
+          result =
+              delegate
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
+          fail();
+        } catch (ExecutionException exception) {
+          // ExecutionException is expected, and make sure the cause is expected as well.
+          assertEquals(expectedException.getClass(), exception.getCause().getClass());
+        }
       }
     }
     assertNull(result);
@@ -237,28 +243,30 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    if (sync) {
-      try {
-        environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
-        result =
-            delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
-        fail();
-      } catch (ApiProxyException exception) {
-        assertThat(exception, instanceOf(expectedException.getClass()));
-      }
-    } else {
-      try {
-        ApiConfig apiConfig = new ApiConfig();
-        apiConfig.setDeadlineInSeconds(timeoutInSeconds);
-        result =
-            delegate
-                .makeAsyncCall(
-                    environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-                .get();
-        fail();
-      } catch (ExecutionException exception) {
-        // ExecutionException is expected, and make sure the cause is expected as well.
-        assertThat(exception.getCause(), instanceOf(expectedException.getClass()));
+    try (SuppressedLogging l = new SuppressedLogging()) {
+      if (sync) {
+        try {
+          environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
+          result =
+              delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
+          fail();
+        } catch (ApiProxyException exception) {
+          assertThat(exception, instanceOf(expectedException.getClass()));
+        }
+      } else {
+        try {
+          ApiConfig apiConfig = new ApiConfig();
+          apiConfig.setDeadlineInSeconds(timeoutInSeconds);
+          result =
+              delegate
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
+          fail();
+        } catch (ExecutionException exception) {
+          // ExecutionException is expected, and make sure the cause is expected as well.
+          assertThat(exception.getCause(), instanceOf(expectedException.getClass()));
+        }
       }
     }
     assertNull(result);
@@ -278,28 +286,30 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] result = null;
     final Double timeoutInSeconds = 10.0;
 
-    if (sync) {
-      try {
-        environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
-        result =
-            delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
-        fail();
-      } catch (ApiProxyException exception) {
-        assertEquals(expectedException.getClass(), exception.getClass());
-      }
-    } else {
-      try {
-        ApiConfig apiConfig = new ApiConfig();
-        apiConfig.setDeadlineInSeconds(timeoutInSeconds);
-        result =
-            delegate
-                .makeAsyncCall(
-                    environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
-                .get();
-        fail();
-      } catch (ExecutionException exception) {
-        // ExecutionException is expected, and make sure the cause is expected as well.
-        assertEquals(expectedException.getClass(), exception.getCause().getClass());
+    try (SuppressedLogging l = new SuppressedLogging()) {
+      if (sync) {
+        try {
+          environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, timeoutInSeconds);
+          result =
+              delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
+          fail();
+        } catch (ApiProxyException exception) {
+          assertEquals(expectedException.getClass(), exception.getClass());
+        }
+      } else {
+        try {
+          ApiConfig apiConfig = new ApiConfig();
+          apiConfig.setDeadlineInSeconds(timeoutInSeconds);
+          result =
+              delegate
+                  .makeAsyncCall(
+                      environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, apiConfig)
+                  .get();
+          fail();
+        } catch (ExecutionException exception) {
+          // ExecutionException is expected, and make sure the cause is expected as well.
+          assertEquals(expectedException.getClass(), exception.getCause().getClass());
+        }
       }
     }
     assertNull(result);
@@ -321,25 +331,31 @@ public class VmApiProxyDelegateTest extends TestCase {
     byte[] requestData = new byte[] {0, 1, 2, 3, 4, 5};
     byte[] result = null;
 
-    if (sync) {
-      try {
-        result =
-            delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
-        fail();
-      } catch (ApiProxyException exception) {
-        assertEquals(expectedException.getClass(), exception.getClass());
-      }
-    } else {
-      try {
-        result =
-            delegate
-                .makeAsyncCall(
-                    environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData, new ApiConfig())
-                .get();
-        fail();
-      } catch (ExecutionException exception) {
-        // ExecutionException is expected, and make sure the cause is expected as well.
-        assertEquals(expectedException.getClass(), exception.getCause().getClass());
+    try (SuppressedLogging l = new SuppressedLogging()) {
+      if (sync) {
+        try {
+          result =
+              delegate.makeSyncCall(environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, requestData);
+          fail();
+        } catch (ApiProxyException exception) {
+          assertEquals(expectedException.getClass(), exception.getClass());
+        }
+      } else {
+        try {
+          result =
+              delegate
+                  .makeAsyncCall(
+                      environment,
+                      TEST_PACKAGE_NAME,
+                      TEST_METHOD_NAME,
+                      requestData,
+                      new ApiConfig())
+                  .get();
+          fail();
+        } catch (ExecutionException exception) {
+          // ExecutionException is expected, and make sure the cause is expected as well.
+          assertEquals(expectedException.getClass(), exception.getCause().getClass());
+        }
       }
     }
     assertNull(result);
@@ -507,7 +523,7 @@ public class VmApiProxyDelegateTest extends TestCase {
         Double.toString(deadline));
   }
 
-  public void testAPIExceptionWrapping() {
+  public void testApiExceptionWrapping() {
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(createMockHttpClient());
     RuntimeException exception = delegate.constructApiException("logservice", "a");
 
@@ -524,5 +540,26 @@ public class VmApiProxyDelegateTest extends TestCase {
     assertEquals(
         "The remote RPC to the application server failed for the call barf.d().",
         exception.getMessage());
+  }
+
+  // TODO move to a common testing framework
+  private static class SuppressedLogging implements Closeable {
+    Logger logger = Logger.getLogger(VmApiProxyDelegate.class.getName());
+    Level level = logger.getLevel();
+
+    SuppressedLogging() {
+      // If the logger is not configured to log debug level
+      // logs (FINE, FINER, FINEST), then set the logger
+      // to SEVERE, so that the expected WARNING messages
+      // from these tests are suppressed.
+      if (!logger.isLoggable(Level.FINE)) {
+        logger.setLevel(Level.SEVERE);
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      logger.setLevel(level);
+    }
   }
 }

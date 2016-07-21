@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.tests.usercode.testservlets.security;
 
 import java.lang.reflect.AccessibleObject;
@@ -96,6 +97,7 @@ public class TestReflection implements Runnable {
     @SuppressWarnings({"InstantiatingObjectToGetClassObject"})
     private Reflectee3() {
       class ConstructorNested {}
+
       constructorLocalClass = ConstructorNested.class;
       constructorAnonymousClass = new Object() {}.getClass();
     }
@@ -110,13 +112,14 @@ public class TestReflection implements Runnable {
 
     private static Class<?> getMethodLocalClass() {
       class MethodNestedLocal {}
+
       return MethodNestedLocal.class;
-    };
+    }
 
     @SuppressWarnings({"InstantiatingObjectToGetClassObject"})
     private static Class<?> getMethodAnonymousClass() {
       return new Object() {}.getClass();
-    };
+    }
   }
 
   public void run() {
@@ -152,9 +155,9 @@ public class TestReflection implements Runnable {
 
     // Try calling a public method via reflection
     try {
-      Method m = klass.getDeclaredMethod("publicGetInt");
-      m.setAccessible(true);
-      assertEquals(Integer.valueOf(Reflectee.INT), m.invoke(reflectee));
+      Method method = klass.getDeclaredMethod("publicGetInt");
+      method.setAccessible(true);
+      assertEquals(Integer.valueOf(Reflectee.INT), method.invoke(reflectee));
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     } catch (IllegalAccessException e) {
@@ -165,8 +168,8 @@ public class TestReflection implements Runnable {
 
     // Try calling a private method without setAccessible.
     try {
-      Method m = klass.getDeclaredMethod("privateGetString");
-      assertEquals(Reflectee.STRING, m.invoke(reflectee));
+      Method method = klass.getDeclaredMethod("privateGetString");
+      assertEquals(Reflectee.STRING, method.invoke(reflectee));
       fail("Should not have been able to call private method.");
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
@@ -180,10 +183,10 @@ public class TestReflection implements Runnable {
 
     // Try calling a private method with setAccessible.
     try {
-      Method m = klass.getDeclaredMethod("privateGetString");
-      m.setAccessible(true);
-      AccessibleObject.setAccessible(new AccessibleObject[] {m}, true);
-      assertEquals(Reflectee.STRING, m.invoke(reflectee));
+      Method method = klass.getDeclaredMethod("privateGetString");
+      method.setAccessible(true);
+      AccessibleObject.setAccessible(new AccessibleObject[] {method}, true);
+      assertEquals(Reflectee.STRING, method.invoke(reflectee));
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     } catch (IllegalAccessException e) {
@@ -196,8 +199,8 @@ public class TestReflection implements Runnable {
 
     // Try calling a private constructor without setAccessible.
     try {
-      Constructor c = klass.getDeclaredConstructor(int.class);
-      c.newInstance(42);
+      Constructor constructor = klass.getDeclaredConstructor(int.class);
+      constructor.newInstance(42);
       fail("Should not have been able to call private constructor.");
     } catch (InstantiationException e) {
       throw new RuntimeException(e);
@@ -211,25 +214,25 @@ public class TestReflection implements Runnable {
 
     // Try calling a package constructor without setAccessible.
     try {
-      Constructor c = klass.getDeclaredConstructor();
-      c.newInstance();
+      Constructor constructor = klass.getDeclaredConstructor();
+      constructor.newInstance();
     } catch (InvocationTargetException e) {
       throw new RuntimeException(e);
     }
 
     // Try calling a protected constructor without setAccessible.
     try {
-      Constructor c = klass.getDeclaredConstructor(float.class);
-      c.newInstance(1.0f);
+      Constructor constructor = klass.getDeclaredConstructor(float.class);
+      constructor.newInstance(1.0f);
     } catch (InvocationTargetException e) {
       throw new RuntimeException(e);
     }
 
     // Try calling a private constructor with setAccessible.
     try {
-      Constructor c = klass.getDeclaredConstructor(Integer.TYPE);
-      c.setAccessible(true);
-      c.newInstance(new Integer(42));
+      Constructor constructor = klass.getDeclaredConstructor(Integer.TYPE);
+      constructor.setAccessible(true);
+      constructor.newInstance(new Integer(42));
     } catch (InstantiationException e) {
       throw new RuntimeException(e);
     } catch (NoSuchMethodException e) {
@@ -243,33 +246,33 @@ public class TestReflection implements Runnable {
     // Access fields of all basic types.
     Reflectee2 obj = new Reflectee2();
     Class klass2 = Reflectee2.class;
-    Field f;
-    f = klass2.getField("booleanField");
-    f.get(obj);
-    f.getBoolean(obj);
-    f = klass2.getField("byteField");
-    f.get(obj);
-    f.getByte(obj);
-    f = klass2.getField("charField");
-    f.get(obj);
-    f.getChar(obj);
-    f = klass2.getField("shortField");
-    f.get(obj);
-    f.getShort(obj);
-    f = klass2.getField("intField");
-    f.get(obj);
-    f.getInt(obj);
-    f = klass2.getField("longField");
-    f.get(obj);
-    f.getLong(obj);
-    f = klass2.getField("floatField");
-    f.get(obj);
-    f.getFloat(obj);
-    f = klass2.getField("doubleField");
-    f.get(obj);
-    f.getDouble(obj);
-    f = klass2.getField("objectField");
-    f.get(obj);
+    Field field;
+    field = klass2.getField("booleanField");
+    field.get(obj);
+    field.getBoolean(obj);
+    field = klass2.getField("byteField");
+    field.get(obj);
+    field.getByte(obj);
+    field = klass2.getField("charField");
+    field.get(obj);
+    field.getChar(obj);
+    field = klass2.getField("shortField");
+    field.get(obj);
+    field.getShort(obj);
+    field = klass2.getField("intField");
+    field.get(obj);
+    field.getInt(obj);
+    field = klass2.getField("longField");
+    field.get(obj);
+    field.getLong(obj);
+    field = klass2.getField("floatField");
+    field.get(obj);
+    field.getFloat(obj);
+    field = klass2.getField("doubleField");
+    field.get(obj);
+    field.getDouble(obj);
+    field = klass2.getField("objectField");
+    field.get(obj);
 
     Class<?>[] publicClasses = Reflectee3.class.getClasses();
     // 1 public declared, and 1 inherited
@@ -309,8 +312,8 @@ public class TestReflection implements Runnable {
     }
   }
 
-  private void assertTrue(boolean b) {
-    if (!b) {
+  private void assertTrue(boolean bool) {
+    if (!bool) {
       throw new RuntimeException("Assertion failed.");
     }
   }

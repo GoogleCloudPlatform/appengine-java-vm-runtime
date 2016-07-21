@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.apphosting.utils.config;
 
 import com.google.appengine.repackaged.com.google.common.io.Files;
@@ -61,8 +62,8 @@ public class XmlUtils {
   static Document parseXml(InputStream inputStream, String filename) {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(inputStream);
+      DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(inputStream);
       doc.getDocumentElement().normalize();
       return doc;
     } catch (IOException e) {
@@ -152,7 +153,11 @@ public class XmlUtils {
 
   static String getChildElementBody(Element element, String tagName, boolean required) {
     Element elt = getChildElement(element, tagName, required);
-    return (elt != null) ? getBody(elt) : null;
+    if (elt == null) {
+      return null;
+    }
+    String result = getText(elt);
+    return result.isEmpty() ? null : result;
   }
 
   static Element getOptionalChildElement(Element parent, String tagName) {
@@ -178,20 +183,6 @@ public class XmlUtils {
     } else {
       return element.getAttribute(name);
     }
-  }
-
-  static String getBody(Element element) {
-    NodeList nodes = element.getChildNodes();
-    if (nodes == null || nodes.getLength() == 0) {
-      return null;
-    }
-
-    Node firstNode = nodes.item(0);
-    if (firstNode == null) {
-      return null;
-    }
-
-    return firstNode.getNodeValue();
   }
 
   static List<Element> getChildren(Element element) {
