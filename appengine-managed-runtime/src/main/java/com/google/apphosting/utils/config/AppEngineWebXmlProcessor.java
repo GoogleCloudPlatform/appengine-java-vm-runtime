@@ -136,11 +136,14 @@ class AppEngineWebXmlProcessor {
       case "application":
         processApplicationNode(elt, appEngineWebXml);
         break;
+      case "runtime":
+        processRuntimeNode(elt, appEngineWebXml);
+        break;
       case "version":
         processVersionNode(elt, appEngineWebXml);
         break;
       case "source-language":
-        processSourceLanguageNode(elt, appEngineWebXml);
+        // Obsolete, ignore.
         break;
       case "module":
         moduleNodeFound = true;
@@ -242,8 +245,8 @@ class AppEngineWebXmlProcessor {
     appEngineWebXml.setMajorVersionId(XmlUtils.getText(node));
   }
 
-  private void processSourceLanguageNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setSourceLanguage(XmlUtils.getText(node));
+  private void processRuntimeNode(Element node, AppEngineWebXml appEngineWebXml) {
+    appEngineWebXml.setRuntime(XmlUtils.getText(node));
   }
 
   private void processModuleNode(Element node, AppEngineWebXml appEngineWebXml) {

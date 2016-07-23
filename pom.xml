@@ -21,7 +21,7 @@
 
   <groupId>com.google.appengine</groupId>
   <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.38-SNAPSHOT</version>
+  <version>1.9.40-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Google App Engine Runtime Parent</name>
   <scm>
@@ -34,7 +34,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.8.v20160314</jetty.version>
-    <appengine.api.version>1.9.38</appengine.api.version>
+    <appengine.api.version>1.9.40</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
   </properties>
 
@@ -158,7 +158,6 @@
           <artifactId>docker-maven-plugin</artifactId>
           <version>0.3.2</version>
         </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
