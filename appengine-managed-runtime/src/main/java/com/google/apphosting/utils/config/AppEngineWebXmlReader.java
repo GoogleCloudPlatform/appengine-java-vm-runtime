@@ -1,14 +1,14 @@
-/**
- * Copyright 2008 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -26,14 +26,13 @@ import java.util.logging.Logger;
 
 /**
  * Creates an {@link AppEngineWebXml} instance from
- * <appdir>WEB-INF/appengine-web.xml.  If you want to read the configuration
+ * &lt;appdir&gt;WEB-INF/appengine-web.xml.  If you want to read the configuration
  * from something that isn't a file, subclass and override
  * {@link #getInputStream()}.
  *
  */
 public class AppEngineWebXmlReader {
-  private static final Logger logger =
-      Logger.getLogger(AppEngineWebXmlReader.class.getName());
+  private static final Logger logger = Logger.getLogger(AppEngineWebXmlReader.class.getName());
 
   private static final String CONCURRENT_REQUESTS_URL =
       "http://code.google.com/appengine/docs/java/config/appconfig.html#Using_Concurrent_Requests";
@@ -77,9 +76,9 @@ public class AppEngineWebXmlReader {
 
   /**
    * @return A {@link AppEngineWebXml} config object derived from the
-   * contents of <appdir>WEB-INF/appengine-web.xml.
+   * contents of &lt;appdir&gt;WEB-INF/appengine-web.xml.
    *
-   * @throws AppEngineConfigException If <appdir>WEB-INF/appengine-web.xml does
+   * @throws AppEngineConfigException If &lt;appdir&gt;WEB-INF/appengine-web.xml does
    * not exist.  Also thrown if we are unable to parse the xml.
    */
   public AppEngineWebXml readAppEngineWebXml() {
@@ -92,21 +91,30 @@ public class AppEngineWebXmlReader {
       if (!appEngineWebXml.getThreadsafeValueProvided()) {
         if (allowMissingThreadsafeElement()) {
           // make some noise if there is no <threadsafe> element.
-          logger.warning("appengine-web.xml does not contain a <threadsafe> element. This will "
-              + "be treated as an error the next time you deploy.\nSee " + CONCURRENT_REQUESTS_URL
-              + " for more information.\nYou probably want to enable concurrent requests.");
+          logger.warning(
+              "appengine-web.xml does not contain a <threadsafe> element. This will "
+                  + "be treated as an error the next time you deploy.\nSee "
+                  + CONCURRENT_REQUESTS_URL
+                  + " for more information.\nYou probably want to enable concurrent requests.");
         } else {
-          throw new AppEngineConfigException("appengine-web.xml does not contain a <threadsafe> "
-              + "element.\nSee " + CONCURRENT_REQUESTS_URL + " for more information.\nYou probably "
-              + "want to enable concurrent requests.");
+          throw new AppEngineConfigException(
+              "appengine-web.xml does not contain a <threadsafe> "
+                  + "element.\nSee "
+                  + CONCURRENT_REQUESTS_URL
+                  + " for more information.\nYou probably "
+                  + "want to enable concurrent requests.");
         }
       }
       if ("legacy".equals(appEngineWebXml.getAutoIdPolicy())) {
-        logger.warning("You have set the datastore auto id policy to 'legacy'. It is recommended "
-            + "that you select 'default' instead.\nLegacy auto ids are deprecated. You can "
-            + "continue to allocate legacy ids manually using the allocateIds() API functions.\n"
-            + "For more information see:\n"
-            + APPCFG_AUTO_IDS_URL + "\n" + DATASTORE_AUTO_IDS_URL + "\n");
+        logger.warning(
+            "You have set the datastore auto id policy to 'legacy'. It is recommended "
+                + "that you select 'default' instead.\nLegacy auto ids are deprecated. You can "
+                + "continue to allocate legacy ids manually using the allocateIds() API functions."
+                + "\nFor more information see:\n"
+                + APPCFG_AUTO_IDS_URL
+                + "\n"
+                + DATASTORE_AUTO_IDS_URL
+                + "\n");
       }
     } catch (Exception e) {
       String msg = "Received exception processing " + getFilename();

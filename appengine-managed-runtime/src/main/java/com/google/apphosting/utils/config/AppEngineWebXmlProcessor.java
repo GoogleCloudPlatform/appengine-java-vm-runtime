@@ -1,14 +1,14 @@
-/**
- * Copyright 2008 Google Inc. All Rights Reserved.
- * 
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS-IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -26,7 +26,6 @@ import com.google.apphosting.utils.config.AppEngineWebXml.ErrorHandler;
 import com.google.apphosting.utils.config.AppEngineWebXml.HealthCheck;
 import com.google.apphosting.utils.config.AppEngineWebXml.ManualScaling;
 import com.google.apphosting.utils.config.AppEngineWebXml.Network;
-import com.google.apphosting.utils.config.AppEngineWebXml.Pagespeed;
 import com.google.apphosting.utils.config.AppEngineWebXml.PrioritySpecifierEntry;
 import com.google.apphosting.utils.config.AppEngineWebXml.Resources;
 
@@ -34,27 +33,24 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static com.google.apphosting.vmruntime.VmRuntimeLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
-
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
- * Constructs an {@link AppEngineWebXml} from an xml document corresponding to
- * appengine-web.xsd.
+ * Constructs an {@link AppEngineWebXml} from an xml document corresponding to appengine-web.xsd.
  *
- * TODO(user): Add a real link to the xsd once it exists and do schema
- * validation.
- *
+ * TODO(user): Add a real link to the xsd once it exists and do schema validation.
  */
 class AppEngineWebXmlProcessor {
 
-  enum FileType { STATIC, RESOURCE }
+  enum FileType {
+    STATIC,
+    RESOURCE
+  }
 
-  private static final Logger logger = Logger.getLogger(AppEngineWebXmlProcessor.class.getName());
-
+  // Error handling to disallow having both module and service entries.
+  private boolean moduleNodeFound;
+  private boolean serviceNodeFound;
   /**
    * Construct an {@link AppEngineWebXml} from the xml document
    * identified by the provided {@link InputStream}.
@@ -76,9 +72,15 @@ class AppEngineWebXmlProcessor {
       if (!(node instanceof Element)) {
         continue;
       }
-      processSecondLevelNode(Element.class.cast(node), appEngineWebXml);
+      processSecondLevelNode((Element) node, appEngineWebXml);
     }
     checkScalingConstraints(appEngineWebXml);
+    // Do not allow service and module to be defined in the same app.yaml.
+    if (serviceNodeFound && moduleNodeFound) {
+      throw new AppEngineConfigException(
+          "The <service> and <module> elements are conflicting. "
+              + "Please remove the deprecated <module> element.");
+    }
     return appEngineWebXml;
   }
 
@@ -93,8 +95,8 @@ class AppEngineWebXmlProcessor {
     count += appEngineWebXml.getAutomaticScaling().isEmpty() ? 0 : 1;
     if (count > 1) {
       throw new AppEngineConfigException(
-          "There may be only one of 'automatic-scaling', 'manual-scaling' or " +
-          "'basic-scaling' elements.");
+          "There may be only one of 'automatic-scaling', 'manual-scaling' or "
+              + "'basic-scaling' elements.");
     }
   }
 
@@ -108,124 +110,172 @@ class AppEngineWebXmlProcessor {
     return XmlUtils.parseXml(is).getDocumentElement();
   }
 
-  @SuppressWarnings("IfCanBeSwitch")
   private void processSecondLevelNode(Element elt, AppEngineWebXml appEngineWebXml) {
     String elementName = elt.getTagName();
-    if (elementName.equals("system-properties")) {
-      processSystemPropertiesNode(elt, appEngineWebXml);
-    } else if (elementName.equals("vm-settings") || elementName.equals("beta-settings")) {
-      processBetaSettingsNode(elt, appEngineWebXml);
-    } else if (elementName.equals("vm-health-check") || elementName.equals("health-check")) {
-      processHealthCheckNode(elt, appEngineWebXml);
-    } else if (elementName.equals("resources")) {
-      processResourcesNode(elt, appEngineWebXml);
-    } else if (elementName.equals("network")) {
-      processNetworkNode(elt, appEngineWebXml);
-    } else if (elementName.equals("env-variables")) {
-      processEnvironmentVariablesNode(elt, appEngineWebXml);
-    } else if (elementName.equals("application")) {
-      processApplicationNode(elt, appEngineWebXml);
-    } else if (elementName.equals("version")) {
-      processVersionNode(elt, appEngineWebXml);
-    } else if (elementName.equals("source-language")) {
-      processSourceLanguageNode(elt, appEngineWebXml);
-    } else if (elementName.equals("module")) {
-      processModuleNode(elt, appEngineWebXml);
-    } else if (elementName.equals("instance-class")) {
-      processInstanceClassNode(elt, appEngineWebXml);
-    } else if (elementName.equals("automatic-scaling")) {
-      processAutomaticScalingNode(elt, appEngineWebXml);
-    } else if (elementName.equals("manual-scaling")) {
-      processManualScalingNode(elt, appEngineWebXml);
-    } else if (elementName.equals("basic-scaling")) {
-      processBasicScalingNode(elt, appEngineWebXml);
-    } else if (elementName.equals("static-files")) {
-      processFilesetNode(elt, appEngineWebXml, FileType.STATIC);
-    } else if (elementName.equals("resource-files")) {
-      processFilesetNode(elt, appEngineWebXml, FileType.RESOURCE);
-    } else if (elementName.equals("ssl-enabled")) {
-      processSslEnabledNode(elt, appEngineWebXml);
-    } else if (elementName.equals("sessions-enabled")) {
-      processSessionsEnabledNode(elt, appEngineWebXml);
-    } else if (elementName.equals("async-session-persistence")) {
-      processAsyncSessionPersistenceNode(elt, appEngineWebXml);
-    } else if (elementName.equals("user-permissions")) {
-      processPermissionsNode(elt, appEngineWebXml);
-    } else if (elementName.equals("public-root")) {
-      processPublicRootNode(elt, appEngineWebXml);
-    } else if (elementName.equals("inbound-services")) {
-      processInboundServicesNode(elt, appEngineWebXml);
-    } else if (elementName.equals("precompilation-enabled")) {
-      processPrecompilationEnabledNode(elt, appEngineWebXml);
-    } else if (elementName.equals("admin-console")) {
-      processAdminConsoleNode(elt, appEngineWebXml);
-    } else if (elementName.equals("static-error-handlers")) {
-      processErrorHandlerNode(elt, appEngineWebXml);
-    } else if (elementName.equals("warmup-requests-enabled")) {
-      processWarmupRequestsEnabledNode(elt, appEngineWebXml);
-    } else if (elementName.equals("threadsafe")) {
-      processThreadsafeNode(elt, appEngineWebXml);
-    } else if (elementName.equals("auto-id-policy")) {
-      processAutoIdPolicyNode(elt, appEngineWebXml);
-    } else if (elementName.equals("code-lock")) {
-      processCodeLockNode(elt, appEngineWebXml);
-    } else if (elementName.equals("vm")) {
-      processVmNode(elt, appEngineWebXml);
-    } else if (elementName.equals("env")) {
-      processEnvNode(elt, appEngineWebXml);
-    } else if (elementName.equals("api-config")) {
-      processApiConfigNode(elt, appEngineWebXml);
-    } else if (elementName.equals("pagespeed")) {
-      processPagespeedNode(elt, appEngineWebXml);
-    } else if (elementName.equals("class-loader-config")) {
-      processClassLoaderConfig(elt, appEngineWebXml);
-    } else if (elementName.equals("url-stream-handler")) {
-      processUrlStreamHandler(elt, appEngineWebXml);
-    } else if (elementName.equals("use-google-connector-j")) {
-      processUseGoogleConnectorJNode(elt, appEngineWebXml);
-    } else {
-      throw new AppEngineConfigException("Unrecognized element <" + elementName + ">");
+    switch (elementName) {
+      case "system-properties":
+        processSystemPropertiesNode(elt, appEngineWebXml);
+        break;
+      case "vm-settings":
+      case "beta-settings":
+        processBetaSettingsNode(elt, appEngineWebXml);
+        break;
+      case "vm-health-check":
+      case "health-check":
+        processHealthCheckNode(elt, appEngineWebXml);
+        break;
+      case "resources":
+        processResourcesNode(elt, appEngineWebXml);
+        break;
+      case "network":
+        processNetworkNode(elt, appEngineWebXml);
+        break;
+      case "env-variables":
+        processEnvironmentVariablesNode(elt, appEngineWebXml);
+        break;
+      case "application":
+        processApplicationNode(elt, appEngineWebXml);
+        break;
+      case "runtime":
+        processRuntimeNode(elt, appEngineWebXml);
+        break;
+      case "version":
+        processVersionNode(elt, appEngineWebXml);
+        break;
+      case "source-language":
+        // Obsolete, ignore.
+        break;
+      case "module":
+        moduleNodeFound = true;
+        processModuleNode(elt, appEngineWebXml);
+        break;
+      case "service":
+        serviceNodeFound = true;
+        processServiceNode(elt, appEngineWebXml);
+        break;
+      case "instance-class":
+        processInstanceClassNode(elt, appEngineWebXml);
+        break;
+      case "automatic-scaling":
+        processAutomaticScalingNode(elt, appEngineWebXml);
+        break;
+      case "manual-scaling":
+        processManualScalingNode(elt, appEngineWebXml);
+        break;
+      case "basic-scaling":
+        processBasicScalingNode(elt, appEngineWebXml);
+        break;
+      case "static-files":
+        processFilesetNode(elt, appEngineWebXml, FileType.STATIC);
+        break;
+      case "resource-files":
+        processFilesetNode(elt, appEngineWebXml, FileType.RESOURCE);
+        break;
+      case "ssl-enabled":
+        processSslEnabledNode(elt, appEngineWebXml);
+        break;
+      case "sessions-enabled":
+        processSessionsEnabledNode(elt, appEngineWebXml);
+        break;
+      case "async-session-persistence":
+        processAsyncSessionPersistenceNode(elt, appEngineWebXml);
+        break;
+      case "user-permissions":
+        processPermissionsNode(elt, appEngineWebXml);
+        break;
+      case "public-root":
+        processPublicRootNode(elt, appEngineWebXml);
+        break;
+      case "inbound-services":
+        processInboundServicesNode(elt, appEngineWebXml);
+        break;
+      case "precompilation-enabled":
+        processPrecompilationEnabledNode(elt, appEngineWebXml);
+        break;
+      case "admin-console":
+        processAdminConsoleNode(elt, appEngineWebXml);
+        break;
+      case "static-error-handlers":
+        processErrorHandlerNode(elt, appEngineWebXml);
+        break;
+      case "warmup-requests-enabled":
+        processWarmupRequestsEnabledNode(elt, appEngineWebXml);
+        break;
+      case "threadsafe":
+        processThreadsafeNode(elt, appEngineWebXml);
+        break;
+      case "auto-id-policy":
+        processAutoIdPolicyNode(elt, appEngineWebXml);
+        break;
+      case "code-lock":
+        processCodeLockNode(elt, appEngineWebXml);
+        break;
+      case "vm":
+        processVmNode(elt, appEngineWebXml);
+        break;
+      case "env":
+        processEnvNode(elt, appEngineWebXml);
+        break;
+      case "api-config":
+        processApiConfigNode(elt, appEngineWebXml);
+        break;
+      case "class-loader-config":
+        processClassLoaderConfig(elt, appEngineWebXml);
+        break;
+      case "url-stream-handler":
+        processUrlStreamHandler(elt, appEngineWebXml);
+        break;
+      case "use-google-connector-j":
+        processUseGoogleConnectorJNode(elt, appEngineWebXml);
+        break;
+      default:
+        throw new AppEngineConfigException("Unrecognized element <" + elementName + ">");
     }
   }
 
   private void processApplicationNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setAppId(getTextNode(node));
+    appEngineWebXml.setAppId(XmlUtils.getText(node));
   }
 
   private void processPublicRootNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setPublicRoot(getTextNode(node));
+    appEngineWebXml.setPublicRoot(XmlUtils.getText(node));
   }
 
   private void processVersionNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setMajorVersionId(getTextNode(node));
+    appEngineWebXml.setMajorVersionId(XmlUtils.getText(node));
   }
 
-  private void processSourceLanguageNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setSourceLanguage(getTextNode(node));
+  private void processRuntimeNode(Element node, AppEngineWebXml appEngineWebXml) {
+    appEngineWebXml.setRuntime(XmlUtils.getText(node));
   }
 
   private void processModuleNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setModule(getTextNode(node));
+    appEngineWebXml.setModule(XmlUtils.getText(node));
+  }
+
+  private void processServiceNode(Element node, AppEngineWebXml appEngineWebXml) {
+    appEngineWebXml.setService(XmlUtils.getText(node));
   }
 
   private void processInstanceClassNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setInstanceClass(getTextNode(node));
+
+    appEngineWebXml.setInstanceClass(XmlUtils.getText(node));
   }
 
   private String getChildNodeText(Element parentNode, String childTag) {
-    String result = null;
-    Element node = XmlUtils.getChildElement(parentNode, childTag);
-    if (node != null) {
-      result = XmlUtils.getBody(node);
+    Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
+    if (node == null) {
+      return null;
     }
-    return result;
+    String result = XmlUtils.getText(node);
+    return result.isEmpty() ? null : result;
   }
 
   private Integer getChildNodePositiveInteger(Element parentNode, String childTag) {
     Integer result = null;
-    Element node = XmlUtils.getChildElement(parentNode, childTag);
-    if (node != null && XmlUtils.getBody(node) != null) {
-      String trimmedText = (XmlUtils.getBody(node)).trim();
+    Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
+    if (node != null) {
+      String trimmedText = XmlUtils.getText(node);
       if (!trimmedText.isEmpty()) {
         try {
           result = Integer.parseInt(trimmedText);
@@ -243,9 +293,9 @@ class AppEngineWebXmlProcessor {
 
   private Double getChildNodeDouble(Element parentNode, String childTag) {
     Double result = null;
-    Element node = XmlUtils.getChildElement(parentNode, childTag);
-    if (node != null && XmlUtils.getBody(node) != null) {
-      String trimmedText = (XmlUtils.getBody(node)).trim();
+    Element node = XmlUtils.getOptionalChildElement(parentNode, childTag);
+    if (node != null) {
+      String trimmedText = XmlUtils.getText(node);
       if (!trimmedText.isEmpty()) {
         try {
           result = Double.parseDouble(trimmedText);
@@ -260,6 +310,7 @@ class AppEngineWebXmlProcessor {
     }
     return result;
   }
+
   private void processAutomaticScalingNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     AutomaticScaling automaticScaling = appEngineWebXml.getAutomaticScaling();
     automaticScaling.setMinPendingLatency(getChildNodeText(settingsNode, "min-pending-latency"));
@@ -298,7 +349,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processCpuUtilizationNode(Element settingsNode, AutomaticScaling automaticScaling) {
-    Element childNode = XmlUtils.getChildElement(settingsNode, "cpu-utilization");
+    Element childNode = XmlUtils.getOptionalChildElement(settingsNode, "cpu-utilization");
     if (childNode != null) {
       CpuUtilization cpuUtilization = new CpuUtilization();
       Double targetUtilization = getChildNodeDouble(childNode, "target-utilization");
@@ -359,7 +410,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processAutoIdPolicyNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setAutoIdPolicy(getTextNode(node));
+    appEngineWebXml.setAutoIdPolicy(XmlUtils.getText(node));
   }
 
   private void processCodeLockNode(Element node, AppEngineWebXml appEngineWebXml) {
@@ -371,13 +422,11 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processEnvNode(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setEnv(getTextNode(node));
+    appEngineWebXml.setEnv(XmlUtils.getText(node));
   }
 
   private void processFilesetNode(Element node, AppEngineWebXml appEngineWebXml, FileType type) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "include");
-    while (nodeIter.hasNext()) {
-      Element includeNode = nodeIter.next();
+    for (Element includeNode : getNodeIterable(node, "include")) {
       String path = trim(includeNode.getAttribute("path"));
       if (path.equals("")) {
         path = null;
@@ -391,9 +440,7 @@ class AppEngineWebXmlProcessor {
             appEngineWebXml.includeStaticPattern(path, expiration);
 
         Map<String, String> httpHeaders = staticFileInclude.getHttpHeaders();
-        Iterator<Element> httpHeaderIter = getNodeIterator(includeNode, "http-header");
-        while (httpHeaderIter.hasNext()) {
-          Element httpHeaderNode = httpHeaderIter.next();
+        for (Element httpHeaderNode : getNodeIterable(includeNode, "http-header")) {
           String name = httpHeaderNode.getAttribute("name");
           String value = httpHeaderNode.getAttribute("value");
 
@@ -408,10 +455,8 @@ class AppEngineWebXmlProcessor {
       }
     }
 
-    nodeIter = getNodeIterator(node, "exclude");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String path = trim(subNode.getAttribute("path"));
+    for (Element excludeNode : getNodeIterable(node, "exclude")) {
+      String path = trim(excludeNode.getAttribute("path"));
       if (type == FileType.STATIC) {
         appEngineWebXml.excludeStaticPattern(path);
       } else {
@@ -420,26 +465,20 @@ class AppEngineWebXmlProcessor {
     }
   }
 
-  private Iterator<Element> getNodeIterator(Element node, String filter) {
-    return XmlUtils.getChildren(node, filter).iterator();
+  private Iterable<Element> getNodeIterable(Element node, String filter) {
+    return XmlUtils.getChildren(node, filter);
   }
 
   private void processSystemPropertiesNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "property");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String propertyName = trim(subNode.getAttribute("name"));
-      String propertyValue = trim(subNode.getAttribute("value"));
-      if (JAVA_UTIL_LOGGING_CONFIG_PROPERTY.equals(propertyName) && System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY)!=null)
-        propertyValue = System.getProperty(JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+    for (Element propertyNode : getNodeIterable(node, "property")) {
+      String propertyName = trim(propertyNode.getAttribute("name"));
+      String propertyValue = trim(propertyNode.getAttribute("value"));
       appEngineWebXml.addSystemProperty(propertyName, propertyValue);
     }
   }
 
   private void processBetaSettingsNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "setting");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
+    for (Element subNode : getNodeIterable(node, "setting")) {
       String name = trim(subNode.getAttribute("name"));
       String value = trim(subNode.getAttribute("value"));
       appEngineWebXml.addBetaSetting(name, value);
@@ -457,10 +496,8 @@ class AppEngineWebXmlProcessor {
     healthCheck.setTimeoutSec(getChildNodePositiveInteger(settingsNode, "timeout-sec"));
     healthCheck.setUnhealthyThreshold(
         getChildNodePositiveInteger(settingsNode, "unhealthy-threshold"));
-    healthCheck.setHealthyThreshold(
-        getChildNodePositiveInteger(settingsNode, "healthy-threshold"));
-    healthCheck.setRestartThreshold(
-        getChildNodePositiveInteger(settingsNode, "restart-threshold"));
+    healthCheck.setHealthyThreshold(getChildNodePositiveInteger(settingsNode, "healthy-threshold"));
+    healthCheck.setRestartThreshold(getChildNodePositiveInteger(settingsNode, "restart-threshold"));
     healthCheck.setHost(getChildNodeText(settingsNode, "host"));
   }
 
@@ -470,26 +507,24 @@ class AppEngineWebXmlProcessor {
     if (cpu != null) {
       resources.setCpu(cpu);
     }
-    Double memory_gb = getChildNodeDouble(settingsNode, "memory-gb");
-    if (memory_gb != null) {
-      resources.setMemoryGb(memory_gb);
+    Double memoryGb = getChildNodeDouble(settingsNode, "memory-gb");
+    if (memoryGb != null) {
+      resources.setMemoryGb(memoryGb);
     }
-    Integer disk_size_gb = getChildNodePositiveInteger(settingsNode, "disk-size-gb");
-    if (disk_size_gb != null) {
-      resources.setDiskSizeGb(disk_size_gb);
+    Integer diskSizeGb = getChildNodePositiveInteger(settingsNode, "disk-size-gb");
+    if (diskSizeGb != null) {
+      resources.setDiskSizeGb(diskSizeGb);
     }
   }
 
   private void processNetworkNode(Element settingsNode, AppEngineWebXml appEngineWebXml) {
     Network network = appEngineWebXml.getNetwork();
-    String instance_tag = trim(getChildNodeText(settingsNode, "instance-tag"));
-    if (instance_tag != null && !instance_tag.isEmpty()) {
-      network.setInstanceTag(instance_tag);
+    String instanceTag = trim(getChildNodeText(settingsNode, "instance-tag"));
+    if (instanceTag != null && !instanceTag.isEmpty()) {
+      network.setInstanceTag(instanceTag);
     }
-    Iterator<Element> nodeIter = getNodeIterator(settingsNode, "forwarded-port");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String forwardedPort = getTextNode(subNode);
+    for (Element subNode : getNodeIterable(settingsNode, "forwarded-port")) {
+      String forwardedPort = XmlUtils.getText(subNode);
       network.addForwardedPort(forwardedPort);
     }
     String name = trim(getChildNodeText(settingsNode, "name"));
@@ -499,9 +534,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processEnvironmentVariablesNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "env-var");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
+    for (Element subNode : getNodeIterable(node, "env-var")) {
       String propertyName = trim(subNode.getAttribute("name"));
       String propertyValue = trim(subNode.getAttribute("value"));
       appEngineWebXml.addEnvironmentVariable(propertyName, propertyValue);
@@ -509,9 +542,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processPermissionsNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "permission");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
+    for (Element subNode : getNodeIterable(node, "permission")) {
       String className = trim(subNode.getAttribute("class"));
       if (className.equals("")) {
         className = null;
@@ -529,18 +560,14 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processInboundServicesNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "service");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String service = getTextNode(subNode);
+    for (Element subNode : getNodeIterable(node, "service")) {
+      String service = XmlUtils.getText(subNode);
       appEngineWebXml.addInboundService(service);
     }
   }
 
   private void processAdminConsoleNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "page");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
+    for (Element subNode : getNodeIterable(node, "page")) {
       String name = trim(subNode.getAttribute("name"));
       String url = trim(subNode.getAttribute("url"));
       appEngineWebXml.addAdminConsolePage(new AdminConsolePage(name, url));
@@ -548,9 +575,7 @@ class AppEngineWebXmlProcessor {
   }
 
   private void processErrorHandlerNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Iterator<Element> nodeIter = getNodeIterator(node, "handler");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
+    for (Element subNode : getNodeIterable(node, "handler")) {
       String file = trim(subNode.getAttribute("file"));
       if (file.equals("")) {
         file = null;
@@ -568,69 +593,36 @@ class AppEngineWebXmlProcessor {
     String url = trim(node.getAttribute("url-pattern"));
     appEngineWebXml.setApiConfig(new ApiConfig(servlet, url));
 
-    String id;
-    Iterator<Element> subNodeIter = getNodeIterator(node, "endpoint-servlet-mapping-id");
-    while (subNodeIter.hasNext()) {
-      Element subNode = subNodeIter.next();
-      id = trim(getTextNode(subNode));
+    for (Element subNode : getNodeIterable(node, "endpoint-servlet-mapping-id")) {
+      String id = XmlUtils.getText(subNode);
       if (id != null && id.length() > 0) {
         appEngineWebXml.addApiEndpoint(id);
       }
     }
   }
 
-  private void processPagespeedNode(Element node, AppEngineWebXml appEngineWebXml) {
-    Pagespeed pagespeed = new Pagespeed();
-    Iterator<Element> nodeIter = getNodeIterator(node, "url-blacklist");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String urlMatcher = getTextNode(subNode);
-      pagespeed.addUrlBlacklist(urlMatcher);
-    }
-    nodeIter = getNodeIterator(node, "domain-to-rewrite");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String domain = getTextNode(subNode);
-      pagespeed.addDomainToRewrite(domain);
-    }
-    nodeIter = getNodeIterator(node, "enabled-rewriter");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String rewriter = getTextNode(subNode);
-      pagespeed.addEnabledRewriter(rewriter);
-    }
-    nodeIter = getNodeIterator(node, "disabled-rewriter");
-    while (nodeIter.hasNext()) {
-      Element subNode = nodeIter.next();
-      String rewriter = getTextNode(subNode);
-      pagespeed.addDisabledRewriter(rewriter);
-    }
-    appEngineWebXml.setPagespeed(pagespeed);
-  }
-
   private void processClassLoaderConfig(Element node, AppEngineWebXml appEngineWebXml) {
     ClassLoaderConfig config = new ClassLoaderConfig();
     appEngineWebXml.setClassLoaderConfig(config);
-    Iterator<Element> nodeIter = getNodeIterator(node, "priority-specifier");
-    while (nodeIter.hasNext()) {
-      processClassPathPrioritySpecifier(nodeIter.next(), config);
+    for (Element subNode : getNodeIterable(node, "priority-specifier")) {
+      processClassPathPrioritySpecifier(subNode, config);
     }
   }
 
   private void processClassPathPrioritySpecifier(Element node, ClassLoaderConfig config) {
     PrioritySpecifierEntry entry = new PrioritySpecifierEntry();
-    entry.setFilename(XmlUtils.getAttribute(node, "filename"));
-    entry.setPriority(XmlUtils.getAttribute(node, "priority"));
+    entry.setFilename(XmlUtils.getAttributeOrNull(node, "filename"));
+    entry.setPriority(XmlUtils.getAttributeOrNull(node, "priority"));
     entry.checkClassLoaderConfig();
     config.add(entry);
   }
 
   private void processUrlStreamHandler(Element node, AppEngineWebXml appEngineWebXml) {
-    appEngineWebXml.setUrlStreamHandlerType(getTextNode(node));
+    appEngineWebXml.setUrlStreamHandlerType(XmlUtils.getText(node));
   }
 
   private boolean getBooleanValue(Element node) {
-    return toBoolean(getTextNode(node));
+    return toBoolean(XmlUtils.getText(node));
   }
 
   private boolean getBooleanAttributeValue(Element node, String attribute) {
@@ -642,14 +634,6 @@ class AppEngineWebXmlProcessor {
     return (value.equalsIgnoreCase("true") || value.equals("1"));
   }
 
-  private String getTextNode(Element node) {
-    String value = XmlUtils.getBody(node);
-    if (value == null) {
-      value = "";
-    }
-    return value.trim();
-  }
-
   private String trim(String attribute) {
     return attribute == null ? null : attribute.trim();
   }
@@ -658,5 +642,3 @@ class AppEngineWebXmlProcessor {
     appEngineWebXml.setUseGoogleConnectorJ(getBooleanValue(node));
   }
 }
-
-
