@@ -25,3 +25,5 @@ jetty.httpConfig.sendDateHeader=false
 
 #gae.httpPort=80
 #gae.httpsPort=443
+
+#jetty.server.stopTimeout=30000

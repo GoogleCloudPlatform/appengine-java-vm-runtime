@@ -39,6 +39,7 @@ jetty.httpConfig.requestHeaderSize=8192
 jetty.httpConfig.responseHeaderSize=8192
 jetty.httpConfig.sendServerVersion=true
 jetty.httpConfig.sendDateHeader=false
+jetty.server.stopTimeout=30000
 jetty.server.dumpAfterStart=false
 jetty.server.dumpBeforeStop=false
 jetty.httpConfig.delayDispatchUntilContent=false
