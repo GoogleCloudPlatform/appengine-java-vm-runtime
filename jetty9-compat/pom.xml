@@ -21,7 +21,7 @@
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.38-SNAPSHOT</version>
+    <version>1.9.40-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Image with GAE Compatibility (jetty9-compat)</name>
