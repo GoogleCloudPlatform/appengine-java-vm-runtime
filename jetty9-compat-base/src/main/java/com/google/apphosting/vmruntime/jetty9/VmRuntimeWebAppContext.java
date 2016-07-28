@@ -49,6 +49,7 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.HttpOutput;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.util.ArrayUtil;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.util.log.JavaUtilLog;
 import org.eclipse.jetty.util.resource.Resource;
@@ -342,6 +343,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
     getSessionHandler().setSessionManager(sessionManager);
 
     VmRuntimeInterceptor.init(appEngineWebXml);
+    
+    setProtectedTargets(ArrayUtil.addToArray(getProtectedTargets(), "/app.yaml", String.class));
   }
 
   @Override
