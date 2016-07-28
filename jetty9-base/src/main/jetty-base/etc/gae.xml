@@ -71,4 +71,8 @@
       </Arg>
     </Call>
   </Ref>
+
+  <!-- TODO remove when this has been added to jetty.xml -->
+  <Set name="stopTimeout"><Property name="jetty.server.stopTimeout" default="30000"/></Set>
+
 </Configure>
