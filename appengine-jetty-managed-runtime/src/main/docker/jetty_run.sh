@@ -22,4 +22,6 @@ source /gke-env.bash
   
 # use generated fast cli:
 cd /var/lib/jetty
+# TODO remove when we upgrade to a newer GAE staging phase, see issue #308
+sed -i -e '/^    "jar:file:/d' /app/WEB-INF/quickstart-web.xml
 source /var/lib/jetty/jetty_cmd.sh
