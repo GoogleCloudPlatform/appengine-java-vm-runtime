@@ -91,6 +91,15 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
   }
 
   /**
+   * Tests that app.yaml is protected
+   */
+  public void testAppYamlHidden() throws Exception {
+    HttpURLConnection connection = (HttpURLConnection) createUrl("/app.yaml").openConnection();
+    connection.connect();
+    assertEquals(404, connection.getResponseCode());
+  }
+  
+  /**
    * Test that the API Proxy was configured by the VmRuntimeFilter.
    */
   public void testApiProxyInstall() throws Exception {

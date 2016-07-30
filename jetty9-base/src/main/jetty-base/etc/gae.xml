@@ -72,6 +72,16 @@
     </Call>
   </Ref>
 
+  <Ref refid="DeploymentManager">
+    <Call name="addLifeCycleBinding">
+      <Arg>
+        <New class="org.eclipse.jetty.deploy.bindings.GlobalWebappConfigBinding">
+          <Set name="jettyXml"><Property name="jetty.base"/>/etc/gae-web.xml</Set>
+        </New>
+      </Arg>
+    </Call>
+  </Ref>
+
   <!-- TODO remove when this has been added to jetty.xml -->
   <Set name="stopTimeout"><Property name="jetty.server.stopTimeout" default="30000"/></Set>
 
