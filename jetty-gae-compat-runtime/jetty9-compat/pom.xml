@@ -14,31 +14,30 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.40-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
-  <name>Google App Engine Image Jetty (jetty9)</name>
-  <artifactId>jetty9</artifactId>
+  <name>Google App Engine Image with GAE Compatibility (jetty9-compat)</name>
+  <artifactId>jetty9-compat</artifactId>
   <packaging>pom</packaging>
 
   <dependencies>
     <dependency>
       <groupId>com.google.appengine</groupId>
-      <artifactId>jetty9-base</artifactId>
+      <artifactId>jetty9-compat-base</artifactId>
       <version>${project.version}</version>
       <type>tar.gz</type>
     </dependency>
   </dependencies>
 
   <build>
-
     <plugins>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
@@ -64,31 +63,10 @@
           </execution>
         </executions>
       </plugin>
-
+      
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
-          <execution>
-            <id>jetty-distribution</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.eclipse.jetty</groupId>
-                  <artifactId>jetty-distribution</artifactId>
-                  <version>${jetty.version}</version>
-                  <type>tar.gz</type>
-                  <overWrite>true</overWrite>
-                  <includes>**</includes>
-                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
-                  <destFileName>jetty-distribution.tar.gz</destFileName>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
           <execution>
             <id>jetty-base</id>
             <phase>generate-resources</phase>
@@ -99,7 +77,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>com.google.appengine</groupId>
-                  <artifactId>jetty9-base</artifactId>
+                  <artifactId>jetty9-compat-base</artifactId>
                   <version>${project.version}</version>
                   <type>tar.gz</type>
                   <overWrite>true</overWrite>
@@ -117,31 +95,32 @@
         <artifactId>docker-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>build</id>
+            <id>build-gae</id>
             <phase>package</phase>
             <goals>
               <goal>build</goal>
             </goals>
             <configuration>
-              <imageName>jetty9</imageName>
+              <forceTags>true</forceTags>
+              <imageName>jetty9-compat</imageName>
               <imageTags>
-                <imageTag>${docker.label.prefix}${jetty.version}</imageTag>
+                <imageTag>${docker.label.prefix}${project.version}</imageTag>
               </imageTags>
               <dockerDirectory>${project.build.directory}/docker</dockerDirectory>
             </configuration>
           </execution>
-          <execution>
-            <id>clean-docker</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>removeImage</goal>
-            </goals>
-            <configuration>
-              <imageName>jetty9</imageName>
-              <imageTags>
-                <imageTag>${docker.label.prefix}${jetty.version}</imageTag>
-              </imageTags>
-            </configuration>
+	  <execution>
+	    <id>clean-docker</id>
+	    <phase>clean</phase>
+	    <goals>
+	      <goal>removeImage</goal>
+	    </goals>
+	    <configuration>
+	      <imageName>jetty9-compat</imageName>
+	      <imageTags>
+	        <imageTag>${docker.label.prefix}${project.version}</imageTag>
+	      </imageTags>
+	    </configuration>
           </execution>
         </executions>
       </plugin>
