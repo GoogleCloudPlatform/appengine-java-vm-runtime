@@ -79,7 +79,6 @@
   <modules>
     <module>openjdk-runtime/appengine-java-logging</module>
     <module>jetty-gae-compat-runtime/appengine-managed-runtime</module>
-    <module>openjdk-runtime/openjdk8</module>
     <module>jetty-runtime/jetty9-base</module>
     <module>jetty-runtime/jetty9</module>
     <module>jetty-gae-compat-runtime/testwebapp</module>

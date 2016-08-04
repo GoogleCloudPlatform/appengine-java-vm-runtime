@@ -16,9 +16,9 @@ FROM gcr.io/google_appengine/base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Create env vars to identify image
-ENV GAE_IMAGE_NAME ${project.artifactId}
-ENV GAE_IMAGE_LABEL ${docker.label.prefix}8-jre
-ENV GAE_IMAGE_VERSION ${project.version}
+# ENV GAE_IMAGE_NAME ${project.artifactId}
+# ENV GAE_IMAGE_LABEL ${docker.label.prefix}8-jre
+# ENV GAE_IMAGE_VERSION ${project.version}
 
 # Update debian 
 RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
