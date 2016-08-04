@@ -6,6 +6,10 @@ machine:
  services:
   - docker
 
+test:
+ pre:
+  - docker build -t openjdk8:async-8-jre openjdk-runtime/openjdk8
+
 ## Prevent mvn dependency:resolve failing for intra-dependencies
 dependencies:
  override: 
