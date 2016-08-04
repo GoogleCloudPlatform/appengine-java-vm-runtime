@@ -54,7 +54,8 @@ COPY docker-entrypoint.bash /
 COPY setup-env.bash /
 RUN tar Cxfvz /opt/cdbg /opt/cdbg/cdbg_java_agent.tar.gz --no-same-owner \
  && rm /opt/cdbg/cdbg_java_agent.tar.gz \
- && chmod +x /docker-entrypoint.bash /setup-env.bash
+ && chmod +x /docker-entrypoint.bash /setup-env.bash \
+ && mkdir /var/log/app_engine
 
 ENTRYPOINT ["/docker-entrypoint.bash"]
 CMD ["java","-version"]
