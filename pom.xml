@@ -77,14 +77,14 @@
   </distributionManagement>
 
   <modules>
-    <module>appengine-java-logging</module>
-    <module>appengine-managed-runtime</module>
-    <module>openjdk8</module>
-    <module>jetty9-base</module>
-    <module>jetty9</module>
-    <module>testwebapp</module>
-    <module>jetty9-compat-base</module>
-    <module>jetty9-compat</module>
+    <module>openjdk-runtime/appengine-java-logging</module>
+    <module>jetty-gae-compat-runtime/appengine-managed-runtime</module>
+    <module>openjdk-runtime/openjdk8</module>
+    <module>jetty-runtime/jetty9-base</module>
+    <module>jetty-runtime/jetty9</module>
+    <module>jetty-gae-compat-runtime/testwebapp</module>
+    <module>jetty-gae-compat-runtime/jetty9-compat-base</module>
+    <module>jetty-gae-compat-runtime/jetty9-compat</module>
   </modules>
 
   <dependencyManagement>

@@ -22,7 +22,7 @@
     <groupId>com.google.appengine</groupId>
     <artifactId>appengine-java-vm-runtime</artifactId>
     <version>1.9.40-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Container with GAE Compatibility (jetty9-compat-base)</name>
   <artifactId>jetty9-compat-base</artifactId>
