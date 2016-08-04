@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
+
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+  <!-- TODO remove when this has been added to jetty.xml -->
+  <Set name="stopTimeout"><Property name="jetty.server.stopTimeout" default="30000"/></Set>
+</Configure>
+
