@@ -16,9 +16,9 @@ FROM gcr.io/google_appengine/base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Create env vars to identify image
-# ENV GAE_IMAGE_NAME ${project.artifactId}
-# ENV GAE_IMAGE_LABEL ${docker.label.prefix}8-jre
-# ENV GAE_IMAGE_VERSION ${project.version}
+ENV GCP_IMAGE_NAME openjdk
+ENV GCP_IMAGE_LABEL 8
+ENV GCP_IMAGE_VERSION 0.1.0-SNAPSHOT
 
 # Update debian 
 RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
@@ -54,7 +54,9 @@ COPY docker-entrypoint.bash /
 COPY setup-env.bash /
 RUN tar Cxfvz /opt/cdbg /opt/cdbg/cdbg_java_agent.tar.gz --no-same-owner \
  && rm /opt/cdbg/cdbg_java_agent.tar.gz \
- && chmod +x /docker-entrypoint.bash /setup-env.bash
+ && chmod +x /docker-entrypoint.bash /setup-env.bash \
+ && mkdir /var/log/app_engine
+
 
 ENTRYPOINT ["/docker-entrypoint.bash"]
 CMD ["java","-version"]
