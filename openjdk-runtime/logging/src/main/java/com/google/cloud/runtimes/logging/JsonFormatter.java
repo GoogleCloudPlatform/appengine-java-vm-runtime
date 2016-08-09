@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.logging;
+package com.google.cloud.runtimes.logging;
 
 import com.google.gson.stream.JsonWriter;
 
