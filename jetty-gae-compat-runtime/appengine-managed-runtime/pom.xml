@@ -34,9 +34,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>1.9.40-SNAPSHOT</version>
+      <groupId>com.google.cloud.runtimes</groupId>
+      <artifactId>logging</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>

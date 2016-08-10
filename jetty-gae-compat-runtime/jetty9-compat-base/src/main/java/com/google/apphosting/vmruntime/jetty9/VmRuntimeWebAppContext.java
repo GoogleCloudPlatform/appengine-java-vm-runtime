@@ -21,7 +21,6 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.logging.LogContext;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
 import com.google.apphosting.runtime.MemcacheSessionStore;
@@ -42,6 +41,8 @@ import com.google.apphosting.vmruntime.VmRequestUtils;
 import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
+
+import com.google.cloud.runtimes.logging.LogContext;
 
 import org.eclipse.jetty.quickstart.PreconfigureDescriptorProcessor;
 import org.eclipse.jetty.quickstart.QuickStartDescriptorGenerator;
@@ -148,7 +149,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
    * <p> If set, this context will not start, rather it will generate the
    * quickstart-web.xml file and then stop the server. If not set, the context will start normally
    * </p>
-   * 
+   *
    * @param quickstartWebXml The location of the quickstart web.xml to generate
    */
   public void setQuickstartWebXml(String quickstartWebXml) {
@@ -193,8 +194,8 @@ public class VmRuntimeWebAppContext extends WebAppContext
     // reflection is needed here because the webapp will either have its
     // own impl of the Datastore Service or this AppengineApiConfiguration
     // will add an impl.  Eitherway, it is a different instance (and maybe)
-    // a different version to the Datastore Service that is used by the 
-    // container session manager.  Thus we need to access the webapps 
+    // a different version to the Datastore Service that is used by the
+    // container session manager.  Thus we need to access the webapps
     // instance, via reflection, so that we can rollback any abandoned transactions.
     ClassLoader orig = Thread.currentThread().getContextClassLoader();
     try {
@@ -343,7 +344,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
     getSessionHandler().setSessionManager(sessionManager);
 
     VmRuntimeInterceptor.init(appEngineWebXml);
-    
+
     setProtectedTargets(ArrayUtil.addToArray(getProtectedTargets(), "/app.yaml", String.class));
   }
 
@@ -529,7 +530,7 @@ public class VmRuntimeWebAppContext extends WebAppContext
               transactionRollback.invoke(tx);
             } catch (InvocationTargetException ex) {
               logger.log(
-                  Level.WARNING, 
+                  Level.WARNING,
                   "Failed to rollback abandoned transaction " + id,
                   ex.getTargetException());
             } catch (Exception ex) {

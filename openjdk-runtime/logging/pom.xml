@@ -18,28 +18,36 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.google.appengine</groupId>
-    <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.40-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
-  </parent>
   <name>Google App Engine Logging Support</name>
-  <artifactId>appengine-java-logging</artifactId>
+  <groupId>com.google.cloud.runtimes</groupId>
+  <artifactId>logging</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Support code for writing log files compatible with Google App Engine</description>
-
   <dependencies>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <version>2.6.2</version>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

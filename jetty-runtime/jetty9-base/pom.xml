@@ -30,9 +30,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-java-logging</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.google.cloud.runtimes</groupId>
+      <artifactId>logging</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
     <dependency>
