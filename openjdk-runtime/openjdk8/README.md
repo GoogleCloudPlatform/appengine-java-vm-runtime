@@ -7,8 +7,8 @@ Google App Engine [Java Managed VM](https://cloud.google.com/appengine/docs/mana
 To build the image you need git, docker and maven installed:
 ```
 $ git clone https://github.com/GoogleCloudPlatform/appengine-java-vm-runtime.git
-$ cd appengine-java-vm-runtime/openjdk8
-$ mvn clean install
+$ cd appengine-java-vm-runtime/openjdk-runtime/openjdk8
+$ docker build -t openjdk8:8-jre .
 ```
 The resulting image is called openjdk8:8-jre 
 

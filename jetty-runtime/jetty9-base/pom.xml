@@ -42,12 +42,6 @@
       <type>jar</type>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>openjdk8</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-    </dependency>
   </dependencies>
 
   <build>
