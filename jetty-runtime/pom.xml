@@ -19,11 +19,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.google.appengine</groupId>
-  <artifactId>appengine-java-vm-runtime</artifactId>
-  <version>1.9.40-SNAPSHOT</version>
+  <groupId>com.google.cloud.runtimes</groupId>
+  <artifactId>jetty-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Google App Engine Runtime Parent</name>
+  <name>Google App Engine Jetty Runtime Parent</name>
   <scm>
     <connection>scm:git:https://github.com/GoogleCloudPlatform/appengine-runtime-java-docker-image.git</connection>
     <tag>HEAD</tag>
@@ -77,9 +77,8 @@
   </distributionManagement>
 
   <modules>
-    <module>openjdk-runtime</module>
-    <module>jetty-runtime</module>
-    <module>jetty-gae-compat-runtime</module>
+    <module>jetty9-base</module>
+    <module>jetty9</module>
   </modules>
 
   <dependencyManagement>
@@ -218,6 +217,30 @@
       </plugins>
     </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <configLocation>checkstyle/google-checks.xml</configLocation>
+              <suppressionsLocation>checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+              <consoleOutput>true</consoleOutput>
+              <failOnViolation>true</failOnViolation>
+              <violationSeverity>error</violationSeverity>
+              <failsOnError>true</failsOnError>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
