@@ -19,10 +19,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.google.appengine</groupId>
-    <artifactId>appengine-java-vm-runtime</artifactId>
-    <version>1.9.40-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <groupId>com.google.cloud.runtimes</groupId>
+    <artifactId>jetty-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Google App Engine Image Jetty (jetty9-base)</name>
   <artifactId>jetty9-base</artifactId>
@@ -43,7 +43,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.appengine</groupId>
+      <groupId>com.google.cloud.runtimes</groupId>
       <artifactId>openjdk8</artifactId>
       <version>${project.version}</version>
       <type>pom</type>

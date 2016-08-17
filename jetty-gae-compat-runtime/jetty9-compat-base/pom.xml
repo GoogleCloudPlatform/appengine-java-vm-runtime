@@ -46,9 +46,9 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>com.google.appengine</groupId>
+      <groupId>com.google.cloud.runtimes</groupId>
       <artifactId>jetty9-base</artifactId>
-      <version>${project.version}</version>
+      <version>0.1.0-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
     <dependency>
