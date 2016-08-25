@@ -88,7 +88,7 @@ public class CoreLogging {
       logManager.reset(); // close & remove existing handlers, reset existing logger levels
       logManager.readConfiguration(is);
     } catch (SecurityException | IOException e) {
-      warning("Warning: caught exception when reading logging properties: %s", configFile
+      warning("Caught exception when reading logging properties: %s", configFile
           .getAbsolutePath());
       e.printStackTrace(System.err);
     }
@@ -112,12 +112,37 @@ public class CoreLogging {
     debug("Initialized %d SystemLogger(s)", count);
   }
 
+  /**
+   * Non JUL debug logging.
+   * <p>
+   *   As this class sets up the java.util.logging,
+   *   we can't reliable start using logging yet.
+   * </p>
+   * <p>
+   *   Note: by default this does not produce any output.
+   *   Set the System.property {@code com.google.apphosting.logging.DEBUG} to
+   *   true to see this output.
+   * </p>
+   *
+   * @param format the format of the debug line
+   * @param args the arguments of the debug line
+   */
   private static void debug(String format, Object... args) {
     if (DEBUG) {
       System.err.printf("[CoreLogging:DEBUG] " + format + "%n", args);
     }
   }
 
+  /**
+   * Non JUL warnings logging.
+   * <p>
+   *   As this class sets up the java.util.logging,
+   *   we can't reliable start using logging yet.
+   * </p>
+   *
+   * @param format the format of the debug line
+   * @param args the arguments of the debug line
+   */
   private static void warning(String format, Object... args) {
     System.err.printf("[CoreLogging:WARNING] " + format + "%n", args);
   }
