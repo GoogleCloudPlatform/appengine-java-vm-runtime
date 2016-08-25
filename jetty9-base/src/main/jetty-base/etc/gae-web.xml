@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_3.dtd">
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+
+  <!-- Protect app.yaml -->
+  <Get id="protected" name="ProtectedTargets"/>
+  <Set name="ProtectedTargets">
+    <Call class="org.eclipse.jetty.util.ArrayUtil" name="addToArray">
+      <Arg><Ref refid="protected"/></Arg>
+      <Arg>/app.yaml</Arg>
+      <Arg></Arg>
+    </Call>
+  </Set>
+  
+</Configure>
+

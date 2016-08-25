@@ -72,6 +72,14 @@ public class AppEngineWebXml implements Cloneable {
   public static final String URL_HANDLER_URLFETCH = "urlfetch";
   public static final String URL_HANDLER_NATIVE = "native";
 
+  // Runtime ids.
+  private static final String JAVA_7_RUNTIME_ID = "java7";
+  // Should accept java8* for multiple variations of Java8.
+  private static final String JAVA_8_RUNTIME_ID = "java8";
+  // This was used for Java6, but now is used only for Managed VMs,
+  // not for standard editiom.
+  private static final String JAVA_RUNTIME_ID = "java";
+
   private String appId;
 
   private String majorVersionId;
@@ -85,7 +93,7 @@ public class AppEngineWebXml implements Cloneable {
   private final ManualScaling manualScaling;
   private final BasicScaling basicScaling;
 
-  private String sourceLanguage;
+  private String runtime;
   private boolean sslEnabled = true;
   private boolean useSessions = false;
   private boolean asyncSessionPersistence = false;
@@ -235,12 +243,21 @@ public class AppEngineWebXml implements Cloneable {
     this.majorVersionId = majorVersionId;
   }
 
-  public String getSourceLanguage() {
-    return this.sourceLanguage;
+  public String getRuntime() {
+    if (runtime != null) {
+      return runtime;
+    }
+    // The new env:flex means java, not java7:
+    if (isFlexible()) {
+      runtime = JAVA_RUNTIME_ID;
+    } else {
+      runtime = JAVA_7_RUNTIME_ID;
+    }
+    return runtime;
   }
 
-  public void setSourceLanguage(String sourceLanguage) {
-    this.sourceLanguage = sourceLanguage;
+  public void setRuntime(String runtime) {
+    this.runtime = runtime;
   }
 
   public String getModule() {
@@ -573,8 +590,8 @@ public class AppEngineWebXml implements Cloneable {
         + ", majorVersionId='"
         + majorVersionId
         + '\''
-        + ", sourceLanguage='"
-        + sourceLanguage
+        + ", runtime='"
+        + runtime
         + '\''
         + ", service='"
         + service
@@ -749,9 +766,9 @@ public class AppEngineWebXml implements Cloneable {
         : that.majorVersionId != null) {
       return false;
     }
-    if (sourceLanguage != null
-        ? !sourceLanguage.equals(that.sourceLanguage)
-        : that.sourceLanguage != null) {
+    if (runtime != null
+        ? !runtime.equals(that.runtime)
+        : that.runtime != null) {
       return false;
     }
     if (publicRoot != null ? !publicRoot.equals(that.publicRoot) : that.publicRoot != null) {
@@ -853,7 +870,7 @@ public class AppEngineWebXml implements Cloneable {
     result = 31 * result + (userPermissions != null ? userPermissions.hashCode() : 0);
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
     result = 31 * result + (majorVersionId != null ? majorVersionId.hashCode() : 0);
-    result = 31 * result + (sourceLanguage != null ? sourceLanguage.hashCode() : 0);
+    result = 31 * result + (runtime != null ? runtime.hashCode() : 0);
     result = 31 * result + (service != null ? service.hashCode() : 0);
     result = 31 * result + (instanceClass != null ? instanceClass.hashCode() : 0);
     result = 31 * result + automaticScaling.hashCode();
