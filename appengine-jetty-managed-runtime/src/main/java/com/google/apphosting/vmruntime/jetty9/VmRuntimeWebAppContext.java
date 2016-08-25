@@ -51,6 +51,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.util.ArrayUtil;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -255,6 +256,8 @@ public class VmRuntimeWebAppContext
       sessionManager = new SessionManager(createSessionStores(appEngineWebXml));
       getSessionHandler().setSessionManager(sessionManager);
     }
+
+    setProtectedTargets(ArrayUtil.addToArray(getProtectedTargets(), "/app.yaml", String.class));
   }
 
   @Override
