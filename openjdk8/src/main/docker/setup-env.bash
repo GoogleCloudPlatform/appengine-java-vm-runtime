@@ -21,7 +21,7 @@ fi
 
 # Setup default Java Options
 : ${JAVA_TMP_OPTS:=$( if [[ -z ${TMPDIR} ]]; then echo ""; else echo "-Djava.io.tmpdir=$TMPDIR"; fi)}
-: ${HEAP_SIZE:=$(awk -v frac=${HEAP_SIZE_FRAC:=0.8} -v res=${RAM_RESERVED_MB:=400} /MemTotal/'{ print int($2/1024*frac-res) "M" } ' /proc/meminfo)}
+: ${HEAP_SIZE:=$(if [[ -z ${GAE_MEMORY_MB} ]]; then awk -v frac=${HEAP_SIZE_FRAC:=0.8} -v res=${RAM_RESERVED_MB:=400} /MemTotal/'{ print int($2/1024*frac-res) "M" } ' /proc/meminfo ; else echo "${GAE_MEMORY_MB}M"; fi)}
 : ${JAVA_HEAP_OPTS:=-Xms${HEAP_SIZE} -Xmx${HEAP_SIZE}}
 : ${JAVA_GC_OPTS:=-XX:+PrintCommandLineFlags -XX:+UseG1GC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+ParallelRefProcEnabled}
 : ${JAVA_GC_LOG_OPTS:=$( if [[ -z ${JAVA_GC_LOG} ]]; then echo ""; else echo "-Xloggc:${JAVA_GC_LOG} -XX:+UseGCLogFileRotation -XX:GCLogFileSize=1048576 -XX:NumberOfGCLogFiles=4"; fi)}
