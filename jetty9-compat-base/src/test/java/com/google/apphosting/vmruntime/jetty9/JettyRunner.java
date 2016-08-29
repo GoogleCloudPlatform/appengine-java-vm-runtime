@@ -20,7 +20,7 @@ import static com.google.apphosting.logging.CoreLogging.JAVA_UTIL_LOGGING_CONFIG
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
 import com.google.apphosting.jetty9.GoogleRequestCustomizer;
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+import com.google.apphosting.logging.CloudLoggingFileHandler;
 
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
@@ -40,20 +40,13 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Assert;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 class JettyRunner extends AbstractLifeCycle implements Runnable {
@@ -268,58 +261,10 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
   }
 
   /**
-   * Find the log file that contains the specific content pattern.
-   * <p>
-   * This exists to get around the fact that the java.util.logging
-   * layer will generate a new log file each time its reset/initialized
-   * because it sees the lock from the previous instance before the
-   * previous instance has a chance to close and remove the lock.
-   * </p>
-   * <p>
-   * This function will iterate through all of the log files and
-   * attempt to find the specific pattern you are interested in.
-   * </p>
-   *
-   * @param regex the text (regex) pattern to look for in the log file.
-   * @return the File for the discovered log file
-   * @throws java.io.FileNotFoundException if unable to find a log
-   * file with the specific text pattern
-   * @throws IOException if unable to read a log file and/or pattern
-   */
-  public File findLogFileThatContains(String regex) throws IOException {
-    Pattern logPattern = Pattern.compile("log[0-9]+\\.[0-9]+\\.json");
-    Pattern textPattern = Pattern.compile(regex);
-    Matcher logMatcher;
-    String line;
-
-    for (File file : getLogDir().listFiles()) {
-      logMatcher = logPattern.matcher(file.getName());
-      boolean validFile = logMatcher.matches();
-      if (validFile) {
-        // search file
-        try (FileInputStream in = new FileInputStream(file);
-            InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
-            BufferedReader buf = new BufferedReader(reader)) {
-          Matcher textMatcher;
-          while ((line = buf.readLine()) != null) {
-            textMatcher = textPattern.matcher(line);
-            if (textMatcher.find()) {
-              return file;
-            }
-          }
-        }
-      }
-    }
-
-    throw new FileNotFoundException(
-        "Unable to find pattern [" + textPattern.pattern() + "] in logs at " + getLogDir());
-  }
-
-  /**
    * Sets the system properties expected by jetty.xml.
    */
   protected void setSystemProperties(File logs) throws IOException {
-    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY,
+    System.setProperty(CloudLoggingFileHandler.LOG_PATTERN_CONFIG_PROPERTY,
         logs.getAbsolutePath() + "/log%u.%g.json");
     System.setProperty(RequestLoggerHandler.LOG_PATTERN_CONFIG_PROPERTY,
         logs.getAbsolutePath() + "/request-%u.%g.log");

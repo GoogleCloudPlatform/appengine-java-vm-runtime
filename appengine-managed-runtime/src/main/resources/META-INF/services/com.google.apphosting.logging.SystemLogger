@@ -1,1 +1,1 @@
-com.google.apphosting.vmruntime.VmRuntimeFileLogHandler
+com.google.apphosting.logging.CloudLoggingFileHandler

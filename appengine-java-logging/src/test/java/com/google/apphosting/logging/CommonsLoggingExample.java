@@ -22,16 +22,16 @@ import org.apache.commons.logging.LogFactory;
 import java.util.concurrent.ThreadLocalRandom;
 
 class CommonsLoggingExample implements Runnable {
-  private static final Log LOG = LogFactory.getLog(CommonsLoggingExample.class);
+  private static final Log logger = LogFactory.getLog(CommonsLoggingExample.class);
 
   @Override
   public void run() {
     ThreadLocalRandom rand = ThreadLocalRandom.current();
-    LOG.trace(String.format("A CommonsLogging Trace Event: %d", rand.nextInt()));
-    LOG.debug(String.format("A CommonsLogging Debug Event: %d", rand.nextInt()));
-    LOG.info(String.format("A CommonsLogging Info Event: %d", rand.nextInt()));
-    LOG.warn(String.format("A CommonsLogging Warn Event: %d", rand.nextInt()));
-    LOG.error(String.format("A CommonsLogging Error Event: %d", rand.nextInt()),
+    logger.trace(String.format("A CommonsLogging Trace Event: %d", rand.nextInt()));
+    logger.debug(String.format("A CommonsLogging Debug Event: %d", rand.nextInt()));
+    logger.info(String.format("A CommonsLogging Info Event: %d", rand.nextInt()));
+    logger.warn(String.format("A CommonsLogging Warn Event: %d", rand.nextInt()));
+    logger.error(String.format("A CommonsLogging Error Event: %d", rand.nextInt()),
         new RuntimeException("Generic Error"));
   }
 }

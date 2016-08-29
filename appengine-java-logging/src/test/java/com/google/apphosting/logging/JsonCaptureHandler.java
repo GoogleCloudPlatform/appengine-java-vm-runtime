@@ -21,14 +21,9 @@ import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-public class JsonCaptureHandler extends Handler {
-  private final JsonFormatter formatter;
-  private List<String> events;
-
-  public JsonCaptureHandler() {
-    formatter = new JsonFormatter();
-    events = new ArrayList<>();
-  }
+public final class JsonCaptureHandler extends Handler {
+  private final JsonFormatter formatter = new JsonFormatter();
+  private List<String> events = new ArrayList<>();
 
   @Override
   public void publish(LogRecord record) {
@@ -40,7 +35,7 @@ public class JsonCaptureHandler extends Handler {
   }
 
   @Override
-  public void close() throws SecurityException {
+  public void close() {
   }
 
   public List<String> getEvents() {

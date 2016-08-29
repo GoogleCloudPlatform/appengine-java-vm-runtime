@@ -110,8 +110,8 @@ public class JsonFormatterTest {
 
   @Test
   public void testCommonsLogging() {
-    final Instant now = Instant.now();
-    final String expectedThreadName = Thread.currentThread().getName();
+    Instant now = Instant.now();
+    String expectedThreadName = Thread.currentThread().getName();
 
     // Generate Events from Commons Logging
     new CommonsLoggingExample().run();
@@ -143,8 +143,8 @@ public class JsonFormatterTest {
 
   @Test
   public void testJavaUtilLogging() {
-    final Instant now = Instant.now();
-    final String expectedThreadName = Thread.currentThread().getName();
+    Instant now = Instant.now();
+    String expectedThreadName = Thread.currentThread().getName();
 
     // Generate Events from java.util.logging
     new JulExample().run();
@@ -178,8 +178,8 @@ public class JsonFormatterTest {
 
   @Test
   public void testLog4jLogging() {
-    final Instant now = Instant.now();
-    final String expectedThreadName = Thread.currentThread().getName();
+    Instant now = Instant.now();
+    String expectedThreadName = Thread.currentThread().getName();
 
     // Generate Events from Apache Log4j Logging
     new Log4jExample().run();
@@ -212,8 +212,8 @@ public class JsonFormatterTest {
 
   @Test
   public void testSlf4jLogging() {
-    final Instant now = Instant.now();
-    final String expectedThreadName = Thread.currentThread().getName();
+    Instant now = Instant.now();
+    String expectedThreadName = Thread.currentThread().getName();
 
     // Generate Events from Slf4j Logging
     new Slf4jExample().run();
@@ -251,7 +251,6 @@ public class JsonFormatterTest {
       public long seconds;
       public int nanos;
     }
-
 
     public LogTimestamp timestamp;
     public String severity;

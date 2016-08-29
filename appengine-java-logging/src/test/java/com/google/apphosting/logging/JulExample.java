@@ -21,18 +21,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class JulExample implements Runnable {
-  public static final Logger LOG = Logger.getLogger(JulExample.class.getName());
+  public static final Logger logger = Logger.getLogger(JulExample.class.getName());
 
   @Override
   public void run() {
     ThreadLocalRandom rand = ThreadLocalRandom.current();
-    LOG.log(Level.FINEST, "A JUL Finest Event: {0}", rand.nextInt());
-    LOG.log(Level.FINER, "A JUL Finer Event: {0}", rand.nextInt());
-    LOG.log(Level.FINE, "A JUL Fine Event: {0}", rand.nextInt());
-    LOG.log(Level.CONFIG, "A JUL Config Event: {0}", rand.nextInt());
-    LOG.log(Level.INFO, "A JUL Info Event: {0}", rand.nextInt());
-    LOG.log(Level.WARNING, "A JUL Warning Event: {0}", rand.nextInt());
-    LOG.log(Level.SEVERE, String.format("A JUL Severe Event: %d", rand.nextInt()),
+    logger.log(Level.FINEST, "A JUL Finest Event: {0}", rand.nextInt());
+    logger.log(Level.FINER, "A JUL Finer Event: {0}", rand.nextInt());
+    logger.log(Level.FINE, "A JUL Fine Event: {0}", rand.nextInt());
+    logger.log(Level.CONFIG, "A JUL Config Event: {0}", rand.nextInt());
+    logger.log(Level.INFO, "A JUL Info Event: {0}", rand.nextInt());
+    logger.log(Level.WARNING, "A JUL Warning Event: {0}", rand.nextInt());
+    logger.log(Level.SEVERE, String.format("A JUL Severe Event: %d", rand.nextInt()),
         new RuntimeException("Generic Error"));
   }
 }
