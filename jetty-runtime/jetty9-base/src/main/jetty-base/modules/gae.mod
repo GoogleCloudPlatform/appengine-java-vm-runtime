@@ -4,7 +4,6 @@
 
 [depend]
 server
-deploy
 
 [optional]
 resources
