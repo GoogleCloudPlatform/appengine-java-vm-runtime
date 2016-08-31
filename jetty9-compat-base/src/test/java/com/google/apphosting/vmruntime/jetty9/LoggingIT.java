@@ -50,10 +50,12 @@ public class LoggingIT extends VmRuntimeTestBase {
    * attempt to find the specific pattern you are interested in.
    * </p>
    *
-   * @param regex the text (regex) pattern to look for in the log file.
+   * @param logDir the directory where log files are kept, tracked by
+   *               the {@link JettyRunner}
+   * @param regex the text (regex) pattern to look for in the log file
    * @return the File for the discovered log file
    * @throws java.io.FileNotFoundException if unable to find a log
-   * file with the specific text pattern
+   *         file with the specific text pattern
    * @throws IOException if unable to read a log file and/or pattern
    */
   public File findLogFileThatContains(File logDir, String regex) throws IOException {

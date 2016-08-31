@@ -11,7 +11,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
- * The {@link java.util.logging.Handler} responsible for capturing the
+ * The {@link java.util.logging.Handler} is responsible for capturing the
  * access logging events from {@link org.eclipse.jetty.server.handler.RequestLogHandler}
  * and {@link org.eclipse.jetty.server.Slf4jRequestLog} to a rolling file
  * on disk.
