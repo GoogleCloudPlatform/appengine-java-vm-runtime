@@ -23,17 +23,8 @@
   <!-- =========================================================== -->
   <Ref refid="httpConfig">
     <Set name="headerCacheSize">
-      <Property name="jetty.httpConfig.headerCacheSize"
-        default="512" />
+      <Property name="jetty.httpConfig.headerCacheSize" default="512" />
     </Set>
-    <Call name="addCustomizer">
-      <Arg>
-        <New class="com.google.apphosting.jetty9.GoogleRequestCustomizer">
-          <Arg name="httpPort" type="int"><Property name="gae.httpPort" default="80"/></Arg>
-          <Arg name="httpsPort" type="int"><Property name="gae.httpsPort" default="443"/></Arg>
-        </New>
-      </Arg>
-    </Call>
   </Ref>
 
   <!-- =========================================================== -->

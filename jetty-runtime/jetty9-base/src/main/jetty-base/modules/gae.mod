@@ -3,11 +3,11 @@
 #
 
 [depend]
-resources
 server
-deploy
 
 [optional]
+resources
+deploy
 
 [xml]
 etc/gae.xml

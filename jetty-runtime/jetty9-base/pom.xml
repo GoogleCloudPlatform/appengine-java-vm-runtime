@@ -26,7 +26,7 @@
   </parent>
   <name>Google App Engine Image Jetty (jetty9-base)</name>
   <artifactId>jetty9-base</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <dependencies>
     <dependency>
@@ -51,18 +51,31 @@
   </dependencies>
 
   <build>
-    <resources>
-      <resource>
-        <targetPath>${project.build.directory}/jetty-base</targetPath>
-        <filtering>false</filtering>
-        <directory>${basedir}/src/main/jetty-base</directory>
-        <includes>
-          <include>**</include>
-        </includes>
-      </resource>
-    </resources>
-
     <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/jetty-base</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/jetty-base</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -122,7 +135,7 @@
           <arguments>
             <argument>-jar</argument>
             <argument>../jetty-distribution-${jetty.version}/start.jar</argument>
-            <argument>--add-to-startd=gae,http,jsp,jstl</argument>
+            <argument>--add-to-startd=http,deploy,jsp,jstl,http-forwarded,resources,gae</argument>
           </arguments>
         </configuration>
       </plugin>
