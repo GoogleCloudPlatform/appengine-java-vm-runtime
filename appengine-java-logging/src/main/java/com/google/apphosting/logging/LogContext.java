@@ -23,8 +23,9 @@ import java.util.stream.Stream;
 /**
  * The context for logging information associated with the current Thread.
  * <p>
- * <p>This is an implementation of a Mapped Diagnostic Context for use with the java.util.logging
+ * This is an implementation of a Mapped Diagnostic Context for use with the java.util.logging
  * framework.
+ * </p>
  */
 public class LogContext extends ConcurrentHashMap<String, Object> {
 

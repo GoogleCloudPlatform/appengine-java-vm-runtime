@@ -16,11 +16,11 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
-import static com.google.apphosting.vmruntime.VmRuntimeFileLogHandler.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
+import static com.google.apphosting.logging.CoreLogging.JAVA_UTIL_LOGGING_CONFIG_PROPERTY;
 import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.JETTY_HOME_PATTERN;
 
 import com.google.apphosting.jetty9.GoogleRequestCustomizer;
-import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
+import com.google.apphosting.logging.CloudLoggingFileHandler;
 
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.io.MappedByteBufferPool;
@@ -120,9 +120,14 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
       Assert.assertTrue(target.isDirectory());
       Assert.assertTrue(jettyBaseFile.isDirectory());
       logs = new File(target, "logs");
-      logs.delete();
-      logs.mkdirs();
-      logs.deleteOnExit();
+      if (!logs.exists()) {
+        logs.mkdirs();
+        /* Note: due to java.util.logging file locks, you cannot:
+         *  - delete the log directory or
+         *  - delete all of its contents or
+         *  - or perform a deleteOnExit() successfully
+         */
+      }
 
       // Set GAE SystemProperties
       setSystemProperties(logs);
@@ -259,8 +264,10 @@ class JettyRunner extends AbstractLifeCycle implements Runnable {
    * Sets the system properties expected by jetty.xml.
    */
   protected void setSystemProperties(File logs) throws IOException {
-    String logFilePattern = logs.getAbsolutePath() + "/log.%g";
-    System.setProperty(VmRuntimeFileLogHandler.LOG_PATTERN_CONFIG_PROPERTY, logFilePattern);
+    System.setProperty(CloudLoggingFileHandler.LOG_PATTERN_CONFIG_PROPERTY,
+        logs.getAbsolutePath() + "/log%u.%g.json");
+    System.setProperty(RequestLoggerHandler.LOG_PATTERN_CONFIG_PROPERTY,
+        logs.getAbsolutePath() + "/request-%u.%g.log");
     System.setProperty("jetty.appengineport", String.valueOf(findAvailablePort()));
     System.setProperty("jetty.appenginehost", "localhost");
     System.setProperty("jetty.appengine.forwarded", "true");
