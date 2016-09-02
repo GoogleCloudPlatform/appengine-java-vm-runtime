@@ -21,7 +21,6 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.spi.ServiceFactoryFactory;
 import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.logging.CoreLogging;
 import com.google.apphosting.logging.LogContext;
 import com.google.apphosting.runtime.DatastoreSessionStore;
 import com.google.apphosting.runtime.DeferredDatastoreSessionStore;
@@ -40,6 +39,7 @@ import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmEnvironmentFactory;
 import com.google.apphosting.vmruntime.VmMetadataCache;
 import com.google.apphosting.vmruntime.VmRequestUtils;
+import com.google.apphosting.vmruntime.VmRuntimeFileLogHandler;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import com.google.apphosting.vmruntime.VmTimer;
 
@@ -324,12 +324,11 @@ public class VmRuntimeWebAppContext extends WebAppContext
       appEngineWebXml = appEngineWebXmlReader.readAppEngineWebXml();
     }
     VmRuntimeUtils.installSystemProperties(defaultEnvironment, appEngineWebXml);
-
-    String logConfig = System.getProperty(CoreLogging.JAVA_UTIL_LOGGING_CONFIG_PROPERTY);
+    String logConfig = System.getProperty("java.util.logging.config.file");
     if (logConfig != null && logConfig.startsWith("WEB-INF/")) {
-      logConfig = URIUtil.addPaths(appDir, logConfig);
+      System.setProperty("java.util.logging.config.file", URIUtil.addPaths(appDir, logConfig));
     }
-    CoreLogging.init(logConfig);
+    VmRuntimeFileLogHandler.init();
 
     if (appEngineWebXml == null) {
       // No need to configure the session manager.
