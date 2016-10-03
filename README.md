@@ -5,8 +5,7 @@ Complete code source of the Google App Engine [flexible environment](https://clo
 It has 2 Java libraries, one generic for default servlets, filters and App Engine management, and one which is Jetty 9.x specific for Session management, App Engine APIs hook, and user login.
 
 The dependent Java libraries are build, and used by the [appengine-jetty-managed-runtime/src/main/docker/Dockerfile](appengine-jetty-managed-runtime/src/main/docker/Dockerfile) that build the Jetty9 Java8 GAE Compatibility image. To use
-the image, you need to build it with either a local docker installation or environment variables pointing to a remote docker
-instance:
+the image, you need to build it with either a local docker installation or configure the [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin) to use a remote docker instance via the `dockerHost` configuration entry. For installing docker see [here](https://docs.docker.com/engine/installation/).
 
       mvn clean install
 
