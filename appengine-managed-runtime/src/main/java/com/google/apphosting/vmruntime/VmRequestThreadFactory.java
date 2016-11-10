@@ -4,11 +4,11 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -19,13 +19,16 @@ package com.google.apphosting.vmruntime;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkArgument;
 import static com.google.appengine.repackaged.com.google.common.base.Preconditions.checkState;
 
-import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
-import com.google.appengine.repackaged.com.google.common.collect.Lists;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,10 +41,9 @@ public class VmRequestThreadFactory implements ThreadFactory {
       Logger.getLogger(VmRequestThreadFactory.class.getCanonicalName());
 
   private final Environment requestEnvironment;
-
-  // Accesses to createdThreads must be synchronized on "mutex".
-  private final Object mutex;
-  private final List<Thread> createdThreads;
+  private final AtomicInteger newThreadEnter;
+  private final AtomicInteger newThreadExit;
+  private final Queue<Thread> createdThreads;
   private volatile boolean allowNewRequestThreadCreation;
 
   /**
@@ -50,9 +52,10 @@ public class VmRequestThreadFactory implements ThreadFactory {
    * @param requestEnvironment The request environment to install on each thread.
    */
   public VmRequestThreadFactory(Environment requestEnvironment) {
-    this.mutex = new Object();
     this.requestEnvironment = requestEnvironment;
-    this.createdThreads = Lists.newLinkedList();
+    this.newThreadEnter = new AtomicInteger();
+    this.newThreadExit = new AtomicInteger();
+    this.createdThreads = requestEnvironment == null ? null : new ConcurrentLinkedQueue<>();
     this.allowNewRequestThreadCreation = true;
   }
 
@@ -68,38 +71,42 @@ public class VmRequestThreadFactory implements ThreadFactory {
    */
   @Override
   public Thread newThread(final Runnable runnable) {
-    checkState(
-        requestEnvironment != null,
-        "Request threads can only be created within the context of a running request.");
-    Thread thread =
-        new Thread() {
-          @Override
-          public void run() {
-            if (runnable == null) {
-              return;
-            }
-            checkState(
-                allowNewRequestThreadCreation,
-                "Cannot start new threads after the request thread stops.");
-            ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
-            runnable.run();
+    try {
+      // Keep a count of enter and exits to this method, so that interruptRequestThreads
+      // can observe that all calls that entered before a change to allowNewRequestThreadCreation
+      // have exited.
+      checkState(newThreadEnter.incrementAndGet() > 0, "Too many threads created by request");
+      checkState(requestEnvironment != null,
+          "Request threads can only be created within the context of a running request.");
+      checkState(allowNewRequestThreadCreation,
+          "Cannot create new threads after the request thread stops.");
+      Thread thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          if (runnable == null) {
+            return;
           }
-        };
-    checkState(
-        allowNewRequestThreadCreation, "Cannot create new threads after the request thread stops.");
-    synchronized (mutex) {
+          checkState(allowNewRequestThreadCreation,
+              "Cannot start new threads after the request thread stops.");
+          ApiProxy.setEnvironmentForCurrentThread(requestEnvironment);
+          runnable.run();
+        }
+      });
       createdThreads.add(thread);
+      return thread;
+    } finally {
+      newThreadExit.incrementAndGet();
     }
-    return thread;
   }
 
   /**
    * Returns an immutable copy of the current request thread list.
    */
   public List<Thread> getRequestThreads() {
-    synchronized (mutex) {
-      return ImmutableList.copyOf(createdThreads);
+    if (createdThreads == null) {
+      return Collections.emptyList();
     }
+    return Collections.unmodifiableList(new ArrayList<>(createdThreads));
   }
 
   /**
@@ -107,12 +114,17 @@ public class VmRequestThreadFactory implements ThreadFactory {
    */
   public void interruptRequestThreads() {
     allowNewRequestThreadCreation = false;
-    synchronized (mutex) {
+    // spin until all newThread calls will see state change
+    int entered = newThreadEnter.get();
+    while (newThreadExit.get() < entered) {
+      Thread.yield();
+    }
+    // interrupt threads
+    if (createdThreads != null) {
       for (Thread thread : createdThreads) {
         if (thread.isAlive()) {
-          logger.warning(
-              String.format(
-                  "Request thread %s is still alive, forcing interrupt.", thread.getName()));
+          logger.warning(String.format("Request thread %s is still alive, forcing interrupt.",
+              thread.getName()));
         }
         thread.interrupt();
       }
@@ -132,7 +144,7 @@ public class VmRequestThreadFactory implements ThreadFactory {
     checkArgument(millis >= 0, "Timeout value is negative.");
     long beDoneBy = System.currentTimeMillis() + millis;
     try {
-      synchronized (mutex) {
+      if (createdThreads != null) {
         for (Thread thread : createdThreads) {
           long waitTimeLeft = System.currentTimeMillis() - beDoneBy;
           if (waitTimeLeft <= 0) {
