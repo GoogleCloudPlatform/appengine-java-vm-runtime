@@ -52,6 +52,9 @@ public class LoggingIT extends VmRuntimeTestBase {
 
     assertTrue(log.exists());
 
+    // wait for async write
+    Thread.sleep(1000);
+    
     // Look for the log entry with our query string
     try (BufferedReader in =
         new BufferedReader(
@@ -71,12 +74,12 @@ public class LoggingIT extends VmRuntimeTestBase {
       data = new Gson().fromJson(line, JsonData.class);
       assertThat(data.severity, equalTo("ERROR"));
       assertThat(
-          data.message, org.hamcrest.Matchers.containsString("LoggingServlet doGet: not null"));
+          data.message, org.hamcrest.Matchers.containsString("com.foo.bar: not null"));
 
       line = in.readLine();
       data = new Gson().fromJson(line, JsonData.class);
       assertThat(data.severity, equalTo("ERROR"));
-      assertThat(data.message, org.hamcrest.Matchers.containsString("LoggingServlet doGet: null"));
+      assertThat(data.message, org.hamcrest.Matchers.containsString("com.foo.bar: null"));
     }
   }
 
