@@ -19,18 +19,20 @@ package com.google.apphosting.vmruntime;
 import com.google.apphosting.logging.JsonFormatter;
 
 import java.io.IOException;
-import java.util.logging.ConsoleHandler;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
  * {@code VmRuntimeFileLogHandler} is installed on the root logger. It converts all messages
  * to the json format understood by the cloud logging agent and logs to a file in a volume shared
  * with the cloud logging agent.
- *
  */
 public class VmRuntimeFileLogHandler extends FileHandler {
 
@@ -45,11 +47,16 @@ public class VmRuntimeFileLogHandler extends FileHandler {
   private static final int LOG_MAX_SIZE = 100 * 1024 * 1024;
   private static final int LOG_MAX_FILES = 3;
   public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
-
+  
+  private static final LogRecord CLOSE_RECORD = new LogRecord(Level.ALL, "CLOSE");
+  private final BlockingQueue<LogRecord> queue = new LinkedBlockingQueue<>();
+  
+  
   private VmRuntimeFileLogHandler() throws IOException {
     super(fileLogPattern(), LOG_MAX_SIZE, LOG_MAX_FILES, true);
     setLevel(Level.FINEST);
     setFormatter(new JsonFormatter());
+    new LoggerThread().start();
   }
 
   private static String fileLogPattern() {
@@ -100,6 +107,41 @@ public class VmRuntimeFileLogHandler extends FileHandler {
       e.printStackTrace();
       System.err.println("Warning: caught exception when reading logging properties.");
       System.err.println(e.getClass().getName() + ": " + e.getMessage());
+    }
+  }
+
+  @Override
+  public void close() throws SecurityException {
+    super.close();
+    queue.offer(CLOSE_RECORD);
+  }
+
+  @Override
+  public void publish(LogRecord record) {
+    if (isLoggable(record)) {
+      queue.offer(record);
+    }
+  }
+
+  private void superPublish(LogRecord record) {
+    super.publish(record);
+  }
+  
+  class LoggerThread extends Thread {
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          LogRecord record = queue.poll(1, TimeUnit.HOURS);
+          if (record == CLOSE_RECORD) {
+            return;
+          } else {
+            superPublish(record);
+          }
+        } catch (InterruptedException e) {
+          return;
+        }
+      }
     }
   }
 }
