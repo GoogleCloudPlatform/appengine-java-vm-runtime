@@ -48,7 +48,7 @@ public class JsonFormatterTest {
     assertEquals("INFO", data.severity);
     assertEquals(12345, data.timestamp.seconds);
     assertEquals(678_000_000, data.timestamp.nanos);
-    assertEquals(Thread.currentThread().getName(), data.thread);
+    assertEquals(Long.toHexString(Thread.currentThread().getId()), data.thread);
     assertEquals("logger: message", data.message);
     assertEquals("abcdef", data.traceId);
   }

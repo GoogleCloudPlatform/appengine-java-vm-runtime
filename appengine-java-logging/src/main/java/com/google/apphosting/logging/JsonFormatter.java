@@ -52,7 +52,7 @@ public class JsonFormatter extends Formatter {
           .value(timestamp.getNano())
           .endObject();
       writer.name("severity").value(severity(record.getLevel()));
-      writer.name("thread").value(Thread.currentThread().getName());
+      writer.name("thread").value(Integer.toHexString(record.getThreadID()));
       writer.name("message").value(formatMessage(record));
 
       // If there is a LogContext associated with this thread then add its properties.
