@@ -69,6 +69,7 @@
               <imageName>gke-debian-openjdk:8-jre</imageName>
               <dockerDirectory>${project.basedir}/target/generated-sources/docker</dockerDirectory>
               <pullOnBuild>true</pullOnBuild>
+              <noCache>true</noCache>
             </configuration>
           </execution>
 	  <execution>
