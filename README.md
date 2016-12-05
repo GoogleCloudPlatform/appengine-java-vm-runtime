@@ -1,3 +1,11 @@
+[![deprecated](http://badges.github.io/stability-badges/dist/deprecated.svg)](http://github.com/badges/stability-badges)
+
+We've moved!
+=====================
+Note that the maintenance of OpenJDK and the Jetty Docker images has moved to new GitHub repositories:
+ * [openjdk-runtime](https://github.com/GoogleCloudPlatform/openjdk-runtime)
+ * [jetty-runtime](https://github.com/GoogleCloudPlatform/jetty-runtime)
+
 appengine-java-vm-runtime
 =========================
 
