@@ -31,18 +31,12 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.utils.remoteapi.RemoteApiPb;
 
 import junit.framework.TestCase;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.util.BytesContentProvider;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -111,23 +105,23 @@ public class VmApiProxyDelegateTest extends TestCase {
   }
 
   private HttpClient createMockHttpClient() {
-    HttpClient httpClient = mock(HttpClient.class);
-    when(httpClient.getConnectionManager()).thenReturn(new PoolingClientConnectionManager());
+    HttpClient httpClient = mock( HttpClient.class);
+    //when(httpClient.getConnectionManager()).thenReturn(new PoolingClientConnectionManager());
     return httpClient;
   }
 
-  private HttpResponse createMockHttpResponse(byte[] response, int code)
+  private Request createMockRequest() {
+    Request request = mock(Request.class);
+    return request;
+  }
+
+  private ContentResponse createMockHttpResponse( byte[] response, int code)
       throws IllegalStateException, IOException {
-    ByteArrayInputStream istream = new ByteArrayInputStream(response);
 
-    HttpResponse resp = mock(HttpResponse.class);
-    HttpEntity entity = mock(HttpEntity.class);
-    StatusLine statusLine = mock(StatusLine.class);
+    ContentResponse resp = mock(ContentResponse.class);
 
-    when(entity.getContent()).thenReturn(istream);
-    when(resp.getEntity()).thenReturn(entity);
-    when(statusLine.getStatusCode()).thenReturn(code);
-    when(resp.getStatusLine()).thenReturn(statusLine);
+    when(resp.getContent()).thenReturn(response);
+    when(resp.getStatus()).thenReturn(code);
     return resp;
   }
 
@@ -146,10 +140,15 @@ public class VmApiProxyDelegateTest extends TestCase {
     response.setResponseAsBytes(pbData);
 
     HttpClient mockClient = createMockHttpClient();
-    HttpResponse mockHttpResponse =
+    ContentResponse mockHttpResponse =
         createMockHttpResponse(response.toByteArray(), HttpURLConnection.HTTP_OK);
-    when(mockClient.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-        .thenReturn(mockHttpResponse);
+
+    Request request = createMockRequest();
+
+    when(mockClient.POST(Mockito.any(String.class)))
+        .thenReturn(request);
+
+    when( request.send() ).thenReturn( mockHttpResponse );
 
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(mockClient);
     VmApiProxyEnvironment environment = createMockEnvironment();
@@ -186,10 +185,13 @@ public class VmApiProxyDelegateTest extends TestCase {
     }
 
     HttpClient mockClient = createMockHttpClient();
-    HttpResponse mockHttpResponse =
+    ContentResponse mockHttpResponse =
         createMockHttpResponse(response.toByteArray(), HttpURLConnection.HTTP_OK);
-    when(mockClient.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-        .thenReturn(mockHttpResponse);
+    Request request = createMockRequest();
+    when(mockClient.POST(Mockito.any(String.class)))
+        .thenReturn(request);
+
+    when( request.send() ).thenReturn( mockHttpResponse );
 
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(mockClient);
     VmApiProxyEnvironment environment = createMockEnvironment();
@@ -230,11 +232,12 @@ public class VmApiProxyDelegateTest extends TestCase {
   private void callDelegateWithHttpError(boolean sync, ApiProxyException expectedException)
       throws Exception {
     HttpClient mockClient = createMockHttpClient();
-    HttpResponse mockHttpResponse =
-        createMockHttpResponse(
-            "Error from RPC proxy".getBytes(), HttpURLConnection.HTTP_UNAVAILABLE);
-    when(mockClient.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-        .thenReturn(mockHttpResponse);
+    ContentResponse mockHttpResponse = createMockHttpResponse("Error from RPC proxy".getBytes(),
+        HttpURLConnection.HTTP_UNAVAILABLE);
+    Request request = createMockRequest();
+    when(mockClient.POST(Mockito.any(String.class)))
+        .thenReturn(request);
+    when( request.send() ).thenReturn( mockHttpResponse );
 
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(mockClient);
     VmApiProxyEnvironment environment = createMockEnvironment();
@@ -275,9 +278,11 @@ public class VmApiProxyDelegateTest extends TestCase {
   private void callDelegateWithConnectionError(boolean sync, ApiProxyException expectedException)
       throws Exception {
     HttpClient mockClient = createMockHttpClient();
+
+    Request request = createMockRequest();
     createMockHttpResponse(new byte[0], HttpURLConnection.HTTP_UNAVAILABLE);
-    when(mockClient.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-        .thenThrow(new IOException("Connection refused"));
+    when(mockClient.POST(Mockito.any(String.class))).thenReturn( request );
+    when(request.send()).thenThrow(new ExecutionException("Connection refused", new Throwable(  )));
 
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(mockClient);
     VmApiProxyEnvironment environment = createMockEnvironment();
@@ -320,10 +325,13 @@ public class VmApiProxyDelegateTest extends TestCase {
     // Create the response for the mock connection.
     byte[] brokenResponse = new byte[] {47, 11, 17, 32};
     HttpClient mockClient = createMockHttpClient();
-    HttpResponse mockHttpResponse =
+    ContentResponse mockHttpResponse =
         createMockHttpResponse(brokenResponse, HttpURLConnection.HTTP_OK);
-    when(mockClient.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-        .thenReturn(mockHttpResponse);
+    Request request = createMockRequest();
+    when(mockClient.POST(Mockito.any(String.class)))
+        .thenReturn(request);
+    when( request.send() ).thenReturn( mockHttpResponse );
+
 
     VmApiProxyDelegate delegate = new VmApiProxyDelegate(mockClient);
     VmApiProxyEnvironment environment = createMockEnvironment();
@@ -380,11 +388,12 @@ public class VmApiProxyDelegateTest extends TestCase {
     callDelegateWithOneError(sync, null, appError, expectedException);
   }
 
+  /*
   public void testConstructorAndConnectionMonitorThread() throws Exception {
     VmApiProxyDelegate delegate = new VmApiProxyDelegate();
     delegate.monitorThread.interrupt();
     delegate.monitorThread.join();
-  }
+  }*/
 
   public void testMakeSyncCall_Success() throws Exception {
     callDelegateWithSuccess(true);
@@ -449,24 +458,21 @@ public class VmApiProxyDelegateTest extends TestCase {
 
     int timeoutMs = 17 * 1000;
     byte[] apiRequestData = new byte[] {1, 2, 3, 4};
-    HttpPost request =
-        VmApiProxyDelegate.createRequest(
-            environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, apiRequestData, timeoutMs);
-    assertEquals(
-        request
-            .getFirstHeader(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey)
-            .getValue(),
-        "abc123");
 
-    assertEquals(request.getEntity().getContentType().getValue(), "application/octet-stream");
-    assertEquals(
-        request.getFirstHeader(VmApiProxyDelegate.RPC_STUB_ID_HEADER).getValue(),
+    Request request = VmApiProxyDelegate.createRequest(environment, TEST_PACKAGE_NAME,
+        TEST_METHOD_NAME, apiRequestData, timeoutMs, new VmApiProxyDelegate().httpclient);
+    assertEquals(request.getHeaders()
+                     .get(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey),
+                 "abc123");
+
+
+    assertEquals(((BytesContentProvider)request.getContent()).getContentType(),
+                 "application/octet-stream");
+    assertEquals(request.getHeaders().get(VmApiProxyDelegate.RPC_STUB_ID_HEADER),
         VmApiProxyDelegate.REQUEST_STUB_ID);
-    assertEquals(
-        request.getFirstHeader(VmApiProxyDelegate.RPC_METHOD_HEADER).getValue(),
+    assertEquals(request.getHeaders().get(VmApiProxyDelegate.RPC_METHOD_HEADER),
         VmApiProxyDelegate.REQUEST_STUB_METHOD);
-    assertEquals(
-        request.getFirstHeader(VmApiProxyDelegate.RPC_DEADLINE_HEADER).getValue(),
+    assertEquals(request.getHeaders().get(VmApiProxyDelegate.RPC_DEADLINE_HEADER),
         Double.toString(timeoutMs / 1000));
 
     // Disable keep-alive, workaround for b/.
@@ -474,7 +480,7 @@ public class VmApiProxyDelegateTest extends TestCase {
     // assertEquals(request.getFirstHeader("Connection").getValue(), "close");
 
     RemoteApiPb.Request rmtRequest = new RemoteApiPb.Request();
-    assertTrue(rmtRequest.parseFrom(request.getEntity().getContent()));
+    assertTrue(rmtRequest.parseFrom((request.getContent()).iterator().next().array()));
     assertEquals(TEST_PACKAGE_NAME, rmtRequest.getServiceName());
     assertEquals(TEST_METHOD_NAME, rmtRequest.getMethod());
     assertEquals(TICKET, rmtRequest.getRequestId());
@@ -500,14 +506,12 @@ public class VmApiProxyDelegateTest extends TestCase {
     environment
         .getAttributes()
         .put(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.attributeKey, "abc123");
-    HttpPost request =
-        VmApiProxyDelegate.createRequest(
-            environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, new byte[0], 0);
-    assertEquals(
-        request
-            .getFirstHeader(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey)
-            .getValue(),
-        "abc123");
+
+    Request request = VmApiProxyDelegate.createRequest(environment, TEST_PACKAGE_NAME,
+        TEST_METHOD_NAME, new byte[0], 0, new VmApiProxyDelegate().httpclient);
+    assertEquals(request.getHeaders()
+                     .get(VmApiProxyEnvironment.AttributeMapping.DAPPER_ID.headerKey),
+                 "abc123");
   }
 
   public void testCreateRequest_DeadlineFromEnvironment() throws Exception {
@@ -515,11 +519,9 @@ public class VmApiProxyDelegateTest extends TestCase {
     final Double deadline = 10.0;
     environment.getAttributes().put(VmApiProxyDelegate.API_DEADLINE_KEY, deadline);
 
-    HttpPost request =
-        VmApiProxyDelegate.createRequest(
-            environment, TEST_PACKAGE_NAME, TEST_METHOD_NAME, new byte[0], 0);
-    assertEquals(
-        request.getFirstHeader(VmApiProxyDelegate.RPC_DEADLINE_HEADER).getValue(),
+    Request request = VmApiProxyDelegate.createRequest(environment, TEST_PACKAGE_NAME,
+        TEST_METHOD_NAME, new byte[0], 0,new VmApiProxyDelegate().httpclient);
+    assertEquals(request.getHeaders().get(VmApiProxyDelegate.RPC_DEADLINE_HEADER),
         Double.toString(deadline));
   }
 
