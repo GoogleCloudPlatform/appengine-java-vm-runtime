@@ -268,7 +268,7 @@
           <arguments>
             <argument>-jar</argument>
             <argument>../jetty-distribution-${jetty.version}/start.jar</argument>
-            <argument>--add-to-startd=http,jsp,jstl,gae,gae-deploy</argument>
+            <argument>--add-to-startd=http,jsp,jstl,gae,gae-deploy,client</argument>
           </arguments>
         </configuration>
       </plugin>
