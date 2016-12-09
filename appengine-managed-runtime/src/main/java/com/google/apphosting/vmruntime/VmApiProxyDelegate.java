@@ -283,15 +283,8 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     Request request =
         createRequest(environment, packageName, methodName, requestData, timeoutMs, httpclient);
 
-
     try {
-      // Create a new http context for each call as the default context is not thread safe.
-      //BasicHttpContext context = new BasicHttpContext();
-      //HttpResponse response = httpclient.execute(request, context);
-
       ContentResponse contentResponse = request.send();
-
-
       // Check for HTTP error status and return early.
       int httpStatus = contentResponse.getStatus();
       if (httpStatus != HttpStatus.OK_200) {
@@ -403,7 +396,6 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
 
     Request request = client.POST( "http://" + environment.getServer() + REQUEST_ENDPOINT );
 
-    //HttpPost request = new HttpPost("http://" + environment.getServer() + REQUEST_ENDPOINT);
     request.header(RPC_STUB_ID_HEADER, REQUEST_STUB_ID);
     request.header(RPC_METHOD_HEADER, REQUEST_STUB_METHOD);
 
