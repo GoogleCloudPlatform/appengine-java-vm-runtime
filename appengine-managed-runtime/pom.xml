@@ -47,8 +47,7 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-client</artifactId>
-      <!-- 9.3.x version 9.3.14.v20161028 -->
-      <version>9.4.0.RC3</version>
+      <version>${jetty.version}</version>
     </dependency>
 
     <dependency>
