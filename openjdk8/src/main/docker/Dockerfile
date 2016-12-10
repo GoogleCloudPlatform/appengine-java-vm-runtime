@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gcr.io/google_appengine/base
+FROM gcr.io/google_appengine/debian8
 ENV DEBIAN_FRONTEND noninteractive
 
 # Create env vars to identify image
