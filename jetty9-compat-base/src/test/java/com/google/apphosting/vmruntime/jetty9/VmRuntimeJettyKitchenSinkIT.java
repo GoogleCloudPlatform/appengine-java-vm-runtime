@@ -98,7 +98,7 @@ public class VmRuntimeJettyKitchenSinkIT extends VmRuntimeTestBase {
     connection.connect();
     assertEquals(404, connection.getResponseCode());
   }
-  
+
   /**
    * Test that the API Proxy was configured by the VmRuntimeFilter.
    */

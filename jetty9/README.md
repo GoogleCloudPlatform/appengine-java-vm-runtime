@@ -80,7 +80,7 @@ Then, an `app.yaml` file to configure the GAE Managed VM product:
       
 Once you have this configuration, you can use the Google Cloud SDK to deploy this directory containing the 2 configuration files and the Web App directory using:
 
-     gcloud preview app deploy app.yaml
+     gcloud app deploy app.yaml
      
 
 ## Entry Point Features
