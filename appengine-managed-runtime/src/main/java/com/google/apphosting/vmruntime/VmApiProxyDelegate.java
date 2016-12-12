@@ -400,7 +400,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
     request.header(RPC_METHOD_HEADER, REQUEST_STUB_METHOD);
 
 
-    request.timeout( ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS, TimeUnit.MILLISECONDS );
+    request.timeout( timeoutMs + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS, TimeUnit.MILLISECONDS );
 
     // The request deadline can be overwritten by the environment, read deadline if available.
     Double deadline = (Double) (environment.getAttributes().get(API_DEADLINE_KEY));
