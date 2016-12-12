@@ -111,9 +111,7 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
   private static HttpClient createHttpClient( long connectTimeout) {
     try {
       HttpClientTransportOverHTTP transport = new HttpClientTransportOverHTTP();
-      // FIXME what sort of customize SslContextFactory we want to use here??
-      SslContextFactory sslContextFactory = new SslContextFactory();
-      HttpClient httpClient = new HttpClient( transport, sslContextFactory );
+      HttpClient httpClient = new HttpClient( transport, null);
       httpClient.setMaxConnectionsPerDestination( VmApiProxyEnvironment.MAX_CONCURRENT_API_CALLS );
       httpClient.setConnectTimeout( connectTimeout + ADDITIONAL_HTTP_TIMEOUT_BUFFER_MS );
       httpClient.setTCPNoDelay( true );
