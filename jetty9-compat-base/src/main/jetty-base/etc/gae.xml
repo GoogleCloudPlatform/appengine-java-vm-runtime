@@ -104,6 +104,12 @@
       </Call>
     </Ref>
 
+    <Call name="addLifeCycleListener">
+      <Arg>
+	<New class="com.google.apphosting.runtime.jetty9.DeploymentCheck"/>
+      </Arg>
+    </Call>
+
     <!-- TODO remove when this has been added to jetty.xml -->
     <Set name="stopTimeout"><Property name="jetty.server.stopTimeout" default="30000"/></Set>
 
