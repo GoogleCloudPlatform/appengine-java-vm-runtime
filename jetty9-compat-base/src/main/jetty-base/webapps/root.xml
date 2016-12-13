@@ -44,4 +44,8 @@
       <New class="org.eclipse.jetty.server.handler.ContextHandler$ApprovePathPrefixAliases"/>
     </Arg>
   </Call-->
+
+  <!-- Allow start exceptions to propagate -->
+  <Set name="throwUnavailableOnStartupException">true</Set>
+
 </Configure>
