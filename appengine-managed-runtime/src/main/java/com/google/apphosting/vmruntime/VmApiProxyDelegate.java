@@ -45,8 +45,6 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
 import org.eclipse.jetty.client.util.BytesContentProvider;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -130,11 +128,13 @@ public class VmApiProxyDelegate implements ApiProxy.Delegate<VmApiProxyEnvironme
   }
 
   VmApiProxyDelegate(HttpClient httpclient) {
-    this.defaultTimeoutMs = DEFAULT_RPC_TIMEOUT_MS;
+    this(httpclient, DEFAULT_RPC_TIMEOUT_MS);
+  }
+
+  VmApiProxyDelegate(HttpClient httpclient, int defaultTimeoutMs) {
+    this.defaultTimeoutMs = defaultTimeoutMs;
     this.httpclient = httpclient;
     this.executor = Executors.newCachedThreadPool();
-    //this.monitorThread = new IdleConnectionMonitorThread(httpclient.getConnectionManager());
-    //this.monitorThread.start();
   }
 
   @Override
