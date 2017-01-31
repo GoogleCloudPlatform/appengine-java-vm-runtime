@@ -85,6 +85,7 @@ public class VmApiProxyEnvironment implements ApiProxy.Environment {
   public static final String IS_ADMIN_HEADER = "X-AppEngine-User-Is-Admin";
   public static final String AUTH_DOMAIN_HEADER = "X-AppEngine-Auth-Domain";
   public static final String HTTPS_HEADER = "X-AppEngine-Https";
+  public static final String X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 
   // Google specific annotations are commented out so we don't have to take a dependency
   // on the annotations lib. Please don't use these constants except for testing this class.
