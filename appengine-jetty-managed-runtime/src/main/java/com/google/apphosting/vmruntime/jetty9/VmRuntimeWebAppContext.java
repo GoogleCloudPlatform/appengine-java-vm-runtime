@@ -174,7 +174,8 @@ public class VmRuntimeWebAppContext
    */
   private void setSchemeAndPort(Request request) {
     String https = request.getHeader(VmApiProxyEnvironment.HTTPS_HEADER);
-    if ("on".equals(https)) {
+    String proto = request.getHeader(VmApiProxyEnvironment.X_FORWARDED_PROTO_HEADER);
+    if ("on".equals(https) || "https".equals(proto)) {
       request.setSecure(true);
       request.setScheme(HttpScheme.HTTPS.toString());
       request.setAuthority(request.getServerName(), 443);
