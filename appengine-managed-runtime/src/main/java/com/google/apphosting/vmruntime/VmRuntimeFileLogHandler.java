@@ -86,10 +86,12 @@ public class VmRuntimeFileLogHandler extends FileHandler {
     reloadLoggingProperties(LogManager.getLogManager());
     Logger rootLogger = Logger.getLogger("");
     for (Handler handler : rootLogger.getHandlers()) {
+      System.out.println("Logging Handler Found: " + handler.getClass().getCanonicalName());
       if (handler instanceof VmRuntimeFileLogHandler) {
         return; // Already installed.
       }
     }
+    System.out.println("Adding VmRuntimeFileLogHandler");
     rootLogger.addHandler(new VmRuntimeFileLogHandler());
   }
 
