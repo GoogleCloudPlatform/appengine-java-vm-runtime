@@ -28,6 +28,7 @@ public class GoogleRequestCustomizer implements HttpConfiguration.Customizer {
 
   public static final String HTTPS_HEADER = "X-AppEngine-Https";
   public static final String USERIP_HEADER = "X-AppEngine-User-IP";
+  public static final String X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 
   private final int httpPort;
   private final int httpsPort;
@@ -45,7 +46,8 @@ public class GoogleRequestCustomizer implements HttpConfiguration.Customizer {
   @Override
   public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
     String https = request.getHeader(HTTPS_HEADER);
-    if ("on".equals(https)) {
+    String proto = request.getHeader(X_FORWARDED_PROTO_HEADER);
+    if ("on".equals(https) || "https".equals(proto)) {
       request.setSecure(true);
       request.setScheme(HttpScheme.HTTPS.toString());
       request.setAuthority(request.getServerName(), httpsPort);
