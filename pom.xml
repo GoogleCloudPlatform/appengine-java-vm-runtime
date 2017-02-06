@@ -34,7 +34,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <jetty.version>9.3.8.v20160314</jetty.version>
-    <appengine.api.version>1.9.40</appengine.api.version>
+    <appengine.api.version>1.9.49</appengine.api.version>
     <docker.label.prefix>async-</docker.label.prefix>
   </properties>
 
