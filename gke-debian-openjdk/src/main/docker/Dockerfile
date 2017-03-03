@@ -15,14 +15,14 @@
 FROM gcr.io/google_appengine/debian8
 ENV DEBIAN_FRONTEND noninteractive
 
-# Update debian 
-RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
+# Update debian
+RUN echo 'deb http://ftp.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list \
  && apt-get -q update \
- && apt-get -y -q --no-install-recommends install \
+ && apt-get -t jessie-backports -y -q --no-install-recommends install \
     ca-certificates \
     openjdk-8-jre \
     netbase \
-    wget \ 
+    wget \
     unzip \
  && apt-get clean \
  && rm /var/lib/apt/lists/*_*

@@ -1,12 +1,12 @@
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  */
 // See //j/c/g/apphosting/runtime/security/shared/intercept/java/util/logging/DefaultHandler.java
 public class VmRuntimeLogHandler extends Handler {
-  
+
   public static final String JAVA_UTIL_LOGGING_CONFIG_PROPERTY = "java.util.logging.config.file";
 
   private static final Logger ROOT_LOGGER = Logger.getLogger("");
@@ -60,7 +60,7 @@ public class VmRuntimeLogHandler extends Handler {
     try {
       logManager.readConfiguration();
     } catch (SecurityException | IOException e) {
-      System.err.println("Warning: caught exception when reading logging properties.");
+      System.err.println("Warning: caught exception when reading logging properties."
       System.err.println(e.getClass().getName() + ": " + e.getMessage());
     }
   }
@@ -70,7 +70,7 @@ public class VmRuntimeLogHandler extends Handler {
    *
    * @param logManager
    */
-  
+
   static void init(LogManager logManager) {
     reloadLoggingProperties(logManager);
     for (Handler handler : ROOT_LOGGER.getHandlers()) {
