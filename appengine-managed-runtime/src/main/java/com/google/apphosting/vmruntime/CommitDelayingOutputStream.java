@@ -36,11 +36,11 @@ import javax.servlet.WriteListener;
  * might fail.
  *
  */
-class CommitDelayingOutputStream extends ServletOutputStream {
+public class CommitDelayingOutputStream extends ServletOutputStream {
   // The wrapped OutputStream is configured with an output buffer of 32 MB (see jetty9/jetty.xml).
   // 32MB is also the maximum response size allowed by AppEngine. Setting the buffer size to the
   // maximum response size ensures that no flush occurs due to full buffer.
-  static final int MAX_RESPONSE_SIZE_BYTES = 32 * 1024 * 1024;
+  public static final int MAX_RESPONSE_SIZE_BYTES = 32 * 1024 * 1024;
   private int bufferSize = MAX_RESPONSE_SIZE_BYTES;
 
   // Make sure this matches responseHeaderSize value in jetty9/jetty.xml!
