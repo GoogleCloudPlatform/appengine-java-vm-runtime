@@ -33,6 +33,7 @@ import com.google.apphosting.utils.http.HttpRequest;
 import com.google.apphosting.utils.http.HttpResponse;
 import com.google.apphosting.utils.servlet.HttpServletRequestAdapter;
 import com.google.apphosting.utils.servlet.HttpServletResponseAdapter;
+import com.google.apphosting.vmruntime.CommitDelayingOutputStream;
 import com.google.apphosting.vmruntime.CommitDelayingResponse;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
@@ -49,8 +50,6 @@ import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.AbstractSessionManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.ArrayUtil;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -89,7 +88,7 @@ public class VmRuntimeWebAppContext
   };
   // constant.  If it's much larger than this we may need to
   // restructure the code a bit.
-  protected static final int MAX_RESPONSE_SIZE = 32 * 1024 * 1024;
+  protected static final int MAX_RESPONSE_SIZE = CommitDelayingOutputStream.MAX_RESPONSE_SIZE_BYTES;
 
   private final String serverInfo;
 
@@ -280,7 +279,6 @@ public class VmRuntimeWebAppContext
       String target, Request baseRequest, HttpServletRequest httpServletRequest ,
       HttpServletResponse httpServletResponse)
       throws IOException, ServletException {
-
     HttpRequest request = new HttpServletRequestAdapter(httpServletRequest);
     HttpResponse response = new HttpServletResponseAdapter(httpServletResponse);
 

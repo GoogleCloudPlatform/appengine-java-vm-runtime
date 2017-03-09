@@ -20,18 +20,18 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.PROJECT;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.VERSION;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -42,11 +42,47 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
-	
-
 	@Override
 	protected void setUp() throws Exception {
 		appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
+		File webinf = new File("./WEB-INF");
+		if (!webinf.exists() || !webinf.isDirectory()) {
+		  webinf = new File("./target/webapps/testwebapp/WEB-INF");
+		  if (!webinf.exists() || !webinf.isDirectory()) {
+		    System.err.println(webinf.getAbsolutePath());
+		    throw new IllegalStateException("Incorrect working directory "+new File(".").getAbsoluteFile().getCanonicalPath());
+		  }
+		}
+
+        File small = new File(webinf.getParentFile(),"small.txt");
+        if (!small.exists()) {
+          Writer out = new OutputStreamWriter(new FileOutputStream(small));
+          out.write("zero\n");
+          out.write("one\n");
+          out.write("two\n");
+          out.close();
+        }
+          
+		File big = new File(webinf.getParentFile(),"big.txt");
+		if (!big.exists())  {
+          Writer out = new OutputStreamWriter(new FileOutputStream(big));
+          for (int i = 0; i < 4096 ; i++) {
+            out.write(Integer.toString(i));
+            out.write("\n");
+          }
+          out.close();
+		}
+
+		File huge = new File(webinf.getParentFile(),"huge.txt");
+		if (!huge.exists())  {
+		  Writer out = new OutputStreamWriter(new FileOutputStream(huge));
+		  for (int i = 0; i < 16*1024*1024 ; i++) {
+		    out.write(Integer.toString(i));
+		    out.write("\n");
+		  }
+		  out.close();
+		}
+
 		super.setUp();
 	}
 
@@ -79,6 +115,26 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
   public void testWelcomeServlet() throws Exception {
     String[] lines = fetchUrl(createUrl("/"));
     assertTrue(Arrays.asList(lines).contains("Hello, World!"));
+  }
+  
+  public void testSmallTxt() throws Exception {
+    String[] lines = fetchUrl(createUrl("/small.txt"));
+    assertEquals("zero", lines[0]);
+    assertEquals("one", lines[1]);
+    assertEquals("two", lines[2]);
+  }
+  
+  public void testBigTxt() throws Exception {
+    String[] lines = fetchUrl(createUrl("/big.txt"));
+    assertEquals("0", lines[0]);
+    assertEquals("4095", lines[4095]);
+  }
+  
+  public void testHugeTxt() throws Exception {
+    System.err.println("Expect: java.io.IOException: Max response size exceeded.");
+    HttpURLConnection connection = (HttpURLConnection) createUrl("/huge.txt").openConnection();
+    connection.connect();
+    assertEquals(500, connection.getResponseCode());
   }
 
   /**
