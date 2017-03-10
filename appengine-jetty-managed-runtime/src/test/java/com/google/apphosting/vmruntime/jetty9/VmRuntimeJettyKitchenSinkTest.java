@@ -20,21 +20,16 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.vmruntime.VmApiProxyDelegate;
 import com.google.apphosting.vmruntime.VmApiProxyEnvironment;
 import com.google.apphosting.vmruntime.VmRuntimeUtils;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.PROJECT;
-import static com.google.apphosting.vmruntime.jetty9.VmRuntimeTestBase.VERSION;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import java.util.Arrays;
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Misc individual Jetty9 vmengines tests.
@@ -42,11 +37,47 @@ import org.apache.commons.httpclient.methods.GetMethod;
  */
 public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
-	
+  @Override
+  protected void setUp() throws Exception {
+    appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
+    File webinf = new File("./WEB-INF");
+    if (!webinf.exists() || !webinf.isDirectory()) {
+      webinf = new File("./target/webapps/testwebapp/WEB-INF");
+      if (!webinf.exists() || !webinf.isDirectory()) {
+        System.err.println(webinf.getAbsolutePath());
+        throw new IllegalStateException("Incorrect working directory " + new File(".").getAbsoluteFile().getCanonicalPath());
+      }
+    }
 
-	@Override
-	protected void setUp() throws Exception {
-		appengineWebXml = "WEB-INF/sessions-disabled-appengine-web.xml";
+    File small = new File(webinf.getParentFile(), "small.txt");
+    if (!small.exists()) {
+      Writer out = new OutputStreamWriter(new FileOutputStream(small));
+      out.write("zero\n");
+      out.write("one\n");
+      out.write("two\n");
+      out.close();
+    }
+
+    File big = new File(webinf.getParentFile(), "big.txt");
+    if (!big.exists()) {
+      Writer out = new OutputStreamWriter(new FileOutputStream(big));
+      for (int i = 0; i < 4096; i++) {
+        out.write(Integer.toString(i));
+        out.write("\n");
+      }
+      out.close();
+    }
+
+    File huge = new File(webinf.getParentFile(), "huge.txt");
+    if (!huge.exists()) {
+      Writer out = new OutputStreamWriter(new FileOutputStream(huge));
+      for (int i = 0; i < 16 * 1024 * 1024; i++) {
+        out.write(Integer.toString(i));
+        out.write("\n");
+      }
+      out.close();
+    }
+
 		super.setUp();
 	}
 
@@ -81,6 +112,26 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertTrue(Arrays.asList(lines).contains("Hello, World!"));
   }
 
+  public void testSmallTxt() throws Exception {
+    String[] lines = fetchUrl(createUrl("/small.txt"));
+    assertEquals("zero", lines[0]);
+    assertEquals("one", lines[1]);
+    assertEquals("two", lines[2]);
+  }
+
+  public void testBigTxt() throws Exception {
+    String[] lines = fetchUrl(createUrl("/big.txt"));
+    assertEquals("0", lines[0]);
+    assertEquals("4095", lines[4095]);
+  }
+
+  public void testHugeTxt() throws Exception {
+    System.err.println("Expect: java.io.IOException: Max response size exceeded.");
+    HttpURLConnection connection = (HttpURLConnection) createUrl("/huge.txt").openConnection();
+    connection.connect();
+    assertEquals(500, connection.getResponseCode());
+  }
+
   /**
    * Tests that app.yaml is protected
    */
@@ -100,7 +151,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals(VmApiProxyDelegate.class.getCanonicalName(),
             ApiProxy.getDelegate().getClass().getCanonicalName());
   }
-  
+
   /**
    * Test that the thread local environment is set up on each request.
    *
@@ -171,7 +222,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     String[] lines = fetchUrl(createUrl("/_ah/warmup")); // fetchUrl() fails on non-OK return codes.
     assertEquals(0, lines.length);
   }
-  
+
   /**
    * Test that sessions are disabled. Disabling sessions means that the default HashSessionManager 
    * is being used, which keeps sessions in memory only. Enabling sessions uses the appengine SessionManager
@@ -214,13 +265,13 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     int httpCode = httpClient.executeMethod(get);
     assertEquals(200, httpCode);
   }
-  
+
   protected int fetchResponseCode(URL url) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.connect();
     return connection.getResponseCode();
   }
-  
+
   public void testShutDown() throws Exception {
 
     int code = fetchResponseCode(createUrl("/_ah/health"));
@@ -233,5 +284,5 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
 
     code = fetchResponseCode(createUrl("/_ah/health"));
     assertEquals(HttpServletResponse.SC_BAD_GATEWAY, code);
-  } 
+  }
 }
