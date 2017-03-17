@@ -325,7 +325,6 @@ public class VmRuntimeWebAppContext
           logger.warning("Response for request to '" + target
               + "' was already committed (code=" + httpServletResponse.getStatus()
               + "). This might result in lost log messages.'");
-          requestSpecificEnvironment.flushLogs();
         }
       } finally {
         try {
