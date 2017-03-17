@@ -77,9 +77,6 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
    */
   public CommitDelayingResponse(HttpServletResponse response) throws IOException {
     super(response);
-    // Set the buffer size explicitly, as this ensure both that jetty's aggregate
-    // buffer is the correct size and that the commit threshold is that size.
-    response.setBufferSize(CommitDelayingOutputStream.MAX_RESPONSE_SIZE_BYTES);
     this.output = new CommitDelayingOutputStream(super.getOutputStream());
   }
 
