@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.vmruntime;
+package com.google.apphosting.vmruntime.jetty9;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
+
+import org.eclipse.jetty.io.ByteBufferPool;
+import org.eclipse.jetty.util.BufferUtil;
 
 /**
  * An implementation of {@link ServletOutputStream} wrapping an OutputStream object. Writes are
@@ -37,11 +43,12 @@ import javax.servlet.WriteListener;
  *
  */
 public class CommitDelayingOutputStream extends ServletOutputStream {
-  // The wrapped OutputStream is configured with an output buffer of 32 MB (see jetty9/jetty.xml).
-  // 32MB is also the maximum response size allowed by AppEngine. Setting the buffer size to the
-  // maximum response size ensures that no flush occurs due to full buffer.
+  // The wrapped OutputStream is hard coded with a max output of
+  // 32MB, which  is also the maximum response size allowed by AppEngine. 
   public static final int MAX_RESPONSE_SIZE_BYTES = 32 * 1024 * 1024;
-  private int bufferSize = MAX_RESPONSE_SIZE_BYTES;
+  
+  // The buffer size used to hold un committed output
+  private int bufferSize;
 
   // Make sure this matches responseHeaderSize value in jetty9/jetty.xml!
   static final int MAX_RESPONSE_HEADERS_SIZE_BYTES = 8192;
@@ -68,15 +75,26 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   // and flushIfFlushed() are called respectively.
   private final OutputStream wrappedOutputStream;
 
+  private final ByteBufferPool byteBufferPool;
+    
+  // The current active buffer to aggregate into (the tail of the queue)
+  private ByteBuffer buffer;
+  
+  private final Queue<ByteBuffer> queue;
+  
   /**
-   * Creates a new CommitDelayingOutputStream object.
-   *
-   * @param wrappedOutputStream The OutputStream to forward writes to.
+   * @param wrappedOutputStream The original OutputStream
+   * @param byteBufferPool A buffer pool
    */
-  CommitDelayingOutputStream(OutputStream wrappedOutputStream) {
+  public CommitDelayingOutputStream(ServletOutputStream wrappedOutputStream,
+      ByteBufferPool byteBufferPool,
+      int bufferSize) {
     this.wrappedOutputStream = wrappedOutputStream;
+    this.byteBufferPool = byteBufferPool;
+    this.bufferSize = bufferSize;
+    this.queue = new LinkedList<>();
   }
-
+  
   /**
    * Updates the number of bytes written to the stream. The stream is marked as flushed if the
    * buffer size or content length has been reached.
@@ -263,7 +281,7 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   public void write(byte[] b) throws IOException {
     checkResponseSize(b.length);
     ensureWritable();
-    wrappedOutputStream.write(b);
+    queue(b,0,b.length);
     bytesWritten(b.length);
   }
 
@@ -274,7 +292,7 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   public void write(byte[] b, int off, int len) throws IOException {
     checkResponseSize(len);
     ensureWritable();
-    wrappedOutputStream.write(b, off, len);
+    queue(b,off,len);
     bytesWritten(len);
   }
 
@@ -285,17 +303,34 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   public void write(int b) throws IOException {
     checkResponseSize(1);
     ensureWritable();
-    wrappedOutputStream.write(b);
+    queue(new byte[]{(byte)b},0,1);
     bytesWritten(1);
   }
 
   @Override
   public void setWriteListener(WriteListener writeListener) {
-    // TODO(user): need to implement when really needed. (Servlet 3.1 specific).
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isReady() {
     return true;
+  }
+  
+  private void queue(byte[] b, int off, int len)
+  {
+    while (len > 0) {
+      if (BufferUtil.space(buffer) == 0) {
+        buffer = byteBufferPool.acquire(bufferSize, false);
+        queue.add(buffer);
+      }
+      len -= BufferUtil.fill(buffer, b, off, len);
+    }
+  }
+  
+  void writeQueue() throws IOException {
+    for (ByteBuffer b = queue.poll(); b != null; b = queue.poll()) {
+      BufferUtil.writeTo(b, wrappedOutputStream);
+    }
   }
 }

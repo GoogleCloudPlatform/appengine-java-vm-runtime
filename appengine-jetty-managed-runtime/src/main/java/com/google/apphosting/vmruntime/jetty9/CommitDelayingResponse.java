@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.apphosting.vmruntime;
+package com.google.apphosting.vmruntime.jetty9;
 
 import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
 
@@ -27,6 +27,8 @@ import java.util.Collection;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+
+import org.eclipse.jetty.server.Response;
 
 /**
  * Wraps a {@link HttpServletResponse} so that no user actions can trigger the response to be
@@ -80,7 +82,10 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     // Set the buffer size explicitly, as this ensure both that jetty's aggregate
     // buffer is the correct size and that the commit threshold is that size.
     response.setBufferSize(CommitDelayingOutputStream.MAX_RESPONSE_SIZE_BYTES);
-    this.output = new CommitDelayingOutputStream(super.getOutputStream());
+    Response baseResponse = (Response) response;
+    this.output = new CommitDelayingOutputStream(super.getOutputStream(),
+        baseResponse.getHttpChannel().getByteBufferPool(),
+        baseResponse.getBufferSize());
   }
 
   /**
@@ -96,9 +101,11 @@ public class CommitDelayingResponse extends HttpServletResponseWrapper {
     if (output.hasContentLength()) {
       super.setHeader(CONTENT_LENGTH, Long.toString(output.getContentLength()));
     }
+    output.writeQueue();
     output.flushIfFlushed();
     if (writer != null) {
       writer.close();
+      output.writeQueue();
     }
     output.closeIfClosed();
   }
