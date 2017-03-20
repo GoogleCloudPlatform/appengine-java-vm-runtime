@@ -322,8 +322,8 @@ public class VmRuntimeWebAppContext
           // Flush and set the flush count header so the appserver knows when all logs are in.
           VmRuntimeUtils.flushLogsAndAddHeader(response, requestSpecificEnvironment);
         } else {
-          throw new ServletException("Response for request to '" + target
-              + "' was already commited (code=" + httpServletResponse.getStatus()
+          logger.warning("Response for request to '" + target
+              + "' was already committed (code=" + httpServletResponse.getStatus()
               + "). This might result in lost log messages.'");
         }
       } finally {

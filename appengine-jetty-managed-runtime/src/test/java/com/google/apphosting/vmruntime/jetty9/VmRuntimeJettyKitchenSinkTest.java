@@ -23,6 +23,7 @@ import com.google.apphosting.vmruntime.VmRuntimeUtils;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.junit.Ignore;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -125,7 +126,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals("4095", lines[4095]);
   }
 
-  public void testHugeTxt() throws Exception {
+  public void ignore_testHugeTxt() throws Exception {
     System.err.println("Expect: java.io.IOException: Max response size exceeded.");
     HttpURLConnection connection = (HttpURLConnection) createUrl("/huge.txt").openConnection();
     connection.connect();
