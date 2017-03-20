@@ -20,7 +20,8 @@ RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/a
  && apt-get -q update \
  && apt-get -y -q --no-install-recommends install \
     ca-certificates-java=20161107'*' \
-    openjdk-8-jre-headless=8u121'-*' \
+    openjdk-8-jre-headless=8u121'*' \
+    openjdk-8-jdk-headless=8u121'*' \
     netbase \
     wget \ 
     unzip \

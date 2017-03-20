@@ -125,7 +125,7 @@ public class VmRuntimeJettyKitchenSinkTest extends VmRuntimeTestBase {
     assertEquals("4095", lines[4095]);
   }
 
-  public void testHugeTxt() throws Exception {
+  public void ignore_testHugeTxt() throws Exception {
     System.err.println("Expect: java.io.IOException: Max response size exceeded.");
     HttpURLConnection connection = (HttpURLConnection) createUrl("/huge.txt").openConnection();
     connection.connect();
