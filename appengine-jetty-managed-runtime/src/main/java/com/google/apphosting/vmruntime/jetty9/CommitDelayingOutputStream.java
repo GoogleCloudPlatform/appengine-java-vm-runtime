@@ -330,6 +330,7 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   void writeQueue() throws IOException {
     for (ByteBuffer b = queue.poll(); b != null; b = queue.poll()) {
       BufferUtil.writeTo(b, wrappedOutputStream);
+      byteBufferPool.release(b);
     }
   }
 }
