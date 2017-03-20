@@ -16,6 +16,9 @@
 
 package com.google.apphosting.vmruntime.jetty9;
 
+import org.eclipse.jetty.io.ByteBufferPool;
+import org.eclipse.jetty.util.BufferUtil;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -24,9 +27,6 @@ import java.util.Queue;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
-
-import org.eclipse.jetty.io.ByteBufferPool;
-import org.eclipse.jetty.util.BufferUtil;
 
 /**
  * An implementation of {@link ServletOutputStream} wrapping an OutputStream object. Writes are
@@ -82,7 +82,7 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
   
   private final Queue<ByteBuffer> queue;
   
-  /**
+  /** Construct commit delaying OutputStream
    * @param wrappedOutputStream The original OutputStream
    * @param byteBufferPool A buffer pool
    */
@@ -317,8 +317,7 @@ public class CommitDelayingOutputStream extends ServletOutputStream {
     return true;
   }
   
-  private void queue(byte[] b, int off, int len)
-  {
+  private void queue(byte[] b, int off, int len) {
     while (len > 0) {
       if (BufferUtil.space(buffer) == 0) {
         buffer = byteBufferPool.acquire(bufferSize, false);
