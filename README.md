@@ -49,3 +49,11 @@ Then, you can run this App Engine flexible environment container via the Cloud S
 https://cloud.google.com/appengine/docs/flexible/java/hello-world
 
 Enjoy...
+
+## Troubleshooting
+
+If using Docker for Mac, make sure to expose the docker socket to maven:
+
+      export DOCKER_HOST=unix:///var/run/docker.sock
+
+See https://docs.docker.com/docker-for-mac/troubleshoot/#/known-issues
